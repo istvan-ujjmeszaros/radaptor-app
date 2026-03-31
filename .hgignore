@@ -1,0 +1,22 @@
+syntax: glob
+generated/_*.php
+private/_cache_/_*.php
+.logs/errors.txt
+*.log
+nbproject/*
+*.patch
+*.consoleWriter/*.json
+.git
+.settings
+.idea
+*.map
+nbproject
+*node_modules*
+*_gh_pages*
+node_modules
+bower_components
+~*
+.~*
+*.*\#
+.profiler
+tmp

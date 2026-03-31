@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phive xmlns="https://phar.io/phive">
+  <phar name="phpunit" version="^11.1.3" installed="11.1.3" location="./tools/phpunit" copy="true"/>
+  <phar name="phpstan" version="^1.11.3" installed="1.11.3" location="./tools/phpstan" copy="true"/>
+  <phar name="php-cs-fixer" version="^3.94.2" installed="3.94.2" location="./tools/php-cs-fixer" copy="true"/>
+</phive>

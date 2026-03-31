@@ -1,0 +1,83 @@
+name: radaptor-app-dev
+services:
+  mariadb:
+    image: mariadb:11.8
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=radaptor_app
+      - TZ=UTC
+    ports:
+      - "3308:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./docker/mariadb/initdb.d:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-pradaptor_app"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: ./docker/h2o
+      dockerfile: Dockerfile
+    image: radaptor-app-h2o:local
+    environment:
+      - ALLOW_OVERRIDE=true
+      - PUBLIC_FOLDER=/app/public/www
+    ports:
+      - "8084:80"
+      - "8444:443"
+    volumes:
+      - ./:/app
+      - ./docker/h2o-no-redis.conf:/config/h2o.conf:ro
+    depends_on:
+      - php
+
+  php:
+    build:
+      context: ./docker
+      dockerfile: php8.4/Dockerfile-unified
+      target: dev
+    image: radaptor-app-phpfpm:8.4-dev
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      - XDEBUG_FILE_LINK_FORMAT=javascript:var r = new XMLHttpRequest; r.open("get","http://localhost:63342/api/file/%f:%l".replace("/app/", "/"));r.send()
+      - ENVIRONMENT=development
+      - TZ=UTC
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "9511:9501"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    volumes:
+      - ./:/app
+      - ./docker/99-radaptor-dev.ini:/usr/local/etc/php/conf.d/99-radaptor-dev.ini:ro
+
+  redis-cache:
+    image: redis:7-alpine
+    command: redis-server --save "" --loglevel warning
+
+  redis-session:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --loglevel warning
+    volumes:
+      - redis-session-data:/data
+
+  redis-test:
+    image: redis:7-alpine
+    command: redis-server --save "" --loglevel warning
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8026:8025"
+      - "1026:1025"
+
+volumes:
+  mariadb-data:
+  redis-session-data:

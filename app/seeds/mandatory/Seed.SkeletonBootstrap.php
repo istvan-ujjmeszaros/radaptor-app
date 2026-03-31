@@ -1,0 +1,444 @@
+<?php
+
+class SeedSkeletonBootstrap extends AbstractSeed
+{
+	private const string ROLE_SYSTEM_DEVELOPER = 'system_developer';
+	private const string ROLE_SYSTEM_ADMINISTRATOR = 'system_administrator';
+
+	public function getVersion(): string
+	{
+		return '1.2.0';
+	}
+
+	public function getDescription(): string
+	{
+		return 'Ensure bootstrap admin, homepage, login page, and core admin pages.';
+	}
+
+	public function run(SeedContext $context): void
+	{
+		Cache::flush();
+
+		$this->ensureSecurityBaseline();
+		$this->ensureBootstrapAdmin();
+		$this->ensureHomepage();
+		$this->ensureAdminIndex();
+		$this->ensureLoginPages();
+		$this->ensureAdminPages();
+	}
+
+	private function ensureBootstrapAdmin(): void
+	{
+		$username = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_USERNAME', 'admin');
+		$password = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_PASSWORD', 'admin123456');
+		$locale = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		$timezone = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
+		$existing = User::getUserByName($username);
+
+		if ($existing === null) {
+			$user = EntityUser::saveFromArray([
+				'username' => $username,
+				'password' => UserBase::encodePassword($password),
+				'is_active' => 1,
+				'locale' => $locale,
+				'timezone' => $timezone,
+			]);
+			$user_id = (int) $user->user_id;
+		} else {
+			$user = EntityUser::saveFromArray([
+				'user_id' => (int) $existing['user_id'],
+				'username' => $username,
+				'is_active' => 1,
+				'locale' => $locale,
+				'timezone' => $timezone,
+			]);
+			$user_id = (int) $user->user_id;
+		}
+
+		$this->ensureUserHasRole($user_id, self::ROLE_SYSTEM_ADMINISTRATOR);
+		$this->ensureUserHasRole($user_id, self::ROLE_SYSTEM_DEVELOPER);
+		$this->ensureUserInUsergroup($user_id, 'Administrators');
+		$this->ensureUserInUsergroup($user_id, 'Developers');
+	}
+
+	private function ensureSecurityBaseline(): void
+	{
+		$this->ensureRoleBranch($this->getRoleTreeDefinitions());
+		$this->ensureUsergroupBranch($this->getUsergroupTreeDefinitions());
+		$this->ensureUsergroupHasRole('Administrators', self::ROLE_SYSTEM_ADMINISTRATOR);
+		$this->ensureUsergroupHasRole('Developers', self::ROLE_SYSTEM_DEVELOPER);
+	}
+
+	private function ensureHomepage(): void
+	{
+		$page_id = $this->ensureWebpage('/', 'index.html', 'public_empty');
+		$this->ensureEveryoneCanViewResource($page_id);
+		$connection_id = $this->ensureWidget($page_id, WidgetList::PLAINHTML);
+
+		PlainHtml::saveSettings([
+			'content' => '<h1>Radaptor App</h1><p>Your application skeleton is installed and ready.</p><p><a href="/login.html">Open the login page</a> or jump directly to <a href="/admin/index.html">the admin area</a>.</p>',
+		], $connection_id);
+	}
+
+	private function ensureAdminIndex(): void
+	{
+		$page_id = $this->ensureWebpage('/admin/', 'index.html', 'admin_default');
+		$connection_id = $this->ensureWidget($page_id, WidgetList::PLAINHTML);
+
+		PlainHtml::saveSettings([
+			'content' => '<h2>Welcome to Radaptor App</h2><p>This admin shell was bootstrapped from the default mandatory seed.</p><p>Use the side menu to manage users, roles, and resources.</p>',
+		], $connection_id);
+	}
+
+	private function ensureLoginPages(): void
+	{
+		ResourceTypeWebpage::getWebpageIdByFormType(FormList::USERLOGIN);
+
+		$page_id = $this->ensureWebpage('/', 'login.html', 'admin_empty');
+		$this->ensureEveryoneCanViewResource($page_id);
+		$connection_id = $this->ensureWidget($page_id, WidgetList::FORM, false);
+
+		AttributeHandler::addAttribute(
+			new AttributeResourceIdentifier(ResourceNames::WIDGET_CONNECTION, (string) $connection_id),
+			['form_id' => FormList::USERLOGIN]
+		);
+	}
+
+	private function ensureAdminPages(): void
+	{
+		foreach ([
+			WidgetList::USERLIST,
+			WidgetList::USERGROUPLIST,
+			WidgetList::ROLELIST,
+			WidgetList::RESOURCETREE,
+			WidgetList::ADMINMENU,
+		] as $widget_name) {
+			ResourceTypeWebpage::findWebpageIdWithWidget($widget_name);
+		}
+	}
+
+	private function ensureWebpage(string $path, string $resource_name, string $layout): int
+	{
+		$page = ResourceTreeHandler::getResourceTreeEntryData($path, $resource_name);
+
+		if ($page !== null) {
+			return (int) $page['node_id'];
+		}
+
+		$page_id = ResourceTreeHandler::createResourceTreeEntryFromPath($path, $resource_name, 'webpage', $layout);
+
+		if (!is_int($page_id) || $page_id <= 0) {
+			throw new RuntimeException("Unable to create webpage {$path}{$resource_name}");
+		}
+
+		return $page_id;
+	}
+
+	private function ensureWidget(int $page_id, string $widget_name, bool $multiple = true): int
+	{
+		$existing_connection_id = Widget::getWidgetConnectionId($page_id, ResourceTypeWebpage::DEFAULT_SLOT_NAME, $widget_name);
+
+		if (is_int($existing_connection_id) && $existing_connection_id > 0) {
+			return $existing_connection_id;
+		}
+
+		$connection_id = Widget::assignWidgetToWebpage(
+			$page_id,
+			ResourceTypeWebpage::DEFAULT_SLOT_NAME,
+			$widget_name,
+			null,
+			$multiple
+		);
+
+		if (!is_int($connection_id) || $connection_id <= 0) {
+			throw new RuntimeException("Unable to assign widget {$widget_name} to webpage {$page_id}");
+		}
+
+		return $connection_id;
+	}
+
+	private function getStringSetting(string $name, string $default): string
+	{
+		$env = getenv($name);
+
+		if (is_string($env) && trim($env) !== '') {
+			return trim($env);
+		}
+
+		if (defined(ApplicationConfig::class . '::' . $name)) {
+			$value = constant(ApplicationConfig::class . '::' . $name);
+
+			if (is_string($value) && trim($value) !== '') {
+				return trim($value);
+			}
+		}
+
+		return $default;
+	}
+
+	/**
+	 * @return list<array{
+	 *     title: string,
+	 *     description: string,
+	 *     role: string,
+	 *     _?: list<array<string, mixed>>
+	 * }>
+	 */
+	private function getRoleTreeDefinitions(): array
+	{
+		return [
+			['title' => 'Developer', 'description' => 'Developer', 'role' => self::ROLE_SYSTEM_DEVELOPER, '_' => [
+				['title' => 'Usergroup administrator', 'description' => 'Usergroup admin', 'role' => 'usergroups_admin', '_' => [
+					['title' => 'Usergroup role administrator', 'description' => 'Usergroup role admin', 'role' => 'usergroups_role_admin'],
+				]],
+				['title' => 'Role administrator', 'description' => 'Role admin', 'role' => 'roles_admin', '_' => [
+					['title' => 'Role viewer', 'description' => 'Role viewer', 'role' => 'roles_viewer'],
+				]],
+				['title' => 'Domain administrator', 'description' => 'Domain admin', 'role' => 'domains_admin'],
+				['title' => 'Resource ACL administrator', 'description' => 'Resource ACL admin', 'role' => 'acl_admin'],
+			]],
+			['title' => 'System administrator', 'description' => 'System administrator', 'role' => self::ROLE_SYSTEM_ADMINISTRATOR, '_' => [
+				['title' => 'Translator', 'description' => 'Manage i18n translations in the workbench and import/export flows', 'role' => 'i18n_translator'],
+				['title' => 'Richtext administrator', 'description' => 'Richtext admin', 'role' => 'richtext_administrator'],
+				['title' => 'Blog administrator', 'description' => 'Blog admin', 'role' => 'blog_admin'],
+				['title' => 'Email administrator', 'description' => 'Email administration and sending', 'role' => 'emails_admin'],
+				['title' => 'Resource ACL viewer', 'description' => 'Resource ACL viewer', 'role' => 'acl_viewer'],
+				['title' => 'User administration', 'description' => 'User admin', 'role' => 'users_admin', '_' => [
+					['title' => 'User role administrator', 'description' => 'User role admin', 'role' => 'users_role_admin'],
+					['title' => 'User usergroup administrator', 'description' => 'User usergroup admin', 'role' => 'users_usergroup_admin'],
+				]],
+				['title' => 'File administrator', 'description' => 'File uploader', 'role' => 'files_admin'],
+				['title' => 'Content editor', 'description' => 'Content editor', 'role' => 'content_admin'],
+				['title' => 'Timetracker administrator', 'description' => 'Timetracker admin', 'role' => 'timetracker_administrator', '_' => [
+					['title' => 'Timetracker viewer', 'description' => 'Timetracker viewer', 'role' => 'timetracker_viewer'],
+				]],
+			]],
+		];
+	}
+
+	/**
+	 * @return list<array{
+	 *     title: string,
+	 *     description: string,
+	 *     is_system_group: int,
+	 *     _?: list<array<string, mixed>>
+	 * }>
+	 */
+	private function getUsergroupTreeDefinitions(): array
+	{
+		return [
+			['is_system_group' => 1, 'title' => 'Everyone', 'description' => 'Everyone', '_' => [
+				['is_system_group' => 1, 'title' => 'Logged in users', 'description' => 'Logged in users'],
+				['is_system_group' => 0, 'title' => 'Administrators', 'description' => 'Administrators'],
+				['is_system_group' => 0, 'title' => 'Developers', 'description' => 'Developers'],
+			]],
+		];
+	}
+
+	/**
+	 * @param list<array<string, mixed>> $definitions
+	 */
+	private function ensureRoleBranch(array $definitions, int $parent_id = 0): void
+	{
+		foreach ($definitions as $definition) {
+			$role_id = $this->ensureRole(
+				(string) $definition['role'],
+				(string) $definition['title'],
+				(string) $definition['description'],
+				$parent_id
+			);
+
+			if (isset($definition['_']) && is_array($definition['_'])) {
+				$this->ensureRoleBranch($definition['_'], $role_id);
+			}
+		}
+	}
+
+	private function ensureRole(string $role, string $title, string $description, int $parent_id): int
+	{
+		$existing = DbHelper::selectOne('roles_tree', ['role' => $role], '', 'node_id,parent_id,title,description');
+
+		if (!is_array($existing)) {
+			$role_id = Roles::addRole([
+				'role' => $role,
+				'title' => $title,
+				'description' => $description,
+			], $parent_id);
+
+			if (!is_int($role_id) || $role_id <= 0) {
+				throw new RuntimeException("Unable to create role {$role}");
+			}
+
+			return $role_id;
+		}
+
+		$role_id = (int) $existing['node_id'];
+
+		if ((int) $existing['parent_id'] !== $parent_id && !Roles::moveToPosition($role_id, $parent_id, 0)) {
+			throw new RuntimeException("Unable to move role {$role}");
+		}
+
+		$save_data = ['node_id' => $role_id];
+
+		if ((string) ($existing['title'] ?? '') !== $title) {
+			$save_data['title'] = $title;
+		}
+
+		if ((string) ($existing['description'] ?? '') !== $description) {
+			$save_data['description'] = $description;
+		}
+
+		if (count($save_data) > 1) {
+			if (Roles::updateRole($save_data, $role_id) < 0) {
+				throw new RuntimeException("Unable to update role {$role}");
+			}
+		}
+
+		return $role_id;
+	}
+
+	/**
+	 * @param list<array<string, mixed>> $definitions
+	 */
+	private function ensureUsergroupBranch(array $definitions, int $parent_id = 0): void
+	{
+		foreach ($definitions as $definition) {
+			$usergroup_id = $this->ensureUsergroup(
+				(string) $definition['title'],
+				(string) $definition['description'],
+				(int) $definition['is_system_group'],
+				$parent_id
+			);
+
+			if (isset($definition['_']) && is_array($definition['_'])) {
+				$this->ensureUsergroupBranch($definition['_'], $usergroup_id);
+			}
+		}
+	}
+
+	private function ensureUsergroup(string $title, string $description, int $is_system_group, int $parent_id): int
+	{
+		$existing = DbHelper::selectOne('usergroups_tree', ['title' => $title], '', 'node_id,parent_id,description,is_system_group');
+
+		if (!is_array($existing)) {
+			$usergroup_id = Usergroups::addUsergroup([
+				'title' => $title,
+				'description' => $description,
+				'is_system_group' => $is_system_group,
+			], $parent_id);
+
+			if (!is_int($usergroup_id) || $usergroup_id <= 0) {
+				throw new RuntimeException("Unable to create usergroup {$title}");
+			}
+
+			return $usergroup_id;
+		}
+
+		$usergroup_id = (int) $existing['node_id'];
+
+		if ((int) $existing['parent_id'] !== $parent_id && !Usergroups::moveToPosition($usergroup_id, $parent_id, 0)) {
+			throw new RuntimeException("Unable to move usergroup {$title}");
+		}
+
+		$save_data = ['node_id' => $usergroup_id];
+
+		if ((string) ($existing['description'] ?? '') !== $description) {
+			$save_data['description'] = $description;
+		}
+
+		if ((int) ($existing['is_system_group'] ?? 0) !== $is_system_group) {
+			$save_data['is_system_group'] = $is_system_group;
+		}
+
+		if (count($save_data) > 1) {
+			if (Usergroups::updateUsergroup($save_data, $usergroup_id) < 0) {
+				throw new RuntimeException("Unable to update usergroup {$title}");
+			}
+		}
+
+		return $usergroup_id;
+	}
+
+	private function ensureUsergroupHasRole(string $title, string $role): void
+	{
+		$usergroup = DbHelper::selectOne('usergroups_tree', ['title' => $title], '', 'node_id');
+		$role_row = DbHelper::selectOne('roles_tree', ['role' => $role], '', 'node_id');
+
+		if (!is_array($usergroup) || !is_array($role_row)) {
+			throw new RuntimeException("Unable to map role {$role} to usergroup {$title}");
+		}
+
+		$usergroup_id = (int) $usergroup['node_id'];
+		$role_id = (int) $role_row['node_id'];
+
+		if (!Roles::checkUsergroupIsAssigned($role_id, $usergroup_id) && !Roles::assignToUsergroup($role_id, $usergroup_id)) {
+			throw new RuntimeException("Unable to assign role {$role} to usergroup {$title}");
+		}
+	}
+
+	private function ensureUserHasRole(int $user_id, string $role): void
+	{
+		$role_row = DbHelper::selectOne('roles_tree', ['role' => $role], '', 'node_id');
+
+		if (!is_array($role_row)) {
+			throw new RuntimeException("Role not found: {$role}");
+		}
+
+		$role_id = (int) $role_row['node_id'];
+
+		if (!Roles::checkUserIsAssigned($role_id, $user_id) && !Roles::assignToUser($role_id, $user_id)) {
+			throw new RuntimeException("Unable to assign role {$role} to user {$user_id}");
+		}
+	}
+
+	private function ensureUserInUsergroup(int $user_id, string $title): void
+	{
+		$usergroup = DbHelper::selectOne('usergroups_tree', ['title' => $title], '', 'node_id');
+
+		if (!is_array($usergroup)) {
+			throw new RuntimeException("Usergroup not found: {$title}");
+		}
+
+		$usergroup_id = (int) $usergroup['node_id'];
+
+		if (!Usergroups::checkUserIsAssigned($usergroup_id, $user_id) && !Usergroups::assignToUser($usergroup_id, $user_id)) {
+			throw new RuntimeException("Unable to assign user {$user_id} to usergroup {$title}");
+		}
+	}
+
+	private function ensureEveryoneCanViewResource(int $resource_id): void
+	{
+		$everyone = DbHelper::selectOne('usergroups_tree', ['title' => 'Everyone'], '', 'node_id');
+
+		if (!is_array($everyone)) {
+			throw new RuntimeException('Everyone usergroup not found');
+		}
+
+		$usergroup_id = (int) $everyone['node_id'];
+		$acl = DbHelper::selectOne('resource_acl', [
+			'resource_id' => $resource_id,
+			'subject_type' => 'usergroup',
+			'subject_id' => $usergroup_id,
+		], '', 'acl_id,allow_view');
+
+		if (!is_array($acl)) {
+			if (!ResourceAcl::assignToUsergroup($usergroup_id, $resource_id)) {
+				throw new RuntimeException("Unable to assign Everyone ACL to resource {$resource_id}");
+			}
+
+			$acl = DbHelper::selectOne('resource_acl', [
+				'resource_id' => $resource_id,
+				'subject_type' => 'usergroup',
+				'subject_id' => $usergroup_id,
+			], '', 'acl_id,allow_view');
+		}
+
+		if (!is_array($acl)) {
+			throw new RuntimeException("Unable to load Everyone ACL for resource {$resource_id}");
+		}
+
+		if ((int) ($acl['allow_view'] ?? 0) !== 1) {
+			ResourceAcl::updateAcl((int) $acl['acl_id'], ['allow_view' => 1]);
+		}
+	}
+}

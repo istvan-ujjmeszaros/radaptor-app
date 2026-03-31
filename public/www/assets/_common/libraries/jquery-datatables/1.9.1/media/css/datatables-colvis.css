@@ -1,0 +1,81 @@
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * ColVis styles
+ */
+.ColVis {
+	float: right;
+	margin-bottom: 1em;
+}
+
+.ColVis_Button {
+/*	position: relative;
+	float: left;*/
+	display:inline-block;
+	margin: 5px 3px 0 10px;
+	padding: 3px 5px;
+/*	height: 30px;*/
+	cursor: pointer;
+	height:26px;
+	
+	background-color: transparent;
+	color: #808185;
+	border: 1px solid #ccc;
+	padding: 2px 5px;
+	margin: 0;
+	cursor: pointer;
+}
+
+.ColVis_Button:hover {
+	background-color: #ddd;
+}
+
+.ColVis_text_hover {
+	border: 1px solid #999;
+	background-color: #f0f0f0;
+}
+
+div.ColVis_collectionBackground {
+	background-color: black;
+	z-index: 1100;
+}
+
+div.ColVis_collection {
+	position: relative;
+	width: 150px;
+	background-color: #f3f3f3;
+	padding: 3px;
+	border: 1px solid #ccc;
+	z-index: 1102;
+}
+
+div.ColVis_collection button.ColVis_Button {
+	background-color: white;
+	width: 100%;
+	float: none;
+	margin-bottom: 2px;
+}
+
+div.ColVis_catcher {
+	position: absolute;
+	z-index: 1101;
+}
+
+.disabled {
+	color: #999;
+}
+
+
+
+button.ColVis_Button {
+	text-align: left;
+}
+
+div.ColVis_collection button.ColVis_Button:hover {
+	border: 1px solid #999;
+	background-color: #f0f0f0;
+}
+
+span.ColVis_radio {
+	display: inline-block;
+	width: 20px;
+}

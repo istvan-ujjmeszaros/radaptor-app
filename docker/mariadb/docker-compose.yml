@@ -1,0 +1,27 @@
+name: mariadb
+services:
+
+  mariadb:
+    container_name: mariadb
+    image: mariadb:11.8.3
+    restart: always
+    command: ["mariadbd", "--default-time-zone=+00:00"]
+    environment:
+      MARIADB_ROOT_PASSWORD: radaptor
+      TZ: UTC
+    volumes:
+      - ${RADAPTOR_MARIADB_DATA_DIR:-/home/styu/_docker_volumes/mariadb11_data}:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - php-app-network # Connect to a shared Docker network
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+networks:
+  php-app-network:
+    external: true # Use the existing network that PHP services are already on

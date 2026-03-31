@@ -1,0 +1,37 @@
+{
+  "manifest_version": 1,
+  "registries": {
+    "default": {
+      "url": "https://packages.example.invalid/registry.json"
+    }
+  },
+  "core": {
+    "framework": {
+      "package": "radaptor/core/framework",
+      "source": {
+        "type": "registry",
+        "registry": "default",
+        "version": "^0.1.0"
+      }
+    },
+    "cms": {
+      "package": "radaptor/core/cms",
+      "source": {
+        "type": "registry",
+        "registry": "default",
+        "version": "^0.1.0"
+      }
+    }
+  },
+  "themes": {
+    "portal-admin": {
+      "package": "radaptor/themes/portal-admin",
+      "source": {
+        "type": "registry",
+        "registry": "default",
+        "version": "^0.1.0"
+      }
+    }
+  },
+  "plugins": {}
+}

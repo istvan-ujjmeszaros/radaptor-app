@@ -1,0 +1,63 @@
+FROM shinsenter/php:8.4-fpm
+
+ARG PHP_VERSION=8.4
+ARG ENVIRONMENT=dev
+
+# Install dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
+    mc \
+    htop \
+    libzip-dev \
+    gettext \
+    libtidy-dev \
+    libbrotli-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    wget \
+    gnupg
+
+#RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+
+RUN phpaddmod gettext pdo_mysql zip tidy gd calendar
+RUN phpaddmod xdebug
+RUN phpaddmod redis
+
+RUN pecl install brotli
+
+#RUN pecl install xdebug
+#RUN pecl install redis-6.1.0
+
+#RUN docker-php-ext-enable redis xdebug brotli
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Configure PHP
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+
+# Set memory limit to -1
+RUN echo "memory_limit=-1" > "$PHP_INI_DIR/conf.d/memory-limit.ini"
+
+ENV XDEBUG_FILE_LINK_FORMAT='phpstorm://open?file=%f&line=%l'
+COPY ./99-radaptor-dev.ini "$PHP_INI_DIR/conf.d/99-radaptor-dev.ini"
+
+# Install Composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+# Install Phive
+RUN wget -O phive.phar https://phar.io/releases/phive.phar
+RUN wget -O phive.phar.asc https://phar.io/releases/phive.phar.asc
+RUN gpg --keyserver hkps://keys.openpgp.org --recv-keys 0x9D8A98B29B2D5D79
+RUN gpg --verify phive.phar.asc phive.phar
+RUN chmod +x phive.phar
+RUN mv phive.phar /usr/local/bin/phive
+
+# Automatically trust and install specified phars using Phive
+COPY ./phars.xml /app/.phive/phars.xml
+RUN phive install
+
+COPY ./radaptor /usr/local/bin/radaptor
+RUN chmod +x /usr/local/bin/radaptor
+
+ENV RADAPTOR_APP_ROOT=/app
+WORKDIR /app

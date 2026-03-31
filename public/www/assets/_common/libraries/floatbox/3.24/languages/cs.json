@@ -1,0 +1,14 @@
+// Czech
+{
+"hintClose":   "Zavřít (klávesa: Esc)",
+"hintPrev":    "Předchozí (klávesa: ←)",
+"hintNext":    "Další (klávesa: →)",
+"hintPlay":    "Přehrát (klávesa: mezerník)",
+"hintPause":   "Pauza (klávesa: mezerník)",
+"hintResize":  "Změna velikosti (klávesa: Tab)",
+"imgCount":    "Obrázek %1 z %2",
+"nonImgCount": "Strana %1 z %2",
+"mixedCount":  "(%1 z %2)",
+"infoText":    "Info...",
+"printText":   "Tisk..."
+}

@@ -1,0 +1,46 @@
+{
+    "require-dev": {
+        "phpunit/phpunit": "^11.3",
+        "phpstan/phpstan": "^2.1",
+        "jetbrains/phpstorm-attributes": "^1.2",
+        "fakerphp/faker": "^1.24",
+        "illuminate/view": "^12.49",
+        "illuminate/events": "^12.49",
+        "illuminate/filesystem": "^12.49",
+        "twig/twig": "^3.23"
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        }
+    },
+    "require": {
+        "php": "^8.4",
+        "ext-pdo": "*",
+        "ext-calendar": "*",
+        "ext-iconv": "*",
+        "ext-gd": "*",
+        "ext-dom": "*",
+        "ext-intl": "*",
+        "ext-redis": "*",
+        "ext-tidy": "*",
+        "ext-gettext": "*",
+        "ext-fileinfo": "*",
+        "ext-readline": "*",
+        "symfony/string": "^7.1",
+        "ext-igbinary": "*",
+        "ext-brotli": "*",
+        "monolog/monolog": "^3.8"
+    },
+    "scripts": {
+        "setup-git-hooks": [
+            "php bin/setup-hooks.php"
+        ],
+        "post-install-cmd": [
+            "@setup-git-hooks"
+        ],
+        "post-update-cmd": [
+            "@setup-git-hooks"
+        ]
+    }
+}

@@ -1,0 +1,113 @@
+.bootstrap-transfer-container select {
+	-webkit-border-radius: 0 0 4px 4px;
+       -moz-border-radius: 0 0 4px 4px;
+            border-radius: 0 0 4px 4px;
+}
+
+.bootstrap-transfer-container .filtered {
+	margin:0;
+	width:100%;
+}
+
+
+.bootstrap-transfer-container .selector-available,
+.bootstrap-transfer-container .selector-chosen {
+	float: left;
+	width: 100%;
+	text-align: center;
+}
+
+.bootstrap-transfer-container .selector-available h2 {
+	background: #708090;
+    color: white;
+}
+
+.bootstrap-transfer-container .selector-chosen h2 {
+	background: #708090;
+	color: white;
+}
+
+.bootstrap-transfer-container .selector-available h2,
+.bootstrap-transfer-container .selector-chosen h2 {
+	border: 1px solid #CCC;
+	margin: 0;
+	height: 18px;
+	padding-left: 4px;
+	line-height: inherit;
+	font-size: 11px;
+	text-align: left;
+	font-weight: normal;
+	-webkit-border-radius: 4px 4px 0 0;
+       -moz-border-radius: 4px 4px 0 0;
+            border-radius: 4px 4px 0 0;
+
+}
+
+.bootstrap-transfer-container .selector-available input {
+	width: 100%;
+	margin: -1px -13px -1px;
+	height: 10px;
+        line-height: 11px;
+        font-size: 11px;
+}
+
+.bootstrap-transfer-container .selector-filter {
+	background: white;
+	border: 1px solid #CCC;
+	border-width: 0 1px;
+	padding: 3px;
+	color: #999;
+	font-size: 10px;
+	margin: 0;
+	text-align: left;
+	vertical-align: middle;
+	line-height: 140%;
+}
+
+.bootstrap-transfer-container .selector-filter.right {
+	padding-top: 5px;
+	height: 18px;
+	position: relative;
+}
+.bootstrap-transfer-container .selector-filter.right p {
+	font-size: 11px;
+}
+
+.bootstrap-transfer-container a.selector-chooseall,
+.bootstrap-transfer-container a.selector-clearall {
+	text-decoration: none;
+	margin-top: 5px;
+}
+
+.bootstrap-transfer-container a.selector-clearall i,
+.bootstrap-transfer-container a.selector-chooseall i {
+    margin-top: 1px;
+}
+
+.bootstrap-transfer-container .selector-chooser {
+	float: left;
+	margin-top: -24px;
+	padding: 0px 10px;
+}
+
+.bootstrap-transfer-container .selector-add {
+	margin-bottom: 3px;
+}
+
+.bootstrap-transfer-container .selector-remove {
+}
+
+.bootstrap-transfer-container .selector-add, .selector-remove {
+	width: 16px;
+	height: 16px;
+	display: block;
+	overflow: hidden;
+}
+
+#bootstrap-transfer-order-buttons {
+    vertical-align: bottom;
+    padding: 0px 0px 34px 10px;
+}
+
+
+

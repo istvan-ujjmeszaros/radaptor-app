@@ -1,0 +1,45 @@
+name: laravel-email-test-php84
+services:
+  web:
+    build:
+      context: ./h2o
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - ALLOW_OVERRIDE=true
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./h2o.conf:/config/h2o.conf
+      - ./:/app
+    depends_on:
+      - php
+      - db
+
+  php:
+    build:
+      context: .
+      dockerfile: ./php8.4/Dockerfile-dev
+    working_dir: /app
+    environment:
+      - TZ=UTC
+    volumes:
+      - ./:/app
+
+  webgrind:
+    image: jokkedk/webgrind
+    volumes:
+      - ./.profiler:/tmp
+
+  db:
+    image: mariadb:11.3
+    restart: always
+    command: ["mysqld", "--default-time-zone=+00:00"]
+    environment:
+      - MARIADB_ROOT_PASSWORD=radaptor
+      - TZ=UTC
+    ports:
+      - 3306:3306
+    volumes:
+      - ./.data/mysql:/var/lib/mysql

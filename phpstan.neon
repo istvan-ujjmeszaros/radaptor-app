@@ -1,0 +1,19 @@
+parameters:
+	level: 5
+	bootstrapFiles:
+		- radaptor/radaptor-framework/bootstrap.testing.php
+	paths:
+		- app
+		- config
+		- radaptor.php
+		- tests/core/ConfigTest.php
+		- tests/core/PackageConfigTest.php
+		- tests/core/PackageLockfileTest.php
+		- tests/core/PluginVersionHelperTest.php
+		- tests/core/SkeletonBootstrapSeedTest.php
+	tmpDir: tmp
+	dynamicConstantNames:
+		- USE_PERSISTENT_CACHE
+
+includes:
+	- vendor/phpstan/phpstan/conf/bleedingEdge.neon

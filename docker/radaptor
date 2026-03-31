@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Run the radaptor.php script with PHP, passing all arguments
+# The full path to radaptor.php is used to avoid changing directories
+php /app/radaptor.php "$@"

@@ -1,0 +1,1 @@
+This folder contains generated (cached) HTML pages. If the requested HTML file exists in this folder, the PHP processing will be skipped entirely (controlled by H2O's configuration).

@@ -1,0 +1,94 @@
+# Ignore log files
+.logs/errors.txt
+*.log
+
+# Ignore NetBeans project files
+nbproject/*
+
+# Ignore patch files
+*.patch
+
+# Ignore consoleWriter JSON files
+*.consoleWriter/*.json
+
+# Ignore Git-related directories
+.git
+.settings
+.idea
+
+# Ignore source map files
+*.map
+
+# Ignore Node.js modules
+node_modules
+*node_modules*
+
+# Ignore GitHub Pages branch
+*_gh_pages*
+
+# Ignore Bower components
+bower_components
+
+# Ignore temporary files
+~*
+.~*
+
+# Ignore backup files
+*.*\#
+
+# Ignore profiler files
+.profiler
+
+tools/vendor
+tools/bin
+
+.php-cs-fixer.cache
+
+tools/*
+coverage
+
+# PHPUnit
+/.phpunit.cache
+.phpunit.result.cache
+
+# Playwright artifacts
+.playwright-cli/
+playwright-report/
+test-results/
+blob-report/
+
+vendor/*
+/public/www/_da/
+
+tmp
+.sessions/
+.radaptor-lock-*
+.radaptor-plugin-manifest-*
+.env
+.env.*
+!.env.example
+config/packages/*.local.php
+config/packages/*.php.example
+public/www/assets/packages/
+core/registry/*
+!core/registry/.gitkeep
+themes/registry/*
+!themes/registry/.gitkeep
+plugins/dev/*
+!plugins/dev/.gitkeep
+plugins/registry/*
+!plugins/registry/.gitkeep
+
+# Database data (production)
+.data/
+
+# Template engine caches
+storage/framework/views/*
+storage/framework/twig/*
+storage/cli-home/*
+!storage/framework/views/.gitkeep
+!storage/framework/twig/.gitkeep
+!storage/cli-home/.gitkeep
+
+# Claude Code
+.claude/

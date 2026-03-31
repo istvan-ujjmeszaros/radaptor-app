@@ -1,0 +1,14 @@
+// Vietnamese
+{
+"hintClose":   "Đi ra (bàn chữ: Esc)",
+"hintPrev":    "Kế trước (bàn chữ: ←)",
+"hintNext":    "Kế sau (bàn chữ: →)",
+"hintPlay":    "Bắt đầu (bàn chữ: rập cách chữ)",
+"hintPause":   "Tạm ngừng (bàn chữ: rập cách chữ)",
+"hintResize":  "Đổi kích thước (bàn chữ: Tab)",
+"imgCount":    "Hình %1 trong %2",
+"nonImgCount": "Trang %1 trong %2",
+"mixedCount":  "(%1 trong %2)",
+"infoText":    "Chi tiết...",
+"printText":   "In..."
+}

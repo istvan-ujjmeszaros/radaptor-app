@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         bootstrap="radaptor/radaptor-framework/bootstrap.testing.php"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.4/phpunit.xsd"
+         cacheDirectory=".phpunit.cache">
+  <php>
+    <env name="PHPUNIT" value="1"/>
+  </php>
+  <testsuites>
+    <testsuite name="Project Test Suite">
+      <file>tests/core/ConfigTest.php</file>
+      <file>tests/core/PackageConfigTest.php</file>
+      <file>tests/core/PackageLockfileTest.php</file>
+      <file>tests/core/PluginVersionHelperTest.php</file>
+      <file>tests/core/SkeletonBootstrapSeedTest.php</file>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">./app</directory>
+      <directory suffix=".php">./generated</directory>
+      <directory suffix=".php">./radaptor</directory>
+    </include>
+    <exclude>
+      <directory>./vendor</directory>
+      <directory>./tests</directory>
+    </exclude>
+  </source>
+</phpunit>

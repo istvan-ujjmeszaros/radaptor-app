@@ -1,0 +1,109 @@
+# Stage 1: Base PHP Image
+FROM php:8.4-fpm AS base
+
+# Build arguments
+ARG PHP_VERSION=8.4
+
+# Install common dependencies and PHP extensions
+RUN apt-get update && apt-get install -y \
+        git \
+        mc \
+        htop \
+        libzip-dev \
+        libicu-dev \
+        libssl-dev \
+        gettext \
+        libtidy-dev \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libbrotli-dev \
+        && docker-php-ext-configure gd --with-freetype --with-jpeg \
+        && docker-php-ext-install gettext intl pdo_mysql zip tidy gd calendar \
+        && pecl install redis brotli igbinary \
+        && docker-php-ext-enable redis brotli igbinary \
+        && printf "\n\n\n\n\n" | pecl install swoole \
+        && docker-php-ext-enable swoole \
+        && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables that are common to all stages
+ENV PATH="/app/tools:/app/vendor/bin:${PATH}"
+
+# Stage 2: Development
+FROM base AS dev
+
+# Build arguments
+ARG ENVIRONMENT=dev
+ARG XDEBUG_COMMIT=master
+
+# Set environment variable
+ENV ENVIRONMENT=${ENVIRONMENT}
+
+# Install development-specific dependencies and extensions
+RUN apt-get update && apt-get install -y wget gnupg autoconf gcc make \
+    && git clone https://github.com/xdebug/xdebug.git \
+    && cd xdebug \
+    && git checkout ${XDEBUG_COMMIT} \
+    && phpize \
+    && ./configure \
+    && make \
+    && make install \
+    && docker-php-ext-enable xdebug \
+    && cd .. && rm -rf xdebug \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Configure PHP for development
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini" \
+    && echo "memory_limit=-1" > "$PHP_INI_DIR/conf.d/memory-limit.ini"
+
+# Set environment variables
+ENV RADAPTOR_APP_ROOT=/app
+ENV XDEBUG_FILE_LINK_FORMAT='phpstorm://open?file=%f&line=%l'
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /app
+
+# Install Phive for development
+RUN wget -O phive.phar https://phar.io/releases/phive.phar \
+    && chmod +x phive.phar \
+    && mv phive.phar /usr/local/bin/phive
+
+# Copy application tools
+COPY ./radaptor /usr/local/bin/radaptor
+RUN chmod +x /usr/local/bin/radaptor
+
+# Stage 3: Production
+FROM base AS prod
+
+# Build arguments
+ARG ENVIRONMENT=prod
+
+# Set environment variable
+ENV ENVIRONMENT=${ENVIRONMENT}
+
+# Configure PHP for production
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && echo "memory_limit=512M" > "$PHP_INI_DIR/conf.d/memory-limit.ini"
+
+# Set environment variables
+ENV RADAPTOR_APP_ROOT=/app
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /app
+
+# Copy Docker-specific configurations
+COPY ./99-radaptor-prod.ini "$PHP_INI_DIR/conf.d/99-radaptor-prod.ini"
+
+# Copy application tools
+COPY ./radaptor /usr/local/bin/radaptor
+RUN chmod +x /usr/local/bin/radaptor
+
+# Healthcheck (optional)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/ || exit 1
