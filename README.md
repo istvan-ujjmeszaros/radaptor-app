@@ -84,6 +84,17 @@ Those fallback trees exist so the first `radaptor install` can run before any pa
 The committed lockfile pins tested package versions, but the first `radaptor install` still re-resolves them against the registry URL you configured in `radaptor.json`.
 The first-run DB bootstrap currently relies on the MariaDB init schema shipped in `docker/mariadb/initdb.d/`.
 
+Do not treat the committed fallback trees as the main place to refactor framework/CMS code.
+After package extraction, the canonical development source lives in the workspace-root extracted
+package repos:
+
+- `package-working-repos/core/framework/`
+- `package-working-repos/core/cms/`
+
+Only mirror changes into `radaptor-app/radaptor/radaptor-framework` or
+`radaptor-app/radaptor/radaptor-cms` when you intentionally need the fallback bootstrap copy to
+stay aligned with the extracted package.
+
 ## Development commands
 
 - `make init`
