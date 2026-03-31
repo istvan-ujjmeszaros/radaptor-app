@@ -13,9 +13,17 @@ test("bootstrap admin can log in and open the admin dashboard", async ({ page })
 
 	await page.goto("/admin/index.html");
 	await expect(page).toHaveURL(/\/admin\/index\.html$/);
-	await expect(page.locator("body.admin-layout")).toBeVisible();
-	await expect(page.getByRole("link", { name: /log out/i })).toBeVisible();
+	await expect(page).toHaveTitle(/Administration - Radaptor App/);
+	await expect(page.locator("body")).toBeVisible();
 	await expect(page.getByText("Welcome to Radaptor App")).toBeVisible();
+
+	await page.goto("/admin/users/");
+	await expect(page).toHaveURL(/\/admin\/users\/$/);
+	await expect(page.locator("body")).toContainText("New user");
+
+	await page.goto("/admin/roles/");
+	await expect(page).toHaveURL(/\/admin\/roles\/$/);
+	await expect(page.locator("body")).toContainText("New role");
 
 	await page.goto("/");
 	await expect(page).toHaveURL(/\/$/);

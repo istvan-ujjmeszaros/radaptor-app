@@ -9,21 +9,59 @@ It is intentionally small:
 
 ## Quick start
 
-1. Copy `.env.example` to `.env`.
-2. Edit `radaptor.json` and set the real package registry URL.
-   - The committed manifest intentionally uses a placeholder URL.
-   - If the registry is reachable from inside Docker via the host machine, use something like `http://host.docker.internal:8091/registry.json`.
-   - Do not use `http://localhost:...` unless the registry actually runs inside the `php` container.
-3. Start the local stack:
+1. Initialize the app:
+   - `./bin/init.sh`
+   - or `make init`
+2. Start the local stack:
    - `docker compose -f docker-compose-dev.yml up -d --build`
-4. Install PHP dependencies:
+3. Install PHP dependencies:
    - `docker compose -f docker-compose-dev.yml exec -T php composer install`
-5. Install packages and bootstrap the app:
+4. Install packages and bootstrap the app:
    - `docker compose -f docker-compose-dev.yml exec -T php php radaptor.php install --json`
-6. Open the site:
+5. Open the site:
    - homepage: `http://localhost:8084/`
    - login: `http://localhost:8084/login.html`
    - admin: `http://localhost:8084/admin/index.html`
+
+Default ACL baseline after install:
+- `/login.html` is the special login resource rendered by the protected-page fallback
+- `/admin/` is explicitly non-inheriting and admin-only
+- `/` inherits a private root ACL baseline for logged-in users
+
+Anonymous access to protected pages keeps the requested URL and renders the login page with `403`,
+instead of redirecting to a different URL.
+
+The init step:
+- creates `.env` from `.env.example` if needed
+- sets an isolated Docker Compose project name
+- picks non-conflicting host ports if the defaults are already taken
+- updates the registry URL inside `radaptor.json`
+- sets the bootstrap admin credentials used by the first mandatory seed
+
+### Non-interactive init
+
+You can script the bootstrap flow:
+
+```bash
+./bin/init.sh \
+  --non-interactive \
+  --registry-url http://host.docker.internal:8091/registry.json \
+  --compose-project-name radaptor-app-playground-dev \
+  --http-port 8085 \
+  --https-port 8445 \
+  --db-port 3309 \
+  --swoole-port 9512 \
+  --mailpit-http-port 8027 \
+  --mailpit-smtp-port 1027 \
+  --admin-username admin \
+  --admin-password admin123456
+```
+
+### Parallel clone / playground example
+
+If you want to validate a second copy without stopping an existing app instance, use a different
+folder and let `init` assign a different compose project and host ports. A typical local playground
+location is `tmp/radaptor-app-playground/`.
 
 ## Default bootstrap credentials
 
@@ -44,11 +82,15 @@ This skeleton commits:
 
 Those fallback trees exist so the first `radaptor install` can run before any packages are downloaded. After install, bootstrap delegates to the registry-installed package paths from `radaptor.lock.json`.
 The committed lockfile pins tested package versions, but the first `radaptor install` still re-resolves them against the registry URL you configured in `radaptor.json`.
+The first-run DB bootstrap currently relies on the MariaDB init schema shipped in `docker/mariadb/initdb.d/`.
 
 ## Development commands
 
+- `make init`
 - `make up`
+- `make composer-install`
 - `make install`
+- `make update`
 - `make test`
 - `make phpstan`
 

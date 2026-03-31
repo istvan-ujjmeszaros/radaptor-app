@@ -7,7 +7,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	public function getVersion(): string
 	{
-		return '1.2.0';
+		return '1.6.0';
 	}
 
 	public function getDescription(): string
@@ -72,17 +72,18 @@ class SeedSkeletonBootstrap extends AbstractSeed
 	private function ensureHomepage(): void
 	{
 		$page_id = $this->ensureWebpage('/', 'index.html', 'public_empty');
-		$this->ensureEveryoneCanViewResource($page_id);
+		$this->ensureRootAclBaseline();
 		$connection_id = $this->ensureWidget($page_id, WidgetList::PLAINHTML);
 
 		PlainHtml::saveSettings([
-			'content' => '<h1>Radaptor App</h1><p>Your application skeleton is installed and ready.</p><p><a href="/login.html">Open the login page</a> or jump directly to <a href="/admin/index.html">the admin area</a>.</p>',
+			'content' => '<h1>Radaptor App</h1><p>Your application skeleton is installed and ready.</p><p>Open <a href="/admin/index.html">the admin area</a> to configure users, roles, resources, and content.</p>',
 		], $connection_id);
 	}
 
 	private function ensureAdminIndex(): void
 	{
 		$page_id = $this->ensureWebpage('/admin/', 'index.html', 'admin_default');
+		$this->ensureAdminAclBaseline();
 		$connection_id = $this->ensureWidget($page_id, WidgetList::PLAINHTML);
 
 		PlainHtml::saveSettings([
@@ -92,10 +93,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	private function ensureLoginPages(): void
 	{
-		ResourceTypeWebpage::getWebpageIdByFormType(FormList::USERLOGIN);
-
 		$page_id = $this->ensureWebpage('/', 'login.html', 'admin_empty');
-		$this->ensureEveryoneCanViewResource($page_id);
 		$connection_id = $this->ensureWidget($page_id, WidgetList::FORM, false);
 
 		AttributeHandler::addAttribute(
@@ -107,11 +105,23 @@ class SeedSkeletonBootstrap extends AbstractSeed
 	private function ensureAdminPages(): void
 	{
 		foreach ([
+			FormList::THEMESELECTOR,
+			FormList::ROLE,
+			FormList::USER,
+			FormList::USERGROUP,
+		] as $form_id) {
+			ResourceTypeWebpage::getWebpageIdByFormType($form_id);
+		}
+
+		foreach ([
 			WidgetList::USERLIST,
 			WidgetList::USERGROUPLIST,
 			WidgetList::ROLELIST,
 			WidgetList::RESOURCETREE,
 			WidgetList::ADMINMENU,
+			WidgetList::IMPORTEXPORT,
+			WidgetList::I18NWORKBENCH,
+			WidgetList::WIDGETPREVIEW,
 		] as $widget_name) {
 			ResourceTypeWebpage::findWebpageIdWithWidget($widget_name);
 		}
@@ -406,39 +416,93 @@ class SeedSkeletonBootstrap extends AbstractSeed
 		}
 	}
 
-	private function ensureEveryoneCanViewResource(int $resource_id): void
+	private function ensureRootAclBaseline(): void
 	{
-		$everyone = DbHelper::selectOne('usergroups_tree', ['title' => 'Everyone'], '', 'node_id');
+		$root_id = ResourceTreeHandler::getDomainRoot(Config::APP_DOMAIN_CONTEXT->value());
 
-		if (!is_array($everyone)) {
-			throw new RuntimeException('Everyone usergroup not found');
+		if (!is_int($root_id) || $root_id <= 0) {
+			throw new RuntimeException('Domain root not found');
 		}
 
-		$usergroup_id = (int) $everyone['node_id'];
+		$logged_in_users_id = $this->getUsergroupIdByTitle('Logged in users');
+		$administrators_id = $this->getUsergroupIdByTitle('Administrators');
+
+		$this->ensureUsergroupAcl($logged_in_users_id, $root_id, [
+			'allow_view' => 1,
+			'allow_list' => 1,
+		], 'Logged in users');
+
+		$this->ensureUsergroupAcl($administrators_id, $root_id, [
+			'allow_edit' => 1,
+		], 'Administrators');
+	}
+
+	private function ensureAdminAclBaseline(): void
+	{
+		$admin_folder = ResourceTreeHandler::getResourceTreeEntryData('/', 'admin', Config::APP_DOMAIN_CONTEXT->value());
+
+		if (!is_array($admin_folder) || ($admin_folder['node_type'] ?? null) !== 'folder') {
+			throw new RuntimeException('Admin folder not found');
+		}
+
+		$admin_folder_id = (int) $admin_folder['node_id'];
+		ResourceAcl::setInheritance($admin_folder_id, false);
+
+		$administrators_id = $this->getUsergroupIdByTitle('Administrators');
+
+		$this->ensureUsergroupAcl($administrators_id, $admin_folder_id, [
+			'allow_view' => 1,
+			'allow_list' => 1,
+		], 'Administrators');
+	}
+
+	private function getUsergroupIdByTitle(string $title): int
+	{
+		$usergroup_id = (int) DbHelper::selectOneColumn('usergroups_tree', ['title' => $title], '', 'node_id');
+
+		if ($usergroup_id <= 0) {
+			throw new RuntimeException("Usergroup not found: {$title}");
+		}
+
+		return $usergroup_id;
+	}
+
+	private function ensureUsergroupAcl(int $usergroup_id, int $resource_id, array $permissions, string $title): void
+	{
 		$acl = DbHelper::selectOne('resource_acl', [
 			'resource_id' => $resource_id,
 			'subject_type' => 'usergroup',
 			'subject_id' => $usergroup_id,
-		], '', 'acl_id,allow_view');
+		], '', 'acl_id');
 
 		if (!is_array($acl)) {
 			if (!ResourceAcl::assignToUsergroup($usergroup_id, $resource_id)) {
-				throw new RuntimeException("Unable to assign Everyone ACL to resource {$resource_id}");
+				throw new RuntimeException("Unable to assign {$title} ACL to resource {$resource_id}");
 			}
 
 			$acl = DbHelper::selectOne('resource_acl', [
 				'resource_id' => $resource_id,
 				'subject_type' => 'usergroup',
 				'subject_id' => $usergroup_id,
-			], '', 'acl_id,allow_view');
+			], '', 'acl_id');
 		}
 
 		if (!is_array($acl)) {
-			throw new RuntimeException("Unable to load Everyone ACL for resource {$resource_id}");
+			throw new RuntimeException("Unable to load {$title} ACL for resource {$resource_id}");
 		}
 
-		if ((int) ($acl['allow_view'] ?? 0) !== 1) {
-			ResourceAcl::updateAcl((int) $acl['acl_id'], ['allow_view' => 1]);
+		$save_data = [];
+
+		foreach ($permissions as $column => $expected_value) {
+			$current_value = (int) DbHelper::selectOneColumn('resource_acl', ['acl_id' => (int) $acl['acl_id']], '', $column);
+
+			if ($current_value !== (int) $expected_value) {
+				$save_data[$column] = (int) $expected_value;
+			}
+		}
+
+		if ($save_data !== []) {
+			ResourceAcl::updateAcl((int) $acl['acl_id'], $save_data);
 		}
 	}
 }
