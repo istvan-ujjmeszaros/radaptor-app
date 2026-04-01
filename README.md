@@ -60,8 +60,7 @@ You can script the bootstrap flow:
 ### Parallel clone / playground example
 
 If you want to validate a second copy without stopping an existing app instance, use a different
-folder and let `init` assign a different compose project and host ports. A typical local proving
-ground is `tmp/radaptor-app-cleanup-proof/`.
+folder and let `init` assign a different compose project and host ports.
 
 ## Default bootstrap credentials
 
