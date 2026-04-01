@@ -19,9 +19,12 @@ It is intentionally small:
 4. Install packages and bootstrap the app:
    - `docker compose -f docker-compose-dev.yml exec -T php php radaptor.php install --json`
 5. Open the site:
-   - homepage: `http://localhost:8084/`
-   - login: `http://localhost:8084/login.html`
-   - admin: `http://localhost:8084/admin/index.html`
+   - homepage: `http://localhost/`
+   - login: `http://localhost/login.html`
+   - admin: `http://localhost/admin/index.html`
+
+If you changed ports during `init` or you are running multiple local stacks in parallel, use the
+URL implied by your `.env` values and the `init` output instead of plain `localhost`.
 
 Default ACL baseline after install:
 - `/login.html` is an explicitly public special page
@@ -34,7 +37,8 @@ instead of redirecting to a different URL. Direct access to `/login.html` itself
 The init step:
 - creates `.env` from `.env.example` if needed
 - sets an isolated Docker Compose project name
-- picks non-conflicting host ports if the defaults are already taken
+- defaults to plain `localhost` for the main site on a normal standalone setup
+- lets you pick non-conflicting host ports when you want parallel local stacks
 - updates the registry URL inside `radaptor.json`
 - sets the bootstrap admin credentials used by the first mandatory seed
 

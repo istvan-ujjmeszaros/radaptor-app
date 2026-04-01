@@ -12,6 +12,7 @@ DEFAULT_REGISTRY_URL="http://host.docker.internal:8091/registry.json"
 PLACEHOLDER_REGISTRY_URL="https://packages.example.invalid/registry.json"
 
 NON_INTERACTIVE=0
+ENV_CREATED=0
 REGISTRY_URL=""
 COMPOSE_PROJECT_NAME_VALUE=""
 APP_HTTP_PORT_VALUE=""
@@ -260,11 +261,11 @@ import sys
 port = int(sys.argv[1])
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    try:
-        sock.bind(("127.0.0.1", port))
-    except OSError:
-        sys.exit(1)
+    sock.settimeout(0.2)
+    result = sock.connect_ex(("127.0.0.1", port))
+
+if result == 0:
+    sys.exit(1)
 PY
 }
 
@@ -466,6 +467,7 @@ fi
 
 if [[ ! -f "${ENV_PATH}" ]]; then
 	cp "${ENV_EXAMPLE_PATH}" "${ENV_PATH}"
+	ENV_CREATED=1
 	echo "Created ${ENV_PATH}"
 fi
 
@@ -498,27 +500,51 @@ if [[ -z "${REGISTRY_URL}" ]]; then
 fi
 
 if [[ -z "${APP_HTTP_PORT_VALUE}" ]]; then
-	APP_HTTP_PORT_VALUE="${CURRENT_HTTP_PORT:-$(pick_available_port 8084)}"
+	if [[ "${ENV_CREATED}" -eq 1 ]]; then
+		APP_HTTP_PORT_VALUE="$(pick_available_port "${CURRENT_HTTP_PORT:-80}")"
+	else
+		APP_HTTP_PORT_VALUE="${CURRENT_HTTP_PORT:-80}"
+	fi
 fi
 
 if [[ -z "${APP_HTTPS_PORT_VALUE}" ]]; then
-	APP_HTTPS_PORT_VALUE="${CURRENT_HTTPS_PORT:-$(pick_available_port 8444)}"
+	if [[ "${ENV_CREATED}" -eq 1 ]]; then
+		APP_HTTPS_PORT_VALUE="$(pick_available_port "${CURRENT_HTTPS_PORT:-443}")"
+	else
+		APP_HTTPS_PORT_VALUE="${CURRENT_HTTPS_PORT:-443}"
+	fi
 fi
 
 if [[ -z "${APP_DB_PORT_VALUE}" ]]; then
-	APP_DB_PORT_VALUE="${CURRENT_DB_PORT:-$(pick_available_port 3308)}"
+	if [[ "${ENV_CREATED}" -eq 1 ]]; then
+		APP_DB_PORT_VALUE="$(pick_available_port "${CURRENT_DB_PORT:-3308}")"
+	else
+		APP_DB_PORT_VALUE="${CURRENT_DB_PORT:-3308}"
+	fi
 fi
 
 if [[ -z "${APP_SWOOLE_PORT_VALUE}" ]]; then
-	APP_SWOOLE_PORT_VALUE="${CURRENT_SWOOLE_PORT:-$(pick_available_port 9511)}"
+	if [[ "${ENV_CREATED}" -eq 1 ]]; then
+		APP_SWOOLE_PORT_VALUE="$(pick_available_port "${CURRENT_SWOOLE_PORT:-9511}")"
+	else
+		APP_SWOOLE_PORT_VALUE="${CURRENT_SWOOLE_PORT:-9511}"
+	fi
 fi
 
 if [[ -z "${APP_MAILPIT_HTTP_PORT_VALUE}" ]]; then
-	APP_MAILPIT_HTTP_PORT_VALUE="${CURRENT_MAILPIT_HTTP_PORT:-$(pick_available_port 8026)}"
+	if [[ "${ENV_CREATED}" -eq 1 ]]; then
+		APP_MAILPIT_HTTP_PORT_VALUE="$(pick_available_port "${CURRENT_MAILPIT_HTTP_PORT:-8026}")"
+	else
+		APP_MAILPIT_HTTP_PORT_VALUE="${CURRENT_MAILPIT_HTTP_PORT:-8026}"
+	fi
 fi
 
 if [[ -z "${APP_MAILPIT_SMTP_PORT_VALUE}" ]]; then
-	APP_MAILPIT_SMTP_PORT_VALUE="${CURRENT_MAILPIT_SMTP_PORT:-$(pick_available_port 1026)}"
+	if [[ "${ENV_CREATED}" -eq 1 ]]; then
+		APP_MAILPIT_SMTP_PORT_VALUE="$(pick_available_port "${CURRENT_MAILPIT_SMTP_PORT:-1026}")"
+	else
+		APP_MAILPIT_SMTP_PORT_VALUE="${CURRENT_MAILPIT_SMTP_PORT:-1026}"
+	fi
 fi
 
 if [[ -z "${APP_BOOTSTRAP_ADMIN_USERNAME_VALUE}" ]]; then
