@@ -7,7 +7,7 @@ define('USE_PERSISTENT_CACHE', false);
 putenv('APP_APPLICATION_IDENTIFIER=Radaptor CLI');
 
 // Include necessary files and bootstrap
-require_once 'radaptor/radaptor-framework/bootstrap.php';
+require_once 'bootstrap/bootstrap.php';
 
 $session_handler = new CLISessionHandler();
 session_set_save_handler($session_handler, true);

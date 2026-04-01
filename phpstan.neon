@@ -1,7 +1,7 @@
 parameters:
 	level: 5
 	bootstrapFiles:
-		- radaptor/radaptor-framework/bootstrap.testing.php
+		- bootstrap/bootstrap.testing.php
 	paths:
 		- app
 		- config

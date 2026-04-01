@@ -6,6 +6,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_EXAMPLE_PATH="${ROOT_DIR}/.env.example"
 ENV_PATH="${ROOT_DIR}/.env"
 MANIFEST_PATH="${ROOT_DIR}/radaptor.json"
+LOCKFILE_PATH="${ROOT_DIR}/radaptor.lock.json"
 
 DEFAULT_REGISTRY_URL="http://host.docker.internal:8091/registry.json"
 PLACEHOLDER_REGISTRY_URL="https://packages.example.invalid/registry.json"
@@ -151,6 +152,101 @@ registry_url = sys.argv[2]
 data = json.loads(path.read_text(encoding="utf-8"))
 data["registries"]["default"]["url"] = registry_url
 path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
+bootstrap_framework_package() {
+	local registry_url="$1"
+
+	python3 - "${ROOT_DIR}" "${LOCKFILE_PATH}" "${registry_url}" <<'PY'
+import hashlib
+import json
+import shutil
+import sys
+import tempfile
+import urllib.parse
+import urllib.request
+import zipfile
+from pathlib import Path
+
+root_dir = Path(sys.argv[1])
+lockfile_path = Path(sys.argv[2])
+registry_url = sys.argv[3]
+
+target_dir = root_dir / "packages" / "registry" / "core" / "framework"
+bootstrap_file = target_dir / "bootstrap.php"
+
+if bootstrap_file.is_file():
+    print(f"Framework bootstrap already present at {target_dir}")
+    sys.exit(0)
+
+if not lockfile_path.is_file():
+    raise SystemExit(f"Missing lockfile at {lockfile_path}")
+
+lock = json.loads(lockfile_path.read_text(encoding="utf-8"))
+framework = (((lock.get("core") or {}).get("framework")) or {})
+package_name = framework.get("package")
+resolved = framework.get("resolved") or {}
+version = resolved.get("version")
+
+if not isinstance(package_name, str) or not package_name:
+    raise SystemExit("Lockfile is missing core.framework.package")
+
+if not isinstance(version, str) or not version:
+    raise SystemExit("Lockfile is missing core.framework.resolved.version")
+
+with urllib.request.urlopen(registry_url) as response:
+    registry = json.load(response)
+
+package_entry = ((registry.get("packages") or {}).get(package_name) or {})
+version_entry = ((package_entry.get("versions") or {}).get(version) or {})
+dist = version_entry.get("dist") or {}
+dist_url = dist.get("url")
+dist_sha256 = dist.get("sha256")
+
+if not isinstance(dist_url, str) or not dist_url:
+    raise SystemExit(f"Registry package {package_name} version {version} is missing dist.url")
+
+if not isinstance(dist_sha256, str) or not dist_sha256:
+    raise SystemExit(f"Registry package {package_name} version {version} is missing dist.sha256")
+
+resolved_dist_url = urllib.parse.urljoin(registry_url, dist_url)
+
+with tempfile.TemporaryDirectory(prefix="radaptor-bootstrap-framework-") as temp_dir:
+    temp_root = Path(temp_dir)
+    archive_path = temp_root / "package.zip"
+    extract_path = temp_root / "extract"
+    extract_path.mkdir(parents=True, exist_ok=True)
+
+    with urllib.request.urlopen(resolved_dist_url) as response, archive_path.open("wb") as target:
+        shutil.copyfileobj(response, target)
+
+    actual_sha = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+
+    if actual_sha.lower() != dist_sha256.strip().lower():
+        raise SystemExit(
+            f"Framework bootstrap archive hash mismatch: expected {dist_sha256}, got {actual_sha}"
+        )
+
+    with zipfile.ZipFile(archive_path) as archive:
+        archive.extractall(extract_path)
+
+    extracted_entries = [entry for entry in extract_path.iterdir() if entry.name != "__MACOSX"]
+
+    if len(extracted_entries) == 1 and extracted_entries[0].is_dir():
+        package_root = extracted_entries[0]
+    elif (extract_path / ".registry-package.json").is_file():
+        package_root = extract_path
+    else:
+        raise SystemExit("Unable to determine extracted framework package root")
+
+    if target_dir.exists():
+        shutil.rmtree(target_dir)
+
+    target_dir.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(package_root, target_dir)
+
+print(f"Bootstrapped framework package into {target_dir}")
 PY
 }
 
@@ -363,6 +459,11 @@ if [[ ! -f "${MANIFEST_PATH}" ]]; then
 	exit 1
 fi
 
+if [[ ! -f "${LOCKFILE_PATH}" ]]; then
+	echo "Missing radaptor.lock.json at ${LOCKFILE_PATH}" >&2
+	exit 1
+fi
+
 if [[ ! -f "${ENV_PATH}" ]]; then
 	cp "${ENV_EXAMPLE_PATH}" "${ENV_PATH}"
 	echo "Created ${ENV_PATH}"
@@ -480,6 +581,7 @@ write_env_value APP_BOOTSTRAP_ADMIN_PASSWORD "${APP_BOOTSTRAP_ADMIN_PASSWORD_VAL
 write_env_value APP_BOOTSTRAP_ADMIN_LOCALE "${APP_BOOTSTRAP_ADMIN_LOCALE_VALUE}"
 write_env_value APP_BOOTSTRAP_ADMIN_TIMEZONE "${APP_BOOTSTRAP_ADMIN_TIMEZONE_VALUE}"
 write_manifest_registry_url "${REGISTRY_URL}"
+bootstrap_framework_package "${REGISTRY_URL}"
 
 cat <<EOF
 

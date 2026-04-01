@@ -1,6 +1,6 @@
 {
     "links": {
-        "/app/public/www/assets/packages/radaptor-portal-admin": "/app/themes/registry/portal-admin/public/assets/radaptor-portal-admin",
-        "/app/public/www/assets/packages/themes/radaptor-portal-admin": "/app/themes/registry/portal-admin/public/assets/themes/radaptor-portal-admin"
+        "/app/public/www/assets/packages/radaptor-portal-admin": "/app/packages/registry/themes/portal-admin/public/assets/radaptor-portal-admin",
+        "/app/public/www/assets/packages/themes/radaptor-portal-admin": "/app/packages/registry/themes/portal-admin/public/assets/themes/radaptor-portal-admin"
     }
 }
