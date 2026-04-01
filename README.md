@@ -9,9 +9,8 @@ It is intentionally small:
 
 ## Quick start
 
-1. Initialize the app:
-   - `./bin/init.sh`
-   - or `make init`
+1. Point the app at a real package registry:
+   - `export RADAPTOR_REGISTRY_URL=https://your-registry.example/registry.json`
 2. Start the local stack:
    - `docker compose -f docker-compose-dev.yml up -d --build`
 3. Install PHP dependencies:
@@ -23,8 +22,8 @@ It is intentionally small:
    - login: `http://localhost/login.html`
    - admin: `http://localhost/admin/index.html`
 
-If you changed ports during `init` or you are running multiple local stacks in parallel, use the
-URL implied by your `.env` values and the `init` output instead of plain `localhost`.
+If you are running multiple local stacks in parallel, use `.env` to override ports and the compose
+project name before `docker compose up`.
 
 Default ACL baseline after install:
 - `/login.html` is an explicitly public special page
@@ -34,37 +33,30 @@ Default ACL baseline after install:
 Anonymous access to protected pages keeps the requested URL and renders the login page with `403`,
 instead of redirecting to a different URL. Direct access to `/login.html` itself returns `200`.
 
-The init step:
-- creates `.env` from `.env.example` if needed
-- sets an isolated Docker Compose project name
-- defaults to plain `localhost` for the main site on a normal standalone setup
-- lets you pick non-conflicting host ports when you want parallel local stacks
-- updates the registry URL inside `radaptor.json`
-- sets the bootstrap admin credentials used by the first mandatory seed
+What happens on first install:
+- `docker compose up` gives you the supported PHP runtime
+- `php radaptor.php install --json` bootstraps the pinned framework package if it is still missing
+- then the framework CLI continues the normal install/update/build/migrate/seed flow
+- the committed `radaptor.json` stays template-neutral with a placeholder registry URL, so the
+  real registry must come from `RADAPTOR_REGISTRY_URL` or a local `.env` override
 
-### Non-interactive init
+### Local override example
 
-You can script the bootstrap flow:
+For a local registry and a second app instance, use shell env or `.env` overrides:
 
 ```bash
-./bin/init.sh \
-  --non-interactive \
-  --registry-url http://host.docker.internal:8091/registry.json \
-  --compose-project-name radaptor-app-playground-dev \
-  --http-port 8085 \
-  --https-port 8445 \
-  --db-port 3309 \
-  --swoole-port 9512 \
-  --mailpit-http-port 8027 \
-  --mailpit-smtp-port 1027 \
-  --admin-username admin \
-  --admin-password admin123456
+export RADAPTOR_REGISTRY_URL=http://host.docker.internal:8091/registry.json
+export COMPOSE_PROJECT_NAME=radaptor-app-dev
+export APP_HTTP_PORT=8085
+export APP_HTTPS_PORT=8445
+export APP_DB_PORT=3309
+docker compose -f docker-compose-dev.yml up -d --build
 ```
 
 ### Parallel clone / playground example
 
 If you want to validate a second copy without stopping an existing app instance, use a different
-folder and let `init` assign a different compose project and host ports.
+folder and give that copy its own compose project name and host ports via shell env or `.env`.
 
 ## Default bootstrap credentials
 
@@ -82,10 +74,12 @@ This skeleton commits:
 - `radaptor.json`
 - `radaptor.lock.json`
 
-The first-run bootstrap happens through `bin/init.sh`, which downloads the pinned framework
-package into `packages/registry/core/framework` before you run `radaptor install`.
+The committed lockfile pins tested package versions. On first run, `radaptor.php install` uses the
+locked `core.framework` package metadata and the configured registry URL to bootstrap the framework
+package into `packages/registry/core/framework` before delegating into the framework CLI.
 
-The committed lockfile pins tested package versions, but the first `radaptor install` still re-resolves them against the registry URL you configured in `radaptor.json`.
+The committed lockfile is intentionally template-neutral, so the first install still needs a real
+registry URL from `RADAPTOR_REGISTRY_URL` or a local `.env`.
 The first-run DB bootstrap currently relies on the MariaDB init schema shipped in `docker/mariadb/initdb.d/`.
 
 This repo is both the default consumer app and the default local dev-mode host.
@@ -101,13 +95,12 @@ Then point `radaptor.json` to those local `source.path` values for dev mode.
 
 ## Development commands
 
-- `make init`
-- `make up`
-- `make composer-install`
-- `make install`
-- `make update`
-- `make test`
-- `make phpstan`
+- `docker compose -f docker-compose-dev.yml up -d --build`
+- `docker compose -f docker-compose-dev.yml exec -T php composer install`
+- `docker compose -f docker-compose-dev.yml exec -T php php radaptor.php install --json`
+- `docker compose -f docker-compose-dev.yml exec -T php php radaptor.php update --json`
+- `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
+- `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 
 ## Notes
 

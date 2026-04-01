@@ -1,13 +1,15 @@
 <?php
 
-define('RADAPTOR_CLI', getcwd() . '/');
+define('RADAPTOR_CLI', __DIR__ . '/');
 define('USE_PERSISTENT_CACHE', false);
 
 // Set CLI-specific application identifier for audit logging
 putenv('APP_APPLICATION_IDENTIFIER=Radaptor CLI');
 
-// Include necessary files and bootstrap
-require_once 'bootstrap/bootstrap.php';
+// Ensure the framework package exists before delegating into its CLI runtime.
+require_once __DIR__ . '/bootstrap/bootstrap.package_locator.php';
+radaptorAppBootstrapEnsureCliFrameworkAvailable(__DIR__);
+require_once __DIR__ . '/bootstrap/bootstrap.php';
 
 $session_handler = new CLISessionHandler();
 session_set_save_handler($session_handler, true);
