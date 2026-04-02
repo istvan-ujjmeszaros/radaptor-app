@@ -38,6 +38,28 @@ final class BootstrapPackageLocatorTest extends TestCase
 		);
 	}
 
+	public function testResolveUrlPreservesCredentialsForRelativeRegistryPaths(): void
+	{
+		$this->assertSame(
+			'https://user:token@example.test/packages/radaptor-core-framework/0.1.0/plugin.zip',
+			radaptorAppBootstrapResolveUrl(
+				'https://user:token@example.test/registry.json',
+				'packages/radaptor-core-framework/0.1.0/plugin.zip'
+			)
+		);
+	}
+
+	public function testResolveUrlRebasesTemplatePlaceholderDistUrlToConfiguredRegistryAuthority(): void
+	{
+		$this->assertSame(
+			'https://user:token@example.test/packages/radaptor-core-framework/0.1.0/plugin.zip',
+			radaptorAppBootstrapResolveUrl(
+				'https://user:token@example.test/registry.json',
+				'https://packages.example.invalid/packages/radaptor-core-framework/0.1.0/plugin.zip'
+			)
+		);
+	}
+
 	public function testEnsureCliFrameworkAvailableFailsWithoutRealRegistryUrl(): void
 	{
 		$appRoot = $this->_createTempAppRoot();
@@ -68,32 +90,23 @@ final class BootstrapPackageLocatorTest extends TestCase
 			'bootstrap.php' => '<?php echo "framework bootstrap";',
 			'bootstrap.autoloader.php' => '<?php echo "autoload";',
 			'.registry-package.json' => json_encode(['name' => 'radaptor/core/framework'], JSON_PRETTY_PRINT),
-		]);
+			]);
 		$archiveSha = strtolower(hash_file('sha256', $archivePath));
-
-		$this->_writeJson($registryRoot . '/registry.json', [
-			'packages' => [
-				'radaptor/core/framework' => [
-					'versions' => [
-						'0.1.0' => [
-							'dist' => [
-								'url' => 'packages/radaptor-core-framework/0.1.0/plugin.zip',
-								'sha256' => $archiveSha,
-							],
-						],
-					],
-				],
-			],
-		]);
 
 		$this->_writeJson($appRoot . '/radaptor.json', [
 			'registries' => [
 				'default' => [
 					'url' => radaptorAppBootstrapGetPlaceholderRegistryUrl(),
+					],
 				],
-			],
-		]);
-		$this->_writeFrameworkLockfile($appRoot, 'radaptor/core/framework', '0.1.0');
+			]);
+		$this->_writeFrameworkLockfile(
+			$appRoot,
+			'radaptor/core/framework',
+			'0.1.0',
+			'packages/radaptor-core-framework/0.1.0/plugin.zip',
+			$archiveSha
+		);
 
 		putenv('RADAPTOR_REGISTRY_URL=file://' . $registryRoot . '/registry.json');
 
@@ -105,6 +118,38 @@ final class BootstrapPackageLocatorTest extends TestCase
 		$this->assertFileExists($frameworkRoot . '/bootstrap.autoloader.php');
 		$this->assertSame(
 			radaptorAppBootstrapNormalizePath($frameworkRoot),
+			radaptorAppBootstrapResolveFrameworkRoot($appRoot)
+			);
+	}
+
+	public function testEnsureCliFrameworkAvailableUsesConfiguredFrameworkPathBeforeRegistryBootstrap(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$customFrameworkRoot = $appRoot . '/vendor/custom/framework';
+		mkdir($customFrameworkRoot, 0777, true);
+		file_put_contents($customFrameworkRoot . '/bootstrap.php', '<?php');
+
+		$this->_writeJson($appRoot . '/radaptor.json', [
+			'registries' => [
+				'default' => [
+					'url' => radaptorAppBootstrapGetPlaceholderRegistryUrl(),
+				],
+			],
+			'core' => [
+				'framework' => [
+					'package' => 'radaptor/core/framework',
+					'source' => [
+						'type' => 'path',
+						'path' => 'vendor/custom/framework',
+					],
+				],
+			],
+		]);
+
+		radaptorAppBootstrapEnsureCliFrameworkAvailable($appRoot);
+
+		$this->assertSame(
+			radaptorAppBootstrapNormalizePath($customFrameworkRoot),
 			radaptorAppBootstrapResolveFrameworkRoot($appRoot)
 		);
 	}
@@ -139,8 +184,29 @@ final class BootstrapPackageLocatorTest extends TestCase
 		file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
 	}
 
-	private function _writeFrameworkLockfile(string $appRoot, string $packageName, string $version): void
+	private function _writeFrameworkLockfile(
+		string $appRoot,
+		string $packageName,
+		string $version,
+		string $distUrl = '',
+		string $distSha256 = ''
+	): void
 	{
+		$resolved = [
+			'type' => 'registry',
+			'registry' => 'default',
+			'version' => $version,
+			'path' => 'packages/registry/core/framework',
+		];
+
+		if ($distUrl !== '') {
+			$resolved['dist_url'] = $distUrl;
+		}
+
+		if ($distSha256 !== '') {
+			$resolved['dist_sha256'] = $distSha256;
+		}
+
 		$this->_writeJson($appRoot . '/radaptor.lock.json', [
 			'lockfile_version' => 1,
 			'core' => [
@@ -148,20 +214,15 @@ final class BootstrapPackageLocatorTest extends TestCase
 					'type' => 'core',
 					'id' => 'framework',
 					'package' => $packageName,
-					'source' => [
-						'type' => 'registry',
-						'registry' => 'default',
-						'version' => '^' . $version,
-					],
-					'resolved' => [
-						'type' => 'registry',
-						'registry' => 'default',
-						'version' => $version,
-						'path' => 'packages/registry/core/framework',
+						'source' => [
+							'type' => 'registry',
+							'registry' => 'default',
+							'version' => '^' . $version,
+						],
+						'resolved' => $resolved,
 					],
 				],
-			],
-		]);
+			]);
 	}
 
 	private function _createFrameworkArchive(string $archivePath, array $files): void

@@ -35,7 +35,7 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "058d8361f29cc119aaf064c7751db823bbd7978c469deba20cfd60d5c9c6fd5b",
+                "dist_sha256": "681e7eab82ab69e173deb8bfedb39539e50de9a21c6d19960387c2085bed5b85",
                 "dist_url": "https://packages.example.invalid/packages/radaptor-core-framework/0.1.0/plugin.zip",
                 "path": "packages/registry/core/framework",
                 "registry": "default",

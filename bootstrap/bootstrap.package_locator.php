@@ -147,6 +147,69 @@ if (!function_exists('radaptorAppBootstrapNormalizeRegistryUrl')) {
 	}
 }
 
+if (!function_exists('radaptorAppBootstrapBuildUrlAuthority')) {
+	function radaptorAppBootstrapBuildUrlAuthority(array $parts): string
+	{
+		$scheme = strtolower((string) ($parts['scheme'] ?? ''));
+
+		if ($scheme === '') {
+			throw new RuntimeException('Cannot build URL authority without a scheme.');
+		}
+
+		$authority = $scheme . '://';
+
+		if (isset($parts['user'])) {
+			$authority .= (string) $parts['user'];
+
+			if (isset($parts['pass'])) {
+				$authority .= ':' . (string) $parts['pass'];
+			}
+
+			$authority .= '@';
+		}
+
+		$host = (string) ($parts['host'] ?? '');
+
+		if ($host !== '' && str_contains($host, ':') && !str_starts_with($host, '[')) {
+			$host = '[' . $host . ']';
+		}
+
+		$authority .= $host;
+
+		if (isset($parts['port'])) {
+			$authority .= ':' . $parts['port'];
+		}
+
+		return $authority;
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapBuildUrlPathSuffix')) {
+	function radaptorAppBootstrapBuildUrlPathSuffix(array $parts): string
+	{
+		$suffix = (string) ($parts['path'] ?? '/');
+
+		if (isset($parts['query']) && $parts['query'] !== '') {
+			$suffix .= '?' . $parts['query'];
+		}
+
+		if (isset($parts['fragment']) && $parts['fragment'] !== '') {
+			$suffix .= '#' . $parts['fragment'];
+		}
+
+		return $suffix;
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapHasSameUrlAuthority')) {
+	function radaptorAppBootstrapHasSameUrlAuthority(array $left, array $right): bool
+	{
+		return strtolower((string) ($left['scheme'] ?? '')) === strtolower((string) ($right['scheme'] ?? ''))
+			&& ((string) ($left['host'] ?? '')) === ((string) ($right['host'] ?? ''))
+			&& ((int) ($left['port'] ?? 0)) === ((int) ($right['port'] ?? 0));
+	}
+}
+
 if (!function_exists('radaptorAppBootstrapResolveRegistryUrl')) {
 	function radaptorAppBootstrapResolveRegistryUrl(string $app_root): ?string
 	{
@@ -184,14 +247,33 @@ if (!function_exists('radaptorAppBootstrapResolveRegistryUrl')) {
 if (!function_exists('radaptorAppBootstrapResolveUrl')) {
 	function radaptorAppBootstrapResolveUrl(string $base_url, string $candidate): string
 	{
-		if (radaptorAppBootstrapNormalizeRegistryUrl($candidate) !== null) {
-			return $candidate;
-		}
-
 		$base = parse_url($base_url);
 
 		if (!is_array($base) || !isset($base['scheme'])) {
 			throw new RuntimeException("Unable to resolve registry URL base: {$base_url}");
+		}
+
+		$normalized_candidate = radaptorAppBootstrapNormalizeRegistryUrl($candidate);
+
+		if ($normalized_candidate !== null) {
+			$candidate_parts = parse_url($normalized_candidate);
+
+			if (!is_array($candidate_parts)) {
+				throw new RuntimeException("Unable to parse resolved URL candidate: {$candidate}");
+			}
+
+			$placeholder_parts = parse_url(radaptorAppBootstrapGetPlaceholderRegistryUrl());
+
+			if (
+				is_array($placeholder_parts)
+				&& radaptorAppBootstrapHasSameUrlAuthority($candidate_parts, $placeholder_parts)
+				&& !radaptorAppBootstrapHasSameUrlAuthority($base, $placeholder_parts)
+				&& in_array(strtolower((string) ($candidate_parts['scheme'] ?? '')), ['http', 'https'], true)
+			) {
+				return radaptorAppBootstrapBuildUrlAuthority($base) . radaptorAppBootstrapBuildUrlPathSuffix($candidate_parts);
+			}
+
+			return $normalized_candidate;
 		}
 
 		if ($base['scheme'] === 'file') {
@@ -204,11 +286,7 @@ if (!function_exists('radaptorAppBootstrapResolveUrl')) {
 			return 'file://' . radaptorAppBootstrapNormalizeRelativeUrlPath($path);
 		}
 
-		$authority = $base['scheme'] . '://' . ($base['host'] ?? '');
-
-		if (isset($base['port'])) {
-			$authority .= ':' . $base['port'];
-		}
+		$authority = radaptorAppBootstrapBuildUrlAuthority($base);
 
 		if (str_starts_with($candidate, '/')) {
 			return $authority . $candidate;
@@ -295,23 +373,20 @@ if (!function_exists('radaptorAppBootstrapResolveFrameworkBootstrapRequest')) {
 
 		$package_name = trim((string) ($framework['package'] ?? ''));
 		$resolved_version = trim((string) ($framework['resolved']['version'] ?? ''));
+		$resolved = $framework['resolved'] ?? null;
 
-		if ($package_name === '' || $resolved_version === '') {
+		if ($package_name === '' || $resolved_version === '' || !is_array($resolved)) {
 			throw new RuntimeException(
 				'Framework bootstrap requires a locked package name and version in radaptor.lock.json.'
 			);
 		}
 
-		$catalog = radaptorAppBootstrapFetchJsonUrl($registry_url);
-		$package_entry = $catalog['packages'][$package_name] ?? null;
-		$version_entry = $package_entry['versions'][$resolved_version] ?? null;
-		$dist = is_array($version_entry) ? ($version_entry['dist'] ?? null) : null;
-		$dist_url = is_array($dist) ? trim((string) ($dist['url'] ?? '')) : '';
-		$dist_sha256 = is_array($dist) ? strtolower(trim((string) ($dist['sha256'] ?? ''))) : '';
+		$dist_url = trim((string) ($resolved['dist_url'] ?? ''));
+		$dist_sha256 = strtolower(trim((string) ($resolved['dist_sha256'] ?? '')));
 
 		if ($dist_url === '' || $dist_sha256 === '') {
 			throw new RuntimeException(
-				"Registry package {$package_name} version {$resolved_version} is missing dist metadata."
+				"Locked framework package {$package_name} version {$resolved_version} is missing dist metadata."
 			);
 		}
 
@@ -528,11 +603,9 @@ if (!function_exists('radaptorAppBootstrapEnsureCliFrameworkAvailable')) {
 	{
 		$app_root = rtrim(radaptorAppBootstrapNormalizePath($app_root), '/') . '/';
 
-		if (is_file($app_root . 'packages/dev/core/framework/bootstrap.php')) {
-			return;
-		}
+		$framework_root = radaptorAppBootstrapResolveFrameworkRoot($app_root);
 
-		if (is_file($app_root . 'packages/registry/core/framework/bootstrap.php')) {
+		if (is_string($framework_root) && is_file(rtrim($framework_root, '/') . '/bootstrap.php')) {
 			return;
 		}
 
