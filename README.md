@@ -13,17 +13,22 @@ It is intentionally small:
    - `export RADAPTOR_REGISTRY_URL=https://your-registry.example/registry.json`
 2. Start the local stack:
    - `docker compose -f docker-compose-dev.yml up -d --build`
-3. Install PHP dependencies:
-   - `docker compose -f docker-compose-dev.yml exec -T php composer install`
-4. Install packages and bootstrap the app:
-   - `docker compose -f docker-compose-dev.yml exec -T php php radaptor.php install --json`
-5. Open the site:
+3. Run CLI commands in the `php` container:
+   - Docker Desktop path: open a terminal for the `php` container and run `bash`
+   - shell shortcut: `./php-shell.sh`
+   - direct shortcuts:
+     - `./composer.sh install`
+     - `./radaptor.sh install --json`
+4. Open the site:
    - homepage: `http://localhost/`
    - login: `http://localhost/login.html`
    - admin: `http://localhost/admin/index.html`
 
 If you are running multiple local stacks in parallel, use `.env` to override ports and the compose
 project name before `docker compose up`.
+
+All supported CLI work happens inside Docker. Host PHP and host Composer are not part of the
+supported workflow.
 
 Default ACL baseline after install:
 - `/login.html` is an explicitly public special page
@@ -35,7 +40,7 @@ instead of redirecting to a different URL. Direct access to `/login.html` itself
 
 What happens on first install:
 - `docker compose up` gives you the supported PHP runtime
-- `php radaptor.php install --json` bootstraps the pinned framework package if it is still missing
+- `./radaptor.sh install --json` bootstraps the pinned framework package if it is still missing
 - then the framework CLI continues the normal install/update/build/migrate/seed flow
 - the committed `radaptor.json` stays template-neutral with a placeholder registry URL, so the
   real registry must come from `RADAPTOR_REGISTRY_URL` or a local `.env` override
@@ -93,12 +98,21 @@ If you want to work on packages locally, place the checkout inside this app:
 
 Then point `radaptor.json` to those local `source.path` values for dev mode.
 
-## Development commands
+## Docker CLI options
 
-- `docker compose -f docker-compose-dev.yml up -d --build`
-- `docker compose -f docker-compose-dev.yml exec -T php composer install`
-- `docker compose -f docker-compose-dev.yml exec -T php php radaptor.php install --json`
-- `docker compose -f docker-compose-dev.yml exec -T php php radaptor.php update --json`
+Use one of these supported approaches:
+
+- Docker Desktop: open a terminal for the running `php` container, run `bash`, then use `composer`
+  and `php radaptor.php ...` directly
+- `./php-shell.sh`: open a shell in the running `php` container
+- `./composer.sh <args>`: run Composer in the `php` container
+- `./radaptor.sh <args>`: run `php radaptor.php ...` in the `php` container
+
+Examples:
+
+- `./composer.sh install`
+- `./radaptor.sh install --json`
+- `./radaptor.sh update --json`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 
