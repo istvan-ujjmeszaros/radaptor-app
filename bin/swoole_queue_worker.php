@@ -9,7 +9,7 @@ define('USE_PERSISTENT_CACHE', false);
 
 putenv('RADAPTOR_RUNTIME=swoole');
 
-require_once dirname(__DIR__) . '/radaptor/radaptor-framework/bootstrap.php';
+require_once dirname(__DIR__) . '/bootstrap/bootstrap.php';
 
 $sessionHandler = new CLISessionHandler();
 session_set_save_handler($sessionHandler, true);

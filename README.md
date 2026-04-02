@@ -9,59 +9,59 @@ It is intentionally small:
 
 ## Quick start
 
-1. Initialize the app:
-   - `./bin/init.sh`
-   - or `make init`
+1. Point the app at a real package registry:
+   - `export RADAPTOR_REGISTRY_URL=https://your-registry.example/registry.json`
 2. Start the local stack:
    - `docker compose -f docker-compose-dev.yml up -d --build`
-3. Install PHP dependencies:
-   - `docker compose -f docker-compose-dev.yml exec -T php composer install`
-4. Install packages and bootstrap the app:
-   - `docker compose -f docker-compose-dev.yml exec -T php php radaptor.php install --json`
-5. Open the site:
-   - homepage: `http://localhost:8084/`
-   - login: `http://localhost:8084/login.html`
-   - admin: `http://localhost:8084/admin/index.html`
+3. Run CLI commands in the `php` container:
+   - Docker Desktop path: open a terminal for the `php` container and run `bash`
+   - shell shortcut: `./php-shell.sh`
+   - direct shortcuts:
+     - `./composer.sh install`
+     - `./radaptor.sh install --json`
+4. Open the site:
+   - homepage: `http://localhost/`
+   - login: `http://localhost/login.html`
+   - admin: `http://localhost/admin/index.html`
+
+If you are running multiple local stacks in parallel, use `.env` to override ports and the compose
+project name before `docker compose up`.
+
+All supported CLI work happens inside Docker. Host PHP and host Composer are not part of the
+supported workflow.
 
 Default ACL baseline after install:
-- `/login.html` is the special login resource rendered by the protected-page fallback
+- `/login.html` is an explicitly public special page
 - `/admin/` is explicitly non-inheriting and admin-only
 - `/` inherits a private root ACL baseline for logged-in users
 
 Anonymous access to protected pages keeps the requested URL and renders the login page with `403`,
-instead of redirecting to a different URL.
+instead of redirecting to a different URL. Direct access to `/login.html` itself returns `200`.
 
-The init step:
-- creates `.env` from `.env.example` if needed
-- sets an isolated Docker Compose project name
-- picks non-conflicting host ports if the defaults are already taken
-- updates the registry URL inside `radaptor.json`
-- sets the bootstrap admin credentials used by the first mandatory seed
+What happens on first install:
+- `docker compose up` gives you the supported PHP runtime
+- `./radaptor.sh install --json` bootstraps the pinned framework package if it is still missing
+- then the framework CLI continues the normal install/update/build/migrate/seed flow
+- the committed `radaptor.json` stays template-neutral with a placeholder registry URL, so the
+  real registry must come from `RADAPTOR_REGISTRY_URL` or a local `.env` override
 
-### Non-interactive init
+### Local override example
 
-You can script the bootstrap flow:
+For a local registry and a second app instance, use shell env or `.env` overrides:
 
 ```bash
-./bin/init.sh \
-  --non-interactive \
-  --registry-url http://host.docker.internal:8091/registry.json \
-  --compose-project-name radaptor-app-playground-dev \
-  --http-port 8085 \
-  --https-port 8445 \
-  --db-port 3309 \
-  --swoole-port 9512 \
-  --mailpit-http-port 8027 \
-  --mailpit-smtp-port 1027 \
-  --admin-username admin \
-  --admin-password admin123456
+export RADAPTOR_REGISTRY_URL=http://host.docker.internal:8091/registry.json
+export COMPOSE_PROJECT_NAME=radaptor-app-dev
+export APP_HTTP_PORT=8085
+export APP_HTTPS_PORT=8445
+export APP_DB_PORT=3309
+docker compose -f docker-compose-dev.yml up -d --build
 ```
 
 ### Parallel clone / playground example
 
 If you want to validate a second copy without stopping an existing app instance, use a different
-folder and let `init` assign a different compose project and host ports. A typical local playground
-location is `tmp/radaptor-app-playground/`.
+folder and give that copy its own compose project name and host ports via shell env or `.env`.
 
 ## Default bootstrap credentials
 
@@ -78,35 +78,46 @@ Change the password after the first login.
 This skeleton commits:
 - `radaptor.json`
 - `radaptor.lock.json`
-- the local fallback `radaptor/radaptor-framework` and `radaptor/radaptor-cms` trees
 
-Those fallback trees exist so the first `radaptor install` can run before any packages are downloaded. After install, bootstrap delegates to the registry-installed package paths from `radaptor.lock.json`.
-The committed lockfile pins tested package versions, but the first `radaptor install` still re-resolves them against the registry URL you configured in `radaptor.json`.
+The committed lockfile pins tested package versions. On first run, `radaptor.php install` uses the
+locked `core.framework` package metadata and the configured registry URL to bootstrap the framework
+package into `packages/registry/core/framework` before delegating into the framework CLI.
+
+The committed lockfile is intentionally template-neutral, so the first install still needs a real
+registry URL from `RADAPTOR_REGISTRY_URL` or a local `.env`.
 The first-run DB bootstrap currently relies on the MariaDB init schema shipped in `docker/mariadb/initdb.d/`.
 
-Do not treat the committed fallback trees as the main place to refactor framework/CMS code.
-After package extraction, the canonical development source lives in the workspace-root extracted
-package repos:
+This repo is both the default consumer app and the default local dev-mode host.
 
-- `package-working-repos/core/framework/`
-- `package-working-repos/core/cms/`
+If you want to work on packages locally, place the checkout inside this app:
 
-Only mirror changes into `radaptor-app/radaptor/radaptor-framework` or
-`radaptor-app/radaptor/radaptor-cms` when you intentionally need the fallback bootstrap copy to
-stay aligned with the extracted package.
+- `packages/dev/core/framework/`
+- `packages/dev/core/cms/`
+- `packages/dev/themes/<theme-id>/`
+- `plugins/dev/<plugin-id>/`
 
-## Development commands
+Then point `radaptor.json` to those local `source.path` values for dev mode.
 
-- `make init`
-- `make up`
-- `make composer-install`
-- `make install`
-- `make update`
-- `make test`
-- `make phpstan`
+## Docker CLI options
+
+Use one of these supported approaches:
+
+- Docker Desktop: open a terminal for the running `php` container, run `bash`, then use `composer`
+  and `php radaptor.php ...` directly
+- `./php-shell.sh`: open a shell in the running `php` container
+- `./composer.sh <args>`: run Composer in the `php` container
+- `./radaptor.sh <args>`: run `php radaptor.php ...` in the `php` container
+
+Examples:
+
+- `./composer.sh install`
+- `./radaptor.sh install --json`
+- `./radaptor.sh update --json`
+- `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
+- `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 
 ## Notes
 
-- The committed manifest is registry-first. Local package development via `source.path` is not the default shape of this skeleton.
+- The committed manifest is registry-first. Local package development via `source.path` is supported, but it is an explicit opt-in dev mode.
 - Package assets are generated under `public/www/assets/packages/` and are git-ignored.
 - `framework`, `cms`, and `portal-admin` are expected to come from the registry, not from sibling working copies.

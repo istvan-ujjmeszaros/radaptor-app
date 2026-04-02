@@ -28,15 +28,17 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 			$system_admin_role_id = (int) DbHelper::selectOneColumn('roles_tree', [
 				'role' => 'system_administrator',
 			], '', 'node_id');
-				$this->assertGreaterThan(0, $system_developer_role_id);
-				$this->assertGreaterThan(0, $system_admin_role_id);
-				$this->assertTrue(Roles::checkUserIsAssigned($system_developer_role_id, (int) $user['user_id']));
-				$this->assertTrue(Roles::checkUserIsAssigned($system_admin_role_id, (int) $user['user_id']));
-				$everyone_id = (int) DbHelper::selectOneColumn('usergroups_tree', ['title' => 'Everyone'], '', 'node_id');
-				$logged_in_users_id = (int) DbHelper::selectOneColumn('usergroups_tree', ['title' => 'Logged in users'], '', 'node_id');
-				$this->assertGreaterThan(0, $everyone_id);
-				$this->assertGreaterThan(0, $logged_in_users_id);
-				$this->assertGreaterThan(0, (int) DbHelper::selectOneColumn('roles_tree', ['role' => 'acl_viewer'], '', 'node_id'));
+			$this->assertGreaterThan(0, $system_developer_role_id);
+			$this->assertGreaterThan(0, $system_admin_role_id);
+			$this->assertTrue(Roles::checkUserIsAssigned($system_developer_role_id, (int) $user['user_id']));
+			$this->assertTrue(Roles::checkUserIsAssigned($system_admin_role_id, (int) $user['user_id']));
+			$everyone_id = (int) DbHelper::selectOneColumn('usergroups_tree', ['title' => 'Everyone'], '', 'node_id');
+			$logged_in_users_id = (int) DbHelper::selectOneColumn('usergroups_tree', ['title' => 'Logged in users'], '', 'node_id');
+			$administrators_id = (int) DbHelper::selectOneColumn('usergroups_tree', ['title' => 'Administrators'], '', 'node_id');
+			$this->assertGreaterThan(0, $everyone_id);
+			$this->assertGreaterThan(0, $logged_in_users_id);
+			$this->assertGreaterThan(0, $administrators_id);
+			$this->assertGreaterThan(0, (int) DbHelper::selectOneColumn('roles_tree', ['role' => 'acl_viewer'], '', 'node_id'));
 
 			$homepage = ResourceTreeHandler::getResourceTreeEntryData('/', 'index.html', Config::APP_DOMAIN_CONTEXT->value());
 			$this->assertIsArray($homepage);
@@ -63,12 +65,22 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 
 			$login_page = ResourceTreeHandler::getResourceTreeEntryData('/', 'login.html', Config::APP_DOMAIN_CONTEXT->value());
 			$this->assertIsArray($login_page);
+			$this->assertSame(0, (int) ($login_page['is_inheriting_acl'] ?? 1));
 			$login_acl = DbHelper::selectOne('resource_acl', [
 				'resource_id' => (int) $login_page['node_id'],
 				'subject_type' => 'usergroup',
 				'subject_id' => $everyone_id,
-			], '', 'acl_id');
-			$this->assertFalse(is_array($login_acl));
+			], '', 'allow_view,allow_list');
+			$this->assertIsArray($login_acl);
+			$this->assertSame(1, (int) ($login_acl['allow_view'] ?? 0));
+			$this->assertSame(1, (int) ($login_acl['allow_list'] ?? 0));
+			$login_admin_acl = DbHelper::selectOne('resource_acl', [
+				'resource_id' => (int) $login_page['node_id'],
+				'subject_type' => 'usergroup',
+				'subject_id' => $administrators_id,
+			], '', 'allow_edit');
+			$this->assertIsArray($login_admin_acl);
+			$this->assertSame(1, (int) ($login_admin_acl['allow_edit'] ?? 0));
 			$form_connection_id = Widget::getWidgetConnectionId((int) $login_page['node_id'], 'content', WidgetList::FORM);
 			$this->assertIsInt($form_connection_id);
 			$form_attributes = AttributeHandler::getAttributes(
@@ -89,7 +101,6 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 				$this->assertIsInt(Widget::getWidgetConnectionId((int) $page['node_id'], 'content', $widget_name));
 			}
 
-			$administrators_id = (int) DbHelper::selectOneColumn('usergroups_tree', ['title' => 'Administrators'], '', 'node_id');
 			$admin_folder = ResourceTreeHandler::getResourceTreeEntryData('/', 'admin', Config::APP_DOMAIN_CONTEXT->value());
 			$this->assertIsArray($admin_folder);
 			$this->assertSame('folder', $admin_folder['node_type'] ?? null);

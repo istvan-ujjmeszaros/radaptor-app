@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         bootstrap="radaptor/radaptor-framework/bootstrap.testing.php"
+         bootstrap="bootstrap/bootstrap.testing.php"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.4/phpunit.xsd"
          cacheDirectory=".phpunit.cache">
   <php>

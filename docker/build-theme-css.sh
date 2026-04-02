@@ -16,7 +16,6 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RADAPTOR_ROOT="$(dirname "$SCRIPT_DIR")"
-WORKSPACE_ROOT="$(dirname "$RADAPTOR_ROOT")"
 
 cd "$RADAPTOR_ROOT"
 
@@ -27,18 +26,18 @@ if [ ! -d "node_modules/sass" ] || [ ! -d "node_modules/bootstrap" ]; then
 fi
 
 # Create output directory in the extracted theme package.
-PORTAL_ADMIN_ROOT="$WORKSPACE_ROOT/package-working-repos/themes/portal-admin"
+PORTAL_ADMIN_ROOT="$RADAPTOR_ROOT/packages/dev/themes/portal-admin"
 mkdir -p "$PORTAL_ADMIN_ROOT/public/assets/themes/radaptor-portal-admin/css"
 
 echo "Building RadaptorPortalAdmin CSS..."
-echo "  Workspace: $WORKSPACE_ROOT"
+echo "  App root: $RADAPTOR_ROOT"
 
 npx sass scss/radaptor-portal-admin/main.scss \
      "$PORTAL_ADMIN_ROOT/public/assets/themes/radaptor-portal-admin/css/radaptor-portal-admin.css" \
      --style=compressed \
      --no-source-map \
      --load-path=node_modules \
-     --load-path="$WORKSPACE_ROOT" \
+     --load-path="$RADAPTOR_ROOT/.." \
      --quiet-deps
 
 echo "Done! Output: $PORTAL_ADMIN_ROOT/public/assets/themes/radaptor-portal-admin/css/radaptor-portal-admin.css"

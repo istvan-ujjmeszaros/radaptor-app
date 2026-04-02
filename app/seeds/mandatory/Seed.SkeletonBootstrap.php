@@ -7,7 +7,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	public function getVersion(): string
 	{
-		return '1.6.0';
+		return '1.8.0';
 	}
 
 	public function getDescription(): string
@@ -94,6 +94,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 	private function ensureLoginPages(): void
 	{
 		$page_id = $this->ensureWebpage('/', 'login.html', 'admin_empty');
+		$this->ensureLoginAclBaseline($page_id);
 		$connection_id = $this->ensureWidget($page_id, WidgetList::FORM, false);
 
 		AttributeHandler::addAttribute(
@@ -105,7 +106,11 @@ class SeedSkeletonBootstrap extends AbstractSeed
 	private function ensureAdminPages(): void
 	{
 		foreach ([
+			FormList::PLAINHTML,
 			FormList::THEMESELECTOR,
+			FormList::WEBPAGEPAGE,
+			FormList::WIDGETCONNECTIONPARAMS,
+			FormList::WIDGETCONNECTIONSETTINGS,
 			FormList::ROLE,
 			FormList::USER,
 			FormList::USERGROUP,
@@ -453,6 +458,23 @@ class SeedSkeletonBootstrap extends AbstractSeed
 		$this->ensureUsergroupAcl($administrators_id, $admin_folder_id, [
 			'allow_view' => 1,
 			'allow_list' => 1,
+		], 'Administrators');
+	}
+
+	private function ensureLoginAclBaseline(int $page_id): void
+	{
+		ResourceAcl::setInheritance($page_id, false);
+
+		$everyone_id = $this->getUsergroupIdByTitle('Everyone');
+		$administrators_id = $this->getUsergroupIdByTitle('Administrators');
+
+		$this->ensureUsergroupAcl($everyone_id, $page_id, [
+			'allow_view' => 1,
+			'allow_list' => 1,
+		], 'Everyone');
+
+		$this->ensureUsergroupAcl($administrators_id, $page_id, [
+			'allow_edit' => 1,
 		], 'Administrators');
 	}
 
