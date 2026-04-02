@@ -282,8 +282,9 @@ if (!function_exists('radaptorAppBootstrapResolveUrl')) {
 			$path = str_starts_with($candidate, '/')
 				? $candidate
 				: ($base_dir . '/' . ltrim($candidate, '/'));
+			$authority = radaptorAppBootstrapBuildUrlAuthority($base);
 
-			return 'file://' . radaptorAppBootstrapNormalizeRelativeUrlPath($path);
+			return $authority . radaptorAppBootstrapNormalizeRelativeUrlPath($path);
 		}
 
 		$authority = radaptorAppBootstrapBuildUrlAuthority($base);

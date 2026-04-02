@@ -60,6 +60,17 @@ final class BootstrapPackageLocatorTest extends TestCase
 		);
 	}
 
+	public function testResolveUrlPreservesFileAuthorityForUncStyleRegistryPaths(): void
+	{
+		$this->assertSame(
+			'file://server/share/packages/radaptor-core-framework/0.1.0/plugin.zip',
+			radaptorAppBootstrapResolveUrl(
+				'file://server/share/registry.json',
+				'packages/radaptor-core-framework/0.1.0/plugin.zip'
+			)
+		);
+	}
+
 	public function testEnsureCliFrameworkAvailableFailsWithoutRealRegistryUrl(): void
 	{
 		$appRoot = $this->_createTempAppRoot();

@@ -41,6 +41,9 @@ services:
       target: dev
     image: radaptor-app-phpfpm:8.4-dev
     working_dir: /app
+    env_file:
+      - path: .env
+        required: false
     environment:
       - XDEBUG_FILE_LINK_FORMAT=javascript:var r = new XMLHttpRequest; r.open("get","http://localhost:63342/api/file/%f:%l".replace("/app/", "/"));r.send()
       - ENVIRONMENT=development
