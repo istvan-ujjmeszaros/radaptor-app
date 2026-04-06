@@ -3,6 +3,8 @@
 class TemplateList{
 	public const string ADDWIDGETFROMLIST = 'packages/registry/themes/portal-admin/theme/Cms/template.addWidgetFromList.php';
 	public const string ADMINMENU = 'packages/registry/themes/portal-admin/theme/AdminMenu/template.adminMenu.php';
+	public const string BROWSEREVENTDOCS_INDEX = 'packages/registry/core/framework/templates/BrowserEventDocs/template.browserEventDocs.index.php';
+	public const string BROWSEREVENTDOCS_SHOW = 'packages/registry/core/framework/templates/BrowserEventDocs/template.browserEventDocs.show.php';
 	public const string CLIRUNNER = 'packages/registry/core/cms/modules-common/CLIRunner/templates/template.cliRunner.php';
 	public const string DINA_CONTENT_RESOURCES__HELP = 'packages/registry/themes/portal-admin/theme/Cms/jstree.resources/template.dina_content.resources._help.php';
 	public const string DINA_CONTENT_ROLES__HELP = 'packages/registry/themes/portal-admin/theme/User/jsTreeRoles/template.dina_content.roles._help.php';
@@ -197,6 +199,8 @@ class TemplateList{
 		'RichText' => 'packages/registry/core/cms/templates-common/default-SoAdmin/RichText/template.RichText.php',
 		'WidgetGroupBeginning' => 'packages/registry/core/cms/templates-common/default-SoAdmin/WidgetGroup/template.WidgetGroupBeginning.php',
 		'WidgetGroupEnd' => 'packages/registry/core/cms/templates-common/default-SoAdmin/WidgetGroup/template.WidgetGroupEnd.php',
+		'browserEventDocs.show' => 'packages/registry/core/framework/templates/BrowserEventDocs/template.browserEventDocs.show.php',
+		'browserEventDocs.index' => 'packages/registry/core/framework/templates/BrowserEventDocs/template.browserEventDocs.index.php',
 		'templateEngineDemoTwig' => 'packages/registry/themes/portal-admin/theme/TemplateEngineDemo/template.templateEngineDemoTwig.twig',
 		'templateEngineDemoBlade' => 'packages/registry/themes/portal-admin/theme/TemplateEngineDemo/template.templateEngineDemoBlade.blade.php',
 		'templateEngineDemoWrapper' => 'packages/registry/themes/portal-admin/theme/TemplateEngineDemo/template.templateEngineDemoWrapper.php',
@@ -313,6 +317,8 @@ class TemplateList{
 		'RichText' => 'TemplateRendererPhp',
 		'WidgetGroupBeginning' => 'TemplateRendererPhp',
 		'WidgetGroupEnd' => 'TemplateRendererPhp',
+		'browserEventDocs.show' => 'TemplateRendererPhp',
+		'browserEventDocs.index' => 'TemplateRendererPhp',
 		'templateEngineDemoTwig' => 'TemplateRendererTwig',
 		'templateEngineDemoBlade' => 'TemplateRendererBlade',
 		'templateEngineDemoWrapper' => 'TemplateRendererPhp',

@@ -87,6 +87,20 @@ The committed lockfile is intentionally template-neutral, so the first install s
 registry URL from `RADAPTOR_REGISTRY_URL` or a local `.env`.
 The first-run DB bootstrap currently relies on the MariaDB init schema shipped in `docker/mariadb/initdb.d/`.
 
+### Maintainer note: mutable local registry
+
+When this skeleton is validated in registry-first mode against the mutable local development
+registry, republish and lockfile refresh are a maintainer responsibility:
+
+- dev mode (`packages/dev/...`) does not need republish
+- registry-first validation does need republish after first-party package changes
+- then refresh `radaptor.lock.json`
+- then run a fresh clone / scratch bootstrap proof
+
+For the workspace-local registry repo, use the one-off Docker publish command documented in
+`radaptor_plugin_registry/README.md` so the publish container can see both the app checkout and the
+registry checkout on disk.
+
 This repo is both the default consumer app and the default local dev-mode host.
 
 If you want to work on packages locally, place the checkout inside this app:
@@ -107,6 +121,9 @@ Use one of these supported approaches:
 - `./php-shell.sh`: open a shell in the running `php` container
 - `./composer.sh <args>`: run Composer in the `php` container
 - `./radaptor.sh <args>`: run `php radaptor.php ...` in the `php` container
+
+When you use `--json`, progress chatter is suppressed from stdout and appended to
+`.logs/cli_commands.log`, with each command separated by its own log section.
 
 Examples:
 
