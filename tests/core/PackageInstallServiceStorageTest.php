@@ -2,10 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 
-if (!class_exists('PackageInstallService', false)) {
-	require_once DEPLOY_ROOT . 'packages/dev/core/framework/classes/class.PackageInstallService.php';
-}
-
 final class PackageInstallServiceStorageTest extends TestCase
 {
 	public function testSanitizeLockfileForStorageRebasesTemplateNeutralRegistryUrls(): void

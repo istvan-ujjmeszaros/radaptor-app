@@ -488,16 +488,28 @@ if (!function_exists('radaptorAppBootstrapEnsureDirectory')) {
 			return;
 		}
 
-		radaptorAppBootstrapRunFilesystemOperation(
-			static fn (): bool => mkdir($directory, 0777, true),
-			"Unable to create bootstrap directory: {$directory}"
-		);
+		$warning = null;
+		set_error_handler(static function (int $_severity, string $message) use (&$warning): bool {
+			$warning = $message;
+
+			return true;
+		});
+
+		try {
+			$created = mkdir($directory, 0777, true);
+		} finally {
+			restore_error_handler();
+		}
 
 		clearstatcache(true, $directory);
 
-		if (!is_dir($directory)) {
-			throw new RuntimeException("Bootstrap directory was not created: {$directory}");
+		if ($created || is_dir($directory)) {
+			return;
 		}
+
+		throw new RuntimeException(
+			"Unable to create bootstrap directory: {$directory}" . ($warning !== null ? ': ' . $warning : '')
+		);
 	}
 }
 

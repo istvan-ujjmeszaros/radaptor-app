@@ -2,18 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 
-if (!class_exists('GitRepositoryInspector', false)) {
-	require_once DEPLOY_ROOT . 'packages/dev/core/framework/classes/class.GitRepositoryInspector.php';
-}
-
-if (!class_exists('LocalRegistryRootResolver', false)) {
-	require_once DEPLOY_ROOT . 'packages/dev/core/framework/classes/class.LocalRegistryRootResolver.php';
-}
-
-if (!class_exists('PackagePublishService', false)) {
-	require_once DEPLOY_ROOT . 'packages/dev/core/framework/classes/class.PackagePublishService.php';
-}
-
 final class PackagePublishServiceTest extends TestCase
 {
 	private array $cleanupDirectories = [];
