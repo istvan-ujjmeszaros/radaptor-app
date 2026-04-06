@@ -1,0 +1,65 @@
+<?php declare(strict_types=1);
+
+use PHPUnit\Framework\TestCase;
+
+if (!class_exists('PackageInstallService', false)) {
+	require_once DEPLOY_ROOT . 'packages/dev/core/framework/classes/class.PackageInstallService.php';
+}
+
+final class PackageInstallServiceStorageTest extends TestCase
+{
+	public function testSanitizeLockfileForStorageRebasesTemplateNeutralRegistryUrls(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
+		$method->setAccessible(true);
+
+		$placeholderRegistryUrl = 'https://packages.example.invalid/registry.json';
+		$sanitized = $method->invoke(
+			null,
+			[
+				'lockfile_version' => 1,
+				'packages' => [
+					'core:framework' => [
+						'type' => 'core',
+						'id' => 'framework',
+						'package' => 'radaptor/core/framework',
+						'source' => [
+							'type' => 'registry',
+							'registry' => 'default',
+							'resolved_registry_url' => 'http://host.docker.internal:8091/registry.json',
+						],
+						'resolved' => [
+							'type' => 'registry',
+							'registry' => 'default',
+							'registry_url' => 'http://host.docker.internal:8091/registry.json',
+							'dist_url' => 'http://host.docker.internal:8091/packages/radaptor-core-framework/0.1.0/plugin.zip',
+							'dist_sha256' => 'abc123',
+							'path' => 'packages/registry/core/framework',
+							'version' => '0.1.0',
+						],
+					],
+				],
+			],
+			[
+				'default' => [
+					'name' => 'default',
+					'url' => $placeholderRegistryUrl,
+					'resolved_url' => 'http://host.docker.internal:8091/registry.json',
+				],
+			]
+		);
+
+		$this->assertSame(
+			$placeholderRegistryUrl,
+			$sanitized['packages']['core:framework']['source']['resolved_registry_url']
+		);
+		$this->assertSame(
+			$placeholderRegistryUrl,
+			$sanitized['packages']['core:framework']['resolved']['registry_url']
+		);
+		$this->assertSame(
+			'https://packages.example.invalid/packages/radaptor-core-framework/0.1.0/plugin.zip',
+			$sanitized['packages']['core:framework']['resolved']['dist_url']
+		);
+	}
+}

@@ -1,0 +1,1139 @@
+<?php
+
+return [
+		'cli_runner:execute' => [
+			'event_name' => 'cli_runner.execute',
+			'group' => 'Developer Tools',
+			'name' => 'Execute web-runnable CLI command',
+			'summary' => 'Runs one CLI command through the web runner and returns structured output.',
+			'description' => 'Accepts a CLI command slug plus optional arguments/options/flags and delegates to CLICommandWebRunner for execution.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'command',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'CLI command slug registered as web-runnable.',
+					],
+					1 => [
+						'name' => 'main_arg',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional main positional argument.',
+					],
+					2 => [
+						'name' => 'options',
+						'source' => 'body',
+						'type' => 'json-object',
+						'required' => false,
+						'description' => 'JSON-encoded named options map.',
+					],
+					3 => [
+						'name' => 'flags',
+						'source' => 'body',
+						'type' => 'json-array',
+						'required' => false,
+						'description' => 'JSON-encoded list of flag names.',
+					],
+					4 => [
+						'name' => 'extra_args',
+						'source' => 'body',
+						'type' => 'json-array',
+						'required' => false,
+						'description' => 'JSON-encoded list of extra positional arguments.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns command output, JSON payload, exit code, duration, and error information.',
+			],
+			'authorization' => [
+				'visibility' => 'role:system_developer',
+				'description' => 'Requires the system developer role.',
+			],
+			'notes' => [
+				0 => 'Only commands that are registered and marked web-runnable can be executed.',
+			],
+			'side_effects' => [
+				0 => 'Executes a real CLI command and may mutate application state depending on that command.',
+			],
+			'class' => 'EventCliRunnerExecute',
+			'slug' => 'cli_runner:execute',
+			'route' => [
+				'event_name' => 'cli_runner.execute',
+				'context' => 'cli_runner',
+				'event' => 'execute',
+				'query' => '?context=cli_runner&event=execute',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'cli_runner.execute\')',
+				'template_helper' => 'event_url(\'cli_runner.execute\')',
+				'ajax_helper' => 'ajax_url(\'cli_runner.execute\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'cli_runner.execute\')',
+			],
+		],
+		'i18n_ajax:load' => [
+			'event_name' => 'i18n_ajax.load',
+			'group' => 'I18n',
+			'name' => 'Load i18n workbench rows',
+			'summary' => 'Returns paginated translation rows for the i18n workbench table.',
+			'description' => 'Loads translated rows for one locale with optional domain/search filters and DataTables-style paging parameters.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'locale',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Locale code to load, defaults to en_US.',
+					],
+					1 => [
+						'name' => 'start',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => false,
+						'description' => 'Result offset for paging.',
+					],
+					2 => [
+						'name' => 'length',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => false,
+						'description' => 'Page size for paging.',
+					],
+					3 => [
+						'name' => 'draw',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => false,
+						'description' => 'Opaque draw token echoed back to the caller.',
+					],
+					4 => [
+						'name' => 'domain',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional domain filter.',
+					],
+					5 => [
+						'name' => 'search',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional free-text filter.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns a paginated JSON payload for the workbench table.',
+			],
+			'authorization' => [
+				'visibility' => 'role:i18n_translator',
+				'description' => 'Requires the i18n translator role.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventI18nAjaxLoad',
+			'slug' => 'i18n_ajax:load',
+			'route' => [
+				'event_name' => 'i18n_ajax.load',
+				'context' => 'i18n_ajax',
+				'event' => 'load',
+				'query' => '?context=i18n_ajax&event=load',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'i18n_ajax.load\')',
+				'template_helper' => 'event_url(\'i18n_ajax.load\')',
+				'ajax_helper' => 'ajax_url(\'i18n_ajax.load\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'i18n_ajax.load\')',
+			],
+		],
+		'i18n_ajax:save' => [
+			'event_name' => 'i18n_ajax.save',
+			'group' => 'I18n',
+			'name' => 'Save one i18n translation row',
+			'summary' => 'Creates, updates, or deletes one translation row from the workbench.',
+			'description' => 'Persists one translation change and returns a JSON summary including whether the row is now missing or reviewed.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'domain',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Translation domain.',
+					],
+					1 => [
+						'name' => 'key',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Translation key.',
+					],
+					2 => [
+						'name' => 'context',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional message context.',
+					],
+					3 => [
+						'name' => 'locale',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Target locale code.',
+					],
+					4 => [
+						'name' => 'text',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'New translation text; empty string deletes the translation.',
+					],
+					5 => [
+						'name' => 'human_reviewed',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Truth-y flag to mark the translation as human reviewed.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns a JSON status payload describing the action that happened.',
+			],
+			'authorization' => [
+				'visibility' => 'role:i18n_translator',
+				'description' => 'Requires the i18n translator role.',
+			],
+			'notes' => [
+				0 => 'Empty text deletes the translation instead of saving an empty string.',
+			],
+			'side_effects' => [
+				0 => 'Inserts, updates, or deletes one translation record.',
+			],
+			'class' => 'EventI18nAjaxSave',
+			'slug' => 'i18n_ajax:save',
+			'route' => [
+				'event_name' => 'i18n_ajax.save',
+				'context' => 'i18n_ajax',
+				'event' => 'save',
+				'query' => '?context=i18n_ajax&event=save',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'i18n_ajax.save\')',
+				'template_helper' => 'event_url(\'i18n_ajax.save\')',
+				'ajax_helper' => 'ajax_url(\'i18n_ajax.save\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'i18n_ajax.save\')',
+			],
+		],
+		'i18n_ajax:tm-suggest' => [
+			'event_name' => 'i18n_ajax.tm-suggest',
+			'group' => 'I18n',
+			'name' => 'Load exact TM suggestions',
+			'summary' => 'Returns translation-memory suggestions for one message signature.',
+			'description' => 'Looks up matching translation-memory entries for the provided domain/key/context/locale combination.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'domain',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Translation domain.',
+					],
+					1 => [
+						'name' => 'key',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Translation key.',
+					],
+					2 => [
+						'name' => 'message_context',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional message context.',
+					],
+					3 => [
+						'name' => 'locale',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Target locale code.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns a JSON array of TM suggestions.',
+			],
+			'authorization' => [
+				'visibility' => 'role:i18n_translator',
+				'description' => 'Requires the i18n translator role.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventI18nAjaxTmSuggest',
+			'slug' => 'i18n_ajax:tm-suggest',
+			'route' => [
+				'event_name' => 'i18n_ajax.tm-suggest',
+				'context' => 'i18n_ajax',
+				'event' => 'tm-suggest',
+				'query' => '?context=i18n_ajax&event=tm-suggest',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'i18n_ajax.tm-suggest\')',
+				'template_helper' => 'event_url(\'i18n_ajax.tm-suggest\')',
+				'ajax_helper' => 'ajax_url(\'i18n_ajax.tm-suggest\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'i18n_ajax.tm-suggest\')',
+			],
+		],
+		'i18n_ajax:tm-suggest-fuzzy' => [
+			'event_name' => 'i18n_ajax.tm-suggest-fuzzy',
+			'group' => 'I18n',
+			'name' => 'Load fuzzy TM suggestions',
+			'summary' => 'Returns fuzzy translation-memory suggestions based on source text similarity.',
+			'description' => 'Looks up fuzzy TM matches using the source text of the requested message and the target locale.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'domain',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Translation domain.',
+					],
+					1 => [
+						'name' => 'key',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Translation key.',
+					],
+					2 => [
+						'name' => 'message_context',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional message context.',
+					],
+					3 => [
+						'name' => 'locale',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Target locale code.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns a JSON array of fuzzy TM suggestions.',
+			],
+			'authorization' => [
+				'visibility' => 'role:i18n_translator',
+				'description' => 'Requires the i18n translator role.',
+			],
+			'notes' => [
+				0 => 'This endpoint derives source text first, then performs fuzzy matching against TM entries.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventI18nAjaxTmSuggestFuzzy',
+			'slug' => 'i18n_ajax:tm-suggest-fuzzy',
+			'route' => [
+				'event_name' => 'i18n_ajax.tm-suggest-fuzzy',
+				'context' => 'i18n_ajax',
+				'event' => 'tm-suggest-fuzzy',
+				'query' => '?context=i18n_ajax&event=tm-suggest-fuzzy',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'i18n_ajax.tm-suggest-fuzzy\')',
+				'template_helper' => 'event_url(\'i18n_ajax.tm-suggest-fuzzy\')',
+				'ajax_helper' => 'ajax_url(\'i18n_ajax.tm-suggest-fuzzy\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'i18n_ajax.tm-suggest-fuzzy\')',
+			],
+		],
+		'import_export:download' => [
+			'event_name' => 'import_export.download',
+			'group' => 'Import / Export',
+			'name' => 'Download dataset export',
+			'summary' => 'Streams a CSV export for one import/export dataset.',
+			'description' => 'Resolves a dataset by key, collects scalar GET options, and returns the dataset export as a CSV download.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'dataset',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Dataset key to export.',
+					],
+					1 => [
+						'name' => '*',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Additional scalar dataset-specific export options.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'file-download',
+				'content_type' => 'text/csv; charset=UTF-8',
+				'description' => 'Returns the generated CSV stream with a download filename.',
+			],
+			'authorization' => [
+				'visibility' => 'dataset-specific',
+				'description' => 'Allowed only when the resolved dataset exists and supports export.',
+			],
+			'notes' => [
+				0 => 'The available option set depends on the selected dataset implementation.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventImportExportDownload',
+			'slug' => 'import_export:download',
+			'route' => [
+				'event_name' => 'import_export.download',
+				'context' => 'import_export',
+				'event' => 'download',
+				'query' => '?context=import_export&event=download',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'import_export.download\')',
+				'template_helper' => 'event_url(\'import_export.download\')',
+				'ajax_helper' => 'ajax_url(\'import_export.download\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'import_export.download\')',
+			],
+		],
+		'import_export:import' => [
+			'event_name' => 'import_export.import',
+			'group' => 'Import / Export',
+			'name' => 'Import dataset CSV',
+			'summary' => 'Imports dataset CSV content and returns either JSON or a redirect flow.',
+			'description' => 'Resolves a dataset from POST, validates the uploaded CSV file, runs the dataset import, and reports the result through JSON or system messages.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'dataset',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Dataset key to import into.',
+					],
+					1 => [
+						'name' => 'csv_file',
+						'source' => 'file',
+						'type' => 'uploaded-file',
+						'required' => true,
+						'description' => 'CSV upload payload.',
+					],
+					2 => [
+						'name' => 'dry_run',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'When set to 1, perform a dry run.',
+					],
+					3 => [
+						'name' => 'ajax',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'When set to 1, force JSON output.',
+					],
+					4 => [
+						'name' => 'referer',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional return URL for non-AJAX flows.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json-or-redirect',
+				'content_type' => 'application/json or text/html',
+				'description' => 'Returns JSON for AJAX requests, otherwise redirects back with system messages.',
+			],
+			'authorization' => [
+				'visibility' => 'dataset-specific',
+				'description' => 'Allowed only when the resolved dataset exists and supports import.',
+			],
+			'notes' => [
+				0 => 'Dataset-specific extra POST fields are forwarded as scalar options to the dataset importer.',
+				1 => 'The response shape changes depending on the AJAX detection rules or explicit ajax=1.',
+			],
+			'side_effects' => [
+				0 => 'May insert, update, or delete data depending on the dataset and selected mode.',
+				1 => 'Queues system messages in non-AJAX flows.',
+			],
+			'class' => 'EventImportExportImport',
+			'slug' => 'import_export:import',
+			'route' => [
+				'event_name' => 'import_export.import',
+				'context' => 'import_export',
+				'event' => 'import',
+				'query' => '?context=import_export&event=import',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'import_export.import\')',
+				'template_helper' => 'event_url(\'import_export.import\')',
+				'ajax_helper' => 'ajax_url(\'import_export.import\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'import_export.import\')',
+			],
+		],
+		'jstree_resources_ajax:load' => [
+			'event_name' => 'jstree_resources_ajax.load',
+			'group' => 'Admin AJAX',
+			'name' => 'Load resource tree nodes',
+			'summary' => 'Returns jsTree payload for the CMS resource tree.',
+			'description' => 'Loads one resource-tree branch in jsTree-compatible JSON, with support for multiple request shapes.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'node_id',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Preferred node identifier for jsTree 3.x style calls.',
+					],
+					1 => [
+						'name' => 'id',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Fallback node identifier used by some jsTree flows.',
+					],
+					2 => [
+						'name' => 'id_prefix',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional DOM id prefix for generated node ids.',
+					],
+					3 => [
+						'name' => 'shape_template',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional response shape template override.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns jsTree node data for the requested resource-tree parent.',
+			],
+			'authorization' => [
+				'visibility' => 'logged-in users',
+				'description' => 'Requires membership in the logged-in system usergroup.',
+			],
+			'notes' => [
+				0 => 'Supports both node_id and id inputs to tolerate different jsTree client variants.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventJstreeResourcesAjaxLoad',
+			'slug' => 'jstree_resources_ajax:load',
+			'route' => [
+				'event_name' => 'jstree_resources_ajax.load',
+				'context' => 'jstree_resources_ajax',
+				'event' => 'load',
+				'query' => '?context=jstree_resources_ajax&event=load',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'jstree_resources_ajax.load\')',
+				'template_helper' => 'event_url(\'jstree_resources_ajax.load\')',
+				'ajax_helper' => 'ajax_url(\'jstree_resources_ajax.load\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'jstree_resources_ajax.load\')',
+			],
+		],
+		'jstree_roles_ajax:load' => [
+			'event_name' => 'jstree_roles_ajax.load',
+			'group' => 'Admin AJAX',
+			'name' => 'Load roles tree nodes',
+			'summary' => 'Returns jsTree payload for the roles hierarchy.',
+			'description' => 'Loads one roles-tree branch for browser-side jsTree rendering.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'node_id',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Preferred node identifier for jsTree 3.x style calls.',
+					],
+					1 => [
+						'name' => 'id',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Fallback node identifier used by some jsTree flows.',
+					],
+					2 => [
+						'name' => 'id_prefix',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional DOM id prefix for generated node ids.',
+					],
+					3 => [
+						'name' => 'shape_template',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional response shape template override.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns jsTree node data for the requested role-tree parent.',
+			],
+			'authorization' => [
+				'visibility' => 'role:roles_admin or role:roles_viewer',
+				'description' => 'Requires either the roles admin or roles viewer role.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventJstreeRolesAjaxLoad',
+			'slug' => 'jstree_roles_ajax:load',
+			'route' => [
+				'event_name' => 'jstree_roles_ajax.load',
+				'context' => 'jstree_roles_ajax',
+				'event' => 'load',
+				'query' => '?context=jstree_roles_ajax&event=load',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'jstree_roles_ajax.load\')',
+				'template_helper' => 'event_url(\'jstree_roles_ajax.load\')',
+				'ajax_helper' => 'ajax_url(\'jstree_roles_ajax.load\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'jstree_roles_ajax.load\')',
+			],
+		],
+		'page_editmode:switch' => [
+			'event_name' => 'page_editmode.switch',
+			'group' => 'Editing',
+			'name' => 'Toggle page edit mode',
+			'summary' => 'Enables or disables edit mode for the current logged-in user and redirects back.',
+			'description' => 'Persists the edit-mode flag in user config and redirects to the referer or site root after changing the flag.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'set',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Expected values are 0 or 1.',
+					],
+					1 => [
+						'name' => 'referer',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional explicit return URL after the toggle.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'redirect',
+				'content_type' => 'text/html',
+				'description' => 'Redirects back after updating the edit-mode flag.',
+			],
+			'authorization' => [
+				'visibility' => 'logged-in users',
+				'description' => 'Requires membership in the logged-in system usergroup.',
+			],
+			'notes' => [
+				0 => 'The referer parameter is optional; without it the current host is used.',
+			],
+			'side_effects' => [
+				0 => 'Writes the CmsConfig::EDITMODE user setting.',
+				1 => 'Queues a success/error system message.',
+			],
+			'class' => 'EventPageEditmodeSwitch',
+			'slug' => 'page_editmode:switch',
+			'route' => [
+				'event_name' => 'page_editmode.switch',
+				'context' => 'page_editmode',
+				'event' => 'switch',
+				'query' => '?context=page_editmode&event=switch',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'page_editmode.switch\')',
+				'template_helper' => 'event_url(\'page_editmode.switch\')',
+				'ajax_helper' => 'ajax_url(\'page_editmode.switch\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'page_editmode.switch\')',
+			],
+		],
+		'resource:view' => [
+			'event_name' => 'resource.view',
+			'group' => 'Runtime',
+			'name' => 'Render resource',
+			'summary' => 'Primary browser entrypoint that resolves the current resource and renders it or an access fallback.',
+			'description' => 'Handles normal page/file requests, applies resource ACL checks, and may render the configured login page or a 403/404 response instead of the requested resource.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+				],
+			],
+			'response' => [
+				'kind' => 'resource-output',
+				'content_type' => 'varies by resolved resource',
+				'description' => 'Renders webpage HTML, streams a file response, or emits a 403/404 fallback.',
+			],
+			'authorization' => [
+				'visibility' => 'public route with per-resource ACL',
+				'description' => 'The event itself is public, but the resolved resource may still be denied by resource ACL.',
+			],
+			'notes' => [
+				0 => 'This is the default browser route. Url::getUrl(\'resource.view\') resolves to the site root.',
+				1 => 'Anonymous access to a protected webpage may render the login page as a same-URL fallback.',
+			],
+			'side_effects' => [
+				0 => 'May toggle persistent-cache write behavior depending on whether the requested resource itself is viewable.',
+			],
+			'class' => 'EventResourceView',
+			'slug' => 'resource:view',
+			'route' => [
+				'event_name' => 'resource.view',
+				'context' => 'resource',
+				'event' => 'view',
+				'query' => '?context=resource&event=view',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'resource.view\')',
+				'template_helper' => 'event_url(\'resource.view\')',
+				'ajax_helper' => 'ajax_url(\'resource.view\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'resource.view\')',
+			],
+		],
+		'sitemap:xml' => [
+			'event_name' => 'sitemap.xml',
+			'group' => 'Runtime',
+			'name' => 'Render XML sitemap',
+			'summary' => 'Streams the sitemap XML generated from known webpage resources.',
+			'description' => 'Collects webpage URLs from the resource tree and renders them through the sitemap XML template.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+				],
+			],
+			'response' => [
+				'kind' => 'xml',
+				'content_type' => 'application/xml',
+				'description' => 'Returns XML sitemap content rendered through the sitemap template.',
+			],
+			'authorization' => [
+				'visibility' => 'public',
+				'description' => 'The sitemap endpoint is public.',
+			],
+			'notes' => [
+				0 => 'This route is intended for crawlers and sitemap consumers, not for interactive admin workflows.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventSitemapXml',
+			'slug' => 'sitemap:xml',
+			'route' => [
+				'event_name' => 'sitemap.xml',
+				'context' => 'sitemap',
+				'event' => 'xml',
+				'query' => '?context=sitemap&event=xml',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'sitemap.xml\')',
+				'template_helper' => 'event_url(\'sitemap.xml\')',
+				'ajax_helper' => 'ajax_url(\'sitemap.xml\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'sitemap.xml\')',
+			],
+		],
+		'url:redirect' => [
+			'event_name' => 'url.redirect',
+			'group' => 'Runtime',
+			'name' => 'Redirect to SEO URL',
+			'summary' => 'Redirect helper that converts a resource id into its SEO URL and issues a redirect.',
+			'description' => 'Useful when code only knows a numeric resource id and wants to redirect the browser to the canonical SEO path for that resource.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'id',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => true,
+						'description' => 'Resource id to resolve to an SEO URL.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'redirect',
+				'content_type' => 'text/html',
+				'description' => 'Returns a redirect response to the resolved SEO URL.',
+			],
+			'authorization' => [
+				'visibility' => 'public',
+				'description' => 'No event-level authorization is required; resource ACL is enforced after the redirect target is loaded.',
+			],
+			'notes' => [
+				0 => 'Use this when you have a resource id and need a browser redirect, not when you already know the final path.',
+			],
+			'side_effects' => [
+				0 => 'Sends a redirect response immediately.',
+			],
+			'class' => 'EventUrlRedirect',
+			'slug' => 'url:redirect',
+			'route' => [
+				'event_name' => 'url.redirect',
+				'context' => 'url',
+				'event' => 'redirect',
+				'query' => '?context=url&event=redirect',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'url.redirect\')',
+				'template_helper' => 'event_url(\'url.redirect\')',
+				'ajax_helper' => 'ajax_url(\'url.redirect\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'url.redirect\')',
+			],
+		],
+		'user:logout' => [
+			'event_name' => 'user.logout',
+			'group' => 'Runtime',
+			'name' => 'Log out current user',
+			'summary' => 'Ends the current user session and redirects back.',
+			'description' => 'Logs out the current user, queues a logout notice, and redirects to the sanitized referer or site root.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'referer',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional return URL after logout.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'redirect',
+				'content_type' => 'text/html',
+				'description' => 'Redirects after the session is cleared.',
+			],
+			'authorization' => [
+				'visibility' => 'logged-in users',
+				'description' => 'Requires membership in the logged-in system usergroup.',
+			],
+			'notes' => [
+				0 => 'Referer is sanitized to strip dangerous or redundant parameters before redirect.',
+			],
+			'side_effects' => [
+				0 => 'Clears the current user session.',
+				1 => 'Queues a logout success message.',
+			],
+			'class' => 'EventUserLogout',
+			'slug' => 'user:logout',
+			'route' => [
+				'event_name' => 'user.logout',
+				'context' => 'user',
+				'event' => 'logout',
+				'query' => '?context=user&event=logout',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'user.logout\')',
+				'template_helper' => 'event_url(\'user.logout\')',
+				'ajax_helper' => 'ajax_url(\'user.logout\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'user.logout\')',
+			],
+		],
+		'users_ajax_user_list:autocomplete' => [
+			'event_name' => 'users_ajax_user_list.autocomplete',
+			'group' => 'Admin AJAX',
+			'name' => 'Autocomplete users',
+			'summary' => 'Returns a lightweight user list for autocomplete widgets.',
+			'description' => 'Filters users by the provided search term and returns a JSON structure suitable for autocomplete controls.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'term',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Autocomplete search term.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns a JSON list of matching users.',
+			],
+			'authorization' => [
+				'visibility' => 'role:users_admin',
+				'description' => 'Requires the users admin role.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventUsersAjaxUserListAutocomplete',
+			'slug' => 'users_ajax_user_list:autocomplete',
+			'route' => [
+				'event_name' => 'users_ajax_user_list.autocomplete',
+				'context' => 'users_ajax_user_list',
+				'event' => 'autocomplete',
+				'query' => '?context=users_ajax_user_list&event=autocomplete',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'users_ajax_user_list.autocomplete\')',
+				'template_helper' => 'event_url(\'users_ajax_user_list.autocomplete\')',
+				'ajax_helper' => 'ajax_url(\'users_ajax_user_list.autocomplete\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'users_ajax_user_list.autocomplete\')',
+			],
+		],
+		'users_user_list_ajax:load' => [
+			'event_name' => 'users_user_list_ajax.load',
+			'group' => 'Admin AJAX',
+			'name' => 'Load user table rows',
+			'summary' => 'Returns user rows for the admin user list table.',
+			'description' => 'Loads all users and returns a DataTables-friendly JSON payload.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns JSON with a data array of user rows.',
+			],
+			'authorization' => [
+				'visibility' => 'role:users_admin',
+				'description' => 'Requires the users admin role.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventUsersUserListAjaxLoad',
+			'slug' => 'users_user_list_ajax:load',
+			'route' => [
+				'event_name' => 'users_user_list_ajax.load',
+				'context' => 'users_user_list_ajax',
+				'event' => 'load',
+				'query' => '?context=users_user_list_ajax&event=load',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'users_user_list_ajax.load\')',
+				'template_helper' => 'event_url(\'users_user_list_ajax.load\')',
+				'ajax_helper' => 'ajax_url(\'users_user_list_ajax.load\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'users_user_list_ajax.load\')',
+			],
+		],
+		'widget_connection:add' => [
+			'event_name' => 'widget_connection.add',
+			'group' => 'Editing',
+			'name' => 'Add widget connection',
+			'summary' => 'Assigns a widget to a webpage slot and redirects back to the editor.',
+			'description' => 'Used by the page editor when a user inserts a widget into a slot on a webpage.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'widget_name',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Widget class name to assign.',
+					],
+					1 => [
+						'name' => 'pageid',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => true,
+						'description' => 'Target webpage id.',
+					],
+					2 => [
+						'name' => 'slot_name',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Target slot name on the webpage layout.',
+					],
+					3 => [
+						'name' => 'seq',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => false,
+						'description' => 'Optional insertion position within the slot.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'redirect',
+				'content_type' => 'text/html',
+				'description' => 'Redirects back to the referer after adding the widget or reporting an error.',
+			],
+			'authorization' => [
+				'visibility' => 'logged-in users',
+				'description' => 'Requires membership in the logged-in system usergroup.',
+			],
+			'notes' => [
+				0 => 'The widget_name comes from POST; placement information is taken from query parameters.',
+			],
+			'side_effects' => [
+				0 => 'Creates a widget_connections row when the assignment succeeds.',
+				1 => 'Queues a system message for success or duplicate/error cases.',
+			],
+			'class' => 'EventWidgetConnectionAdd',
+			'slug' => 'widget_connection:add',
+			'route' => [
+				'event_name' => 'widget_connection.add',
+				'context' => 'widget_connection',
+				'event' => 'add',
+				'query' => '?context=widget_connection&event=add',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'widget_connection.add\')',
+				'template_helper' => 'event_url(\'widget_connection.add\')',
+				'ajax_helper' => 'ajax_url(\'widget_connection.add\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'widget_connection.add\')',
+			],
+		],
+		'widget_connection:remove' => [
+			'event_name' => 'widget_connection.remove',
+			'group' => 'Editing',
+			'name' => 'Remove widget connection',
+			'summary' => 'Deletes one widget assignment from a webpage and redirects back.',
+			'description' => 'Used by the page editor when a widget should be removed from the current layout.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'item_id',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => true,
+						'description' => 'Widget connection id to remove.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'redirect',
+				'content_type' => 'text/html',
+				'description' => 'Redirects back to the referer after the delete attempt.',
+			],
+			'authorization' => [
+				'visibility' => 'logged-in users',
+				'description' => 'Requires membership in the logged-in system usergroup.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Deletes one widget connection row when the target exists.',
+				1 => 'Queues a success system message when the remove succeeds.',
+			],
+			'class' => 'EventWidgetConnectionRemove',
+			'slug' => 'widget_connection:remove',
+			'route' => [
+				'event_name' => 'widget_connection.remove',
+				'context' => 'widget_connection',
+				'event' => 'remove',
+				'query' => '?context=widget_connection&event=remove',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'widget_connection.remove\')',
+				'template_helper' => 'event_url(\'widget_connection.remove\')',
+				'ajax_helper' => 'ajax_url(\'widget_connection.remove\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'widget_connection.remove\')',
+			],
+		],
+		'widget_connection:swap' => [
+			'event_name' => 'widget_connection.swap',
+			'group' => 'Editing',
+			'name' => 'Swap widget positions',
+			'summary' => 'Swaps two widget connection positions and redirects back.',
+			'description' => 'Used by editor controls that reorder widgets within a page slot.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'item_id',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => true,
+						'description' => 'Primary widget connection id.',
+					],
+					1 => [
+						'name' => 'swap_id',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => true,
+						'description' => 'Second widget connection id to swap with.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'redirect',
+				'content_type' => 'text/html',
+				'description' => 'Redirects back after attempting the reorder operation.',
+			],
+			'authorization' => [
+				'visibility' => 'logged-in users',
+				'description' => 'Requires membership in the logged-in system usergroup.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Swaps sequence values in the widget_connections table.',
+				1 => 'Queues a success system message when the swap succeeds.',
+			],
+			'class' => 'EventWidgetConnectionSwap',
+			'slug' => 'widget_connection:swap',
+			'route' => [
+				'event_name' => 'widget_connection.swap',
+				'context' => 'widget_connection',
+				'event' => 'swap',
+				'query' => '?context=widget_connection&event=swap',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'widget_connection.swap\')',
+				'template_helper' => 'event_url(\'widget_connection.swap\')',
+				'ajax_helper' => 'ajax_url(\'widget_connection.swap\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'widget_connection.swap\')',
+			],
+		],
+	];

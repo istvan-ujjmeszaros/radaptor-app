@@ -458,6 +458,50 @@ if (!function_exists('radaptorAppBootstrapDownloadFile')) {
 }
 
 if (!function_exists('radaptorAppBootstrapDeleteDirectory')) {
+	function radaptorAppBootstrapRunFilesystemOperation(callable $operation, string $error_message): mixed
+	{
+		$warning = null;
+		set_error_handler(static function (int $_severity, string $message) use (&$warning): bool {
+			$warning = $message;
+
+			return true;
+		});
+
+		try {
+			$result = $operation();
+		} finally {
+			restore_error_handler();
+		}
+
+		if ($result === false) {
+			throw new RuntimeException($error_message . ($warning !== null ? ': ' . $warning : ''));
+		}
+
+		return $result;
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapEnsureDirectory')) {
+	function radaptorAppBootstrapEnsureDirectory(string $directory): void
+	{
+		if (is_dir($directory)) {
+			return;
+		}
+
+		radaptorAppBootstrapRunFilesystemOperation(
+			static fn (): bool => mkdir($directory, 0777, true),
+			"Unable to create bootstrap directory: {$directory}"
+		);
+
+		clearstatcache(true, $directory);
+
+		if (!is_dir($directory)) {
+			throw new RuntimeException("Bootstrap directory was not created: {$directory}");
+		}
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapDeleteDirectory')) {
 	function radaptorAppBootstrapDeleteDirectory(string $directory): void
 	{
 		if (!is_dir($directory)) {
@@ -471,13 +515,22 @@ if (!function_exists('radaptorAppBootstrapDeleteDirectory')) {
 
 		foreach ($iterator as $item) {
 			if ($item->isDir()) {
-				rmdir($item->getPathname());
+				radaptorAppBootstrapRunFilesystemOperation(
+					static fn (): bool => rmdir($item->getPathname()),
+					"Unable to remove bootstrap directory: {$item->getPathname()}"
+				);
 			} else {
-				unlink($item->getPathname());
+				radaptorAppBootstrapRunFilesystemOperation(
+					static fn (): bool => unlink($item->getPathname()),
+					"Unable to remove bootstrap file: {$item->getPathname()}"
+				);
 			}
 		}
 
-		rmdir($directory);
+		radaptorAppBootstrapRunFilesystemOperation(
+			static fn (): bool => rmdir($directory),
+			"Unable to remove bootstrap directory: {$directory}"
+		);
 	}
 }
 
@@ -488,9 +541,7 @@ if (!function_exists('radaptorAppBootstrapCopyDirectory')) {
 			throw new RuntimeException("Bootstrap source directory is missing: {$source_directory}");
 		}
 
-		if (!is_dir($target_directory) && !mkdir($target_directory, 0777, true) && !is_dir($target_directory)) {
-			throw new RuntimeException("Unable to create bootstrap target directory: {$target_directory}");
-		}
+		radaptorAppBootstrapEnsureDirectory($target_directory);
 
 		$iterator = new RecursiveIteratorIterator(
 			new RecursiveDirectoryIterator($source_directory, FilesystemIterator::SKIP_DOTS),
@@ -502,16 +553,16 @@ if (!function_exists('radaptorAppBootstrapCopyDirectory')) {
 			$target_path = rtrim($target_directory, '/') . '/' . $relative_path;
 
 			if ($item->isDir()) {
-				if (!is_dir($target_path) && !mkdir($target_path, 0777, true) && !is_dir($target_path)) {
-					throw new RuntimeException("Unable to create bootstrap target directory: {$target_path}");
-				}
+				radaptorAppBootstrapEnsureDirectory($target_path);
 
 				continue;
 			}
 
-			if (!copy($item->getPathname(), $target_path)) {
-				throw new RuntimeException("Unable to copy bootstrap file into {$target_path}");
-			}
+			radaptorAppBootstrapEnsureDirectory(dirname($target_path));
+			radaptorAppBootstrapRunFilesystemOperation(
+				static fn (): bool => copy($item->getPathname(), $target_path),
+				"Unable to copy bootstrap file into {$target_path}"
+			);
 		}
 	}
 }
@@ -532,9 +583,7 @@ if (!function_exists('radaptorAppBootstrapInstallFrameworkPackage')) {
 			throw new RuntimeException('Unable to allocate temporary archive path for framework bootstrap.');
 		}
 
-		if (!mkdir($temp_extract_root, 0777, true) && !is_dir($temp_extract_root)) {
-			throw new RuntimeException("Unable to create temporary extraction directory: {$temp_extract_root}");
-		}
+		radaptorAppBootstrapEnsureDirectory($temp_extract_root);
 
 		try {
 			$actual_hash = radaptorAppBootstrapDownloadFile($request['dist_url'], $temp_archive);
@@ -581,10 +630,7 @@ if (!function_exists('radaptorAppBootstrapInstallFrameworkPackage')) {
 			radaptorAppBootstrapDeleteDirectory($target_dir);
 
 			$target_parent = dirname($target_dir);
-
-			if (!is_dir($target_parent) && !mkdir($target_parent, 0777, true) && !is_dir($target_parent)) {
-				throw new RuntimeException("Unable to create framework bootstrap directory: {$target_parent}");
-			}
+			radaptorAppBootstrapEnsureDirectory($target_parent);
 
 			radaptorAppBootstrapCopyDirectory($package_root, $target_dir);
 
