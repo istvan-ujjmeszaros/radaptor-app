@@ -118,6 +118,7 @@ class ApplicationConfig
 	public const string GENERATED_IMPORT_EXPORT_DATASETS_FILE = 'generated/__import_export_datasets__.php';
 	public const string GENERATED_ROLES_FILE = 'generated/__roles__.php';
 	public const string GENERATED_PLUGINS_FILE = 'generated/__plugins__.php';
+	public const string GENERATED_BROWSER_EVENT_DOCS_FILE = 'generated/__browser_event_docs__.php';
 	public const string GENERATED_CONFIG_FILE = 'generated/__config__.php';
 	public const string GENERATED_TEMPLATE_RENDERERS_FILE = 'generated/__template_renderers__.php';
 	public const array GENERATOR_IGNORED_FOLDERS = [

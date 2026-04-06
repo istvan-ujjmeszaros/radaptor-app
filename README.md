@@ -116,6 +116,20 @@ Examples:
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 
+## Browser Event API Docs
+
+The framework ships a public browser-event manual in both JSON and HTML.
+
+- catalog JSON: `http://localhost/?context=events&event=index&format=json`
+- catalog HTML: `http://localhost/?context=events&event=index&format=html`
+- detail JSON example: `http://localhost/?context=events&event=show&slug=resource:view&format=json`
+- detail HTML example: `http://localhost/?context=events&event=show&slug=resource:view&format=html`
+
+If you add or change documented browser events, rebuild the generated registry inside the `php`
+container:
+
+- `./radaptor.sh build:event-docs`
+
 ## Notes
 
 - The committed manifest is registry-first. Local package development via `source.path` is supported, but it is an explicit opt-in dev mode.
