@@ -9,17 +9,15 @@ It is intentionally small:
 
 ## Quick start
 
-1. Point the app at a real package registry:
-   - `export RADAPTOR_REGISTRY_URL=https://your-registry.example/registry.json`
-2. Start the local stack:
+1. Start the local stack:
    - `docker compose -f docker-compose-dev.yml up -d --build`
-3. Run CLI commands in the `php` container:
+2. Run CLI commands in the `php` container:
    - Docker Desktop path: open a terminal for the `php` container and run `bash`
    - shell shortcut: `./php-shell.sh`
    - direct shortcuts:
      - `./composer.sh install`
      - `./radaptor.sh install --json`
-4. Open the site:
+3. Open the site:
    - homepage: `http://localhost/`
    - login: `http://localhost/login.html`
    - admin: `http://localhost/admin/index.html`
@@ -42,12 +40,14 @@ What happens on first install:
 - `docker compose up` gives you the supported PHP runtime
 - `./radaptor.sh install --json` bootstraps the pinned framework package if it is still missing
 - then the framework CLI continues the normal install/update/build/migrate/seed flow
-- the committed `radaptor.json` stays template-neutral with a placeholder registry URL, so the
-  real registry must come from `RADAPTOR_REGISTRY_URL` or a local `.env` override
+- the committed `radaptor.json` points at the default public package registry:
+  `https://packages.radaptor.com/registry.json`
+- `RADAPTOR_REGISTRY_URL` remains available as a local override for scratch registries or isolated
+  testing
 
 ### Local override example
 
-For a local registry and a second app instance, use shell env or `.env` overrides:
+For a local registry and a second app instance, override the default registry in shell env or `.env`:
 
 ```bash
 export RADAPTOR_REGISTRY_URL=http://host.docker.internal:8091/registry.json
@@ -83,8 +83,8 @@ The committed lockfile pins tested package versions. On first run, `radaptor.php
 locked `core.framework` package metadata and the configured registry URL to bootstrap the framework
 package into `packages/registry/core/framework` before delegating into the framework CLI.
 
-The committed lockfile is intentionally template-neutral, so the first install still needs a real
-registry URL from `RADAPTOR_REGISTRY_URL` or a local `.env`.
+By default that registry URL is `https://packages.radaptor.com/registry.json`. Local development can
+still override it with `RADAPTOR_REGISTRY_URL` or a local `.env`.
 The first-run DB bootstrap currently relies on the MariaDB init schema shipped in `docker/mariadb/initdb.d/`.
 
 ### Maintainer note: mutable local registry
@@ -97,9 +97,14 @@ registry, republish and lockfile refresh are a maintainer responsibility:
 - then refresh `radaptor.lock.json`
 - then run a fresh clone / scratch bootstrap proof
 
-For the workspace-local registry repo, use the one-off Docker publish command documented in
-`radaptor_plugin_registry/README.md` so the publish container can see both the app checkout and the
-registry checkout on disk.
+The supported maintainer path is:
+
+- `./radaptor.sh package:publish-all --json`
+
+After that:
+
+- commit + push the `radaptor_plugin_registry` repo
+- on the VPS, update the deployed checkout (`update-repo.sh`)
 
 This repo is both the default consumer app and the default local dev-mode host.
 

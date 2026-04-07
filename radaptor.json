@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "registries": {
     "default": {
-      "url": "https://packages.example.invalid/registry.json"
+      "url": "https://packages.radaptor.com/registry.json"
     }
   },
   "core": {

@@ -383,7 +383,7 @@ class AutoloaderGeneratedMap
 		'LayoutTypeAdminDefault' => 'packages/registry/core/cms/layouts/layout.admin_default.php',
 		'LayoutTypeAdminEmpty' => 'packages/registry/core/cms/layouts/layout.admin_empty.php',
 		'LayoutTypeAdminNomenu' => 'packages/registry/core/cms/layouts/layout.admin_nomenu.php',
-		'LayoutTypePublicEmpty' => 'app/layouts/layout.empty.php',
+		'LayoutTypePublicEmpty' => 'app/layouts/layout.public_empty.php',
 		'LayoutTypeUnknown' => 'packages/registry/core/cms/layouts/layout.unknown.php',
 		'LayoutTypeWidgetPreviewer' => 'packages/registry/core/cms/layouts/layout.widget_previewer.php',
 		'LayoutTypes' => 'generated/__layout_types__.php',

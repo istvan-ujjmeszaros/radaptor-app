@@ -46,10 +46,10 @@ class TemplateList{
 	public const string LAYOUTELEMENT_ADMIN_1ROW_CONTENT = 'packages/registry/core/cms/templates-common/default-SoAdmin/_layout/layoutElements/template.layoutElement_admin_1row_content.php';
 	public const string LAYOUTELEMENT_ADMIN_EMPTY_CONTENT = 'packages/registry/core/cms/templates-common/default-SoAdmin/_layout/layoutElements/template.layoutElement_admin_empty_content.php';
 	public const string LAYOUT_ADMIN_DEFAULT = 'packages/registry/themes/portal-admin/theme/_layouts/template.layout_admin_default.php';
-	public const string LAYOUT_ADMIN_EMPTY = 'app/templates/template.layout_admin_empty.php';
+	public const string LAYOUT_ADMIN_EMPTY = 'packages/registry/themes/portal-admin/theme/_layouts/template.layout_admin_empty.php';
 	public const string LAYOUT_ADMIN_NOMENU = 'packages/registry/core/cms/templates-common/default-SoAdmin/_layout/template.layout_admin_nomenu.php';
 	public const string LAYOUT_PUBLIC_2ROW = 'packages/registry/core/cms/templates-common/default-SoAdmin/_layout/template.layout_public_2row.php';
-	public const string LAYOUT_PUBLIC_EMPTY = 'app/templates/template.layout_public_empty.php';
+	public const string LAYOUT_PUBLIC_EMPTY = 'packages/registry/themes/portal-admin/theme/_layouts/template.layout_public_empty.php';
 	public const string LAYOUT_WIDGET_PREVIEWER = 'packages/registry/themes/portal-admin/theme/_layouts/template.layout_widget_previewer.php';
 	public const string PLAINHTML = 'packages/registry/core/cms/templates-common/default-SoAdmin/PlainHtml/template.PlainHtml.php';
 	public const string RESOURCEACLSELECTOR = 'packages/registry/themes/portal-admin/theme/User/resourceAclSelector/template.resourceAclSelector.php';
@@ -188,7 +188,7 @@ class TemplateList{
 		'userDescription' => 'packages/registry/core/cms/templates-common/default-SoAdmin/User/template.userDescription.php',
 		'topMenuAdmin' => 'packages/registry/themes/portal-admin/theme/TopMenuAdmin/template.topMenuAdmin.php',
 		'layout_widget_previewer' => 'packages/registry/themes/portal-admin/theme/_layouts/template.layout_widget_previewer.php',
-		'layout_admin_empty' => 'app/templates/template.layout_admin_empty.php',
+		'layout_admin_empty' => 'packages/registry/themes/portal-admin/theme/_layouts/template.layout_admin_empty.php',
 		'layout_admin_nomenu' => 'packages/registry/core/cms/templates-common/default-SoAdmin/_layout/template.layout_admin_nomenu.php',
 		'layout_public_2row' => 'packages/registry/core/cms/templates-common/default-SoAdmin/_layout/template.layout_public_2row.php',
 		'layout_admin_default' => 'packages/registry/themes/portal-admin/theme/_layouts/template.layout_admin_default.php',
@@ -208,7 +208,7 @@ class TemplateList{
 		'resourceTree.jstree3' => 'packages/registry/themes/portal-admin/theme/Cms/resourceTree/template.resourceTree.jstree3.php',
 		'userMenu' => 'packages/registry/themes/portal-admin/theme/UserMenu/template.userMenu.php',
 		'sideMenuAdmin' => 'packages/registry/themes/portal-admin/theme/SideMenuAdmin/template.sideMenuAdmin.php',
-		'layout_public_empty' => 'app/templates/template.layout_public_empty.php',
+		'layout_public_empty' => 'packages/registry/themes/portal-admin/theme/_layouts/template.layout_public_empty.php',
 	];
 
 	public static function hasTemplate(string $templateName): bool
