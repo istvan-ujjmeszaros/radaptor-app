@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
@@ -52,7 +54,7 @@ final class AutoloaderFailsafePluginPriorityTest extends TestCase
 		$directory = dirname($path);
 
 		if (!is_dir($directory)) {
-			mkdir($directory, 0777, true);
+			mkdir($directory, 0o777, true);
 		}
 
 		file_put_contents($path, $content);

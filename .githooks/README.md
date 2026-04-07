@@ -10,17 +10,22 @@ To install the git hooks manually, run:
 ./.githooks/install.sh
 ```
 
-You can also run `./scripts/setup-formatting.sh`, which installs PHP-CS-Fixer (via Phive) and links the hooks in one step.
+You can also run the Composer hook setup script:
+
+```bash
+./composer.sh run-script setup-git-hooks --no-interaction
+```
 
 ## Requirements
 
-Install PHP-CS-Fixer via [Phive](https://phar.io/):
+In Docker-first development, the dev PHP image provides `php-cs-fixer` globally.
+
+For host fallback, make sure `php-cs-fixer` is available either on your `PATH`, via Composer
+(`vendor/bin/php-cs-fixer`), or via Phive:
 
 ```bash
 phive install --force-accept-unsigned php-cs-fixer
 ```
-
-The hook expects the binary at `tools/php-cs-fixer`.
 
 ## Configuration
 
@@ -28,7 +33,7 @@ The hook **automatically detects** your environment and uses the appropriate met
 
 ### 1. Docker (Auto-detected)
 
-If `docker-compose-dev.yml` is running, the hook automatically runs inside the containerized PHP service. No configuration needed!
+If `docker-compose-dev.yml` is running, the hook automatically runs inside the containerized PHP service. No local fixer install is required for that path.
 
 ```bash
 # Just make sure Docker is running

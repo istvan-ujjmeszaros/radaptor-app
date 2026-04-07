@@ -33,6 +33,7 @@ class TestHelperEnvironment
 		// Check if an original value was stored
 		if (array_key_exists($key, self::$originalValues)) {
 			$originalValue = self::$originalValues[$key];
+
 			if ($originalValue === false) {
 				// Unset the variable if it was originally not set
 				putenv($key);

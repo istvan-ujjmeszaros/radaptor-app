@@ -9,11 +9,13 @@ $finder = PhpCsFixer\Finder::create()
 		'tools',
 		'generated', // Exclude auto-generated files
 	])
-	->notPath('#radaptor/radaptor-framework/generators/#') // Exclude code generators that use heredoc templates
 	->in([
 		'app',
+		'bin',
+		'bootstrap',
 		'config',
-		'radaptor',
+		'core',
+		'tests',
 	]);
 
 $config = new PhpCsFixer\Config();

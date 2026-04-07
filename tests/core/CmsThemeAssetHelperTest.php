@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +31,7 @@ final class CmsThemeAssetHelperTest extends TestCase
 	{
 		$theme_slug = 'test-cms-assets-root-' . bin2hex(random_bytes(4));
 		$root_js_dir = DEPLOY_ROOT . 'public/www/assets/packages/' . $theme_slug . '/js';
-		mkdir($root_js_dir, 0777, true);
+		mkdir($root_js_dir, 0o777, true);
 		$this->cleanupDirectories[] = DEPLOY_ROOT . 'public/www/assets/packages/' . $theme_slug;
 
 		$this->assertSame(
@@ -42,7 +44,7 @@ final class CmsThemeAssetHelperTest extends TestCase
 	{
 		$theme_slug = 'test-cms-assets-theme-' . bin2hex(random_bytes(4));
 		$controllers_dir = DEPLOY_ROOT . 'public/www/assets/packages/themes/' . $theme_slug . '/controllers';
-		mkdir($controllers_dir, 0777, true);
+		mkdir($controllers_dir, 0o777, true);
 		$this->cleanupDirectories[] = DEPLOY_ROOT . 'public/www/assets/packages/themes/' . $theme_slug;
 
 		$this->assertSame(
@@ -59,6 +61,7 @@ final class CmsThemeAssetHelperTest extends TestCase
 
 		if (is_link($path)) {
 			unlink($path);
+
 			return;
 		}
 
@@ -70,6 +73,7 @@ final class CmsThemeAssetHelperTest extends TestCase
 		foreach ($iterator as $item) {
 			if ($item->isDir()) {
 				rmdir($item->getPathname());
+
 				continue;
 			}
 

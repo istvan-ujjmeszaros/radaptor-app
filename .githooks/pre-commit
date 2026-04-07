@@ -18,13 +18,7 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 cd "$PROJECT_ROOT"
 
 RELATIVE_FIXER_BIN="tools/php-cs-fixer"
-PHP_CS_FIXER_BIN="$PROJECT_ROOT/$RELATIVE_FIXER_BIN"
-
-if [ ! -x "$PHP_CS_FIXER_BIN" ]; then
-	echo -e "${RED}PHP-CS-Fixer is not installed (missing $RELATIVE_FIXER_BIN).${NC}"
-	echo -e "${YELLOW}Install it via: phive install --force-accept-unsigned php-cs-fixer${NC}"
-	exit 1
-fi
+PHP_CS_FIXER_WRAPPER="$PROJECT_ROOT/php-cs-fixer.sh"
 
 DOCKER_SERVICE="${RADAPTOR_DOCKER_PHP_SERVICE:-php}"
 RUN_IN_DOCKER=0
@@ -45,6 +39,11 @@ if [ $RUN_IN_DOCKER -eq 1 ]; then
 	echo -e "${YELLOW}Running PHP-CS-Fixer inside Docker service: $DOCKER_SERVICE${NC}"
 else
 	echo -e "${YELLOW}Docker service '$DOCKER_SERVICE' not detected. Running PHP-CS-Fixer locally.${NC}"
+fi
+
+if [ ! -x "$PHP_CS_FIXER_WRAPPER" ]; then
+	echo -e "${RED}PHP-CS-Fixer wrapper is missing ($PHP_CS_FIXER_WRAPPER).${NC}"
+	exit 1
 fi
 
 # Get list of staged PHP files
@@ -87,10 +86,10 @@ echo -e "${YELLOW}Running PHP-CS-Fixer on staged files...${NC}"
 run_fixer() {
 	if [ $RUN_IN_DOCKER -eq 1 ]; then
 		docker compose -f docker-compose-dev.yml exec -T "$DOCKER_SERVICE" bash -lc \
-			"cd /app && $RELATIVE_FIXER_BIN fix --config=.php-cs-fixer.php --quiet --path-mode=intersection -- \"\$@\"" \
+			"cd /app && ./php-cs-fixer.sh --config=.php-cs-fixer.php --quiet --path-mode=intersection -- \"\$@\"" \
 			bash "${STAGED_FILES[@]}"
 	else
-		"$PHP_CS_FIXER_BIN" fix --config=.php-cs-fixer.php --quiet --path-mode=intersection -- "${STAGED_FILES[@]}"
+		"$PHP_CS_FIXER_WRAPPER" --config=.php-cs-fixer.php --quiet --path-mode=intersection -- "${STAGED_FILES[@]}"
 	fi
 }
 

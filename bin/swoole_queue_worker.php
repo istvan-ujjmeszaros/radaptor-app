@@ -20,6 +20,7 @@ RequestContextHolder::setStorage(new SwooleRequestContextStorage());
 
 if (!class_exists(Swoole\Coroutine::class)) {
 	fwrite(STDERR, "Swoole extension is not available.\n");
+
 	exit(1);
 }
 

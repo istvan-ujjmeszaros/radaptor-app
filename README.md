@@ -87,24 +87,33 @@ By default that registry URL is `https://packages.radaptor.com/registry.json`. L
 still override it with `RADAPTOR_REGISTRY_URL` or a local `.env`.
 The first-run DB bootstrap currently relies on the MariaDB init schema shipped in `docker/mariadb/initdb.d/`.
 
-### Maintainer note: mutable local registry
+### Maintainer note: immutable first-party package releases
 
-When this skeleton is validated in registry-first mode against the mutable local development
-registry, republish and lockfile refresh are a maintainer responsibility:
+When this skeleton is validated in registry-first mode, first-party package changes must be
+released as new immutable versions before the consumer app is updated:
 
-- dev mode (`packages/dev/...`) does not need republish
-- registry-first validation does need republish after first-party package changes
-- then refresh `radaptor.lock.json`
+- dev mode (`packages/dev/...`) does not need release/publish
+- registry-first validation does need an immutable package release after first-party package changes
+- the consumer app refresh stays the normal `./radaptor.sh update --json`, but only after the
+  registry deploy completed
 - then run a fresh clone / scratch bootstrap proof
 
 The supported maintainer path is:
 
-- `./radaptor.sh package:publish-all --json`
+- stable release: `./radaptor.sh package:release <package-key> --json`
+- prerelease: `./radaptor.sh package:prerelease <package-key> --channel alpha|beta|rc --json`
 
 After that:
 
+- commit the bumped `.registry-package.json` in the package repo
 - commit + push the `radaptor_plugin_registry` repo
 - pushes to `radaptor_plugin_registry/main` auto-deploy to `https://packages.radaptor.com/`
+- only then run `./radaptor.sh update --json` so `radaptor.lock.json` and `packages/registry/...`
+  pick up the new version
+
+The low-level `package:publish` and `package:publish-all` commands remain available for internal or
+bootstrap cases, but they are not the normal maintainer release workflow and they refuse to
+overwrite an already published version.
 
 This repo is both the default consumer app and the default local dev-mode host.
 

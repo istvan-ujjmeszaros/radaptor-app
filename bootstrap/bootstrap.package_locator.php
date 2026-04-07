@@ -425,6 +425,7 @@ if (!function_exists('radaptorAppBootstrapDownloadFile')) {
 
 		if ($write_handle === false) {
 			fclose($read_handle);
+
 			throw new RuntimeException("Unable to open temporary archive path: {$target_path}");
 		}
 
@@ -496,7 +497,7 @@ if (!function_exists('radaptorAppBootstrapEnsureDirectory')) {
 		});
 
 		try {
-			$created = mkdir($directory, 0777, true);
+			$created = mkdir($directory, 0o777, true);
 		} finally {
 			restore_error_handler();
 		}

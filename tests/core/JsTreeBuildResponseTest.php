@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
@@ -35,6 +36,7 @@ final class JsTreeBuildResponseTest extends TestCase
 		];
 
 		$cases = [];
+
 		foreach ($templates as $template) {
 			foreach ($types as $type) {
 				$cases[] = [$template, $type];

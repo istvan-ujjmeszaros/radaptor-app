@@ -9,10 +9,13 @@
   <testsuites>
     <testsuite name="Project Test Suite">
       <file>tests/core/ConfigTest.php</file>
+      <file>tests/core/LocalPackageRegistryBuilderTest.php</file>
       <file>tests/core/PackageConfigTest.php</file>
       <file>tests/core/PackageInstallServiceStorageTest.php</file>
       <file>tests/core/PackageLockfileTest.php</file>
       <file>tests/core/PackagePublishServiceTest.php</file>
+      <file>tests/core/PackageReleaseServiceTest.php</file>
+      <file>tests/core/PackageReleaseVersionHelperTest.php</file>
       <file>tests/core/PluginVersionHelperTest.php</file>
       <file>tests/core/SkeletonBootstrapSeedTest.php</file>
     </testsuite>

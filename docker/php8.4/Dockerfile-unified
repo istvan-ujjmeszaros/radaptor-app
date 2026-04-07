@@ -63,6 +63,12 @@ ENV XDEBUG_FILE_LINK_FORMAT='phpstorm://open?file=%f&line=%l'
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Install PHP-CS-Fixer globally so bind-mounted /app does not hide the formatter binary
+RUN composer global require --no-interaction --no-progress friendsofphp/php-cs-fixer:^3.94 \
+    && git config --global --add safe.directory /app \
+    && ln -sf "$(composer global config home --absolute)/vendor/bin/php-cs-fixer" /usr/local/bin/php-cs-fixer \
+    && php-cs-fixer --version >/dev/null
+
 # Set working directory
 WORKDIR /app
 

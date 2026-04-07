@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
@@ -60,10 +62,60 @@ final class LocalPackageRegistryBuilderTest extends TestCase
 		$zip->close();
 	}
 
+	public function testPublishPackageRejectsOverwritingExistingVersion(): void
+	{
+		$package_root = $this->createTempDirectory('package');
+		$registry_root = $this->createTempDirectory('registry');
+
+		file_put_contents($package_root . '/.registry-package.json', json_encode([
+			'package' => 'radaptor/core/framework',
+			'type' => 'core',
+			'id' => 'framework',
+			'version' => '0.1.0',
+		], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+		file_put_contents($package_root . '/bootstrap.php', '<?php');
+
+		$metadata = [
+			'package' => 'radaptor/core/framework',
+			'type' => 'core',
+			'id' => 'framework',
+			'version' => '0.1.0',
+			'dependencies' => [],
+			'composer' => [
+				'require' => [],
+			],
+			'assets' => [
+				'public' => [],
+			],
+			'dist_exclude' => [],
+		];
+		$tracked_files = [
+			'.registry-package.json',
+			'bootstrap.php',
+		];
+
+		LocalPackageRegistryBuilder::publishPackage(
+			$registry_root,
+			$package_root,
+			$metadata,
+			$tracked_files
+		);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage("Package 'radaptor/core/framework' version '0.1.0' is already published.");
+
+		LocalPackageRegistryBuilder::publishPackage(
+			$registry_root,
+			$package_root,
+			$metadata,
+			$tracked_files
+		);
+	}
+
 	private function createTempDirectory(string $suffix): string
 	{
 		$directory = sys_get_temp_dir() . '/radaptor-local-registry-test-' . $suffix . '-' . bin2hex(random_bytes(6));
-		mkdir($directory, 0777, true);
+		mkdir($directory, 0o777, true);
 		$this->cleanup_directories[] = $directory;
 
 		return $directory;

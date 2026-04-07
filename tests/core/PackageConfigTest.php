@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
@@ -10,6 +12,7 @@ final class PackageConfigTest extends TestCase
 
 	/** @var string[] */
 	private array $cleanup_files = [];
+
 	/** @var string[] */
 	private array $cleanup_directories = [];
 
@@ -57,35 +60,35 @@ final class PackageConfigTest extends TestCase
 		$this->cleanup_files[] = $local_override_path;
 
 		file_put_contents($default_path, <<<'PHP'
-<?php
-return [
-	'dsn' => null,
-	'flag' => 'default',
-	'nested' => [
-		'first' => 'default',
-		'second' => 'default',
-	],
-];
-PHP);
+			<?php
+			return [
+				'dsn' => null,
+				'flag' => 'default',
+				'nested' => [
+					'first' => 'default',
+					'second' => 'default',
+				],
+			];
+			PHP);
 		$this->ensureDirectory(dirname($override_path));
 		file_put_contents($override_path, <<<'PHP'
-<?php
-return [
-	'flag' => 'override',
-	'nested' => [
-		'second' => 'override',
-	],
-];
-PHP);
+			<?php
+			return [
+				'flag' => 'override',
+				'nested' => [
+					'second' => 'override',
+				],
+			];
+			PHP);
 		file_put_contents($local_override_path, <<<'PHP'
-<?php
-return [
-	'local_only' => true,
-	'nested' => [
-		'third' => 'local',
-	],
-];
-PHP);
+			<?php
+			return [
+				'local_only' => true,
+				'nested' => [
+					'third' => 'local',
+				],
+			];
+			PHP);
 
 		$config = PackageConfig::load('plugin', $package_id, $package_root);
 
@@ -108,13 +111,13 @@ PHP);
 		$core_root = $this->makePackageRoot();
 		$theme_root = $this->makePackageRoot();
 		file_put_contents($core_root . '/config/default.php', <<<'PHP'
-<?php
-return ['scope' => 'core', 'value' => 1];
-PHP);
+			<?php
+			return ['scope' => 'core', 'value' => 1];
+			PHP);
 		file_put_contents($theme_root . '/config/default.php', <<<'PHP'
-<?php
-return ['scope' => 'theme', 'value' => 2];
-PHP);
+			<?php
+			return ['scope' => 'theme', 'value' => 2];
+			PHP);
 
 		$this->assertSame(
 			['scope' => 'core', 'value' => 1],
@@ -133,14 +136,14 @@ PHP);
 		$override_path = PackageConfig::getAppOverridePath('plugin', $plugin_id);
 		$this->cleanup_files[] = $override_path;
 		file_put_contents($plugin_root . '/config/default.php', <<<'PHP'
-<?php
-return ['value' => 'default'];
-PHP);
+			<?php
+			return ['value' => 'default'];
+			PHP);
 		$this->ensureDirectory(dirname($override_path));
 		file_put_contents($override_path, <<<'PHP'
-<?php
-return ['value' => 'override'];
-PHP);
+			<?php
+			return ['value' => 'override'];
+			PHP);
 
 		$this->assertSame(
 			PackageConfig::load('plugin', $plugin_id, $plugin_root),
@@ -155,9 +158,9 @@ PHP);
 
 		$package_root = $this->makePackageRoot();
 		file_put_contents($package_root . '/config/default.php', <<<'PHP'
-<?php
-return 'invalid';
-PHP);
+			<?php
+			return 'invalid';
+			PHP);
 
 		PackageConfig::load('plugin', 'badconfig', $package_root);
 	}
@@ -185,7 +188,7 @@ PHP);
 
 	private function ensureDirectory(string $directory): void
 	{
-		if (!is_dir($directory) && !mkdir($directory, 0777, true) && !is_dir($directory)) {
+		if (!is_dir($directory) && !mkdir($directory, 0o777, true) && !is_dir($directory)) {
 			$this->fail("Unable to create directory: {$directory}");
 		}
 	}

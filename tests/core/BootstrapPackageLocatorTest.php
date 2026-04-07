@@ -94,23 +94,23 @@ final class BootstrapPackageLocatorTest extends TestCase
 		$appRoot = $this->_createTempAppRoot();
 		$registryRoot = $this->_createTempDirectory('registry');
 		$archiveDirectory = $registryRoot . '/packages/radaptor-core-framework/0.1.0';
-		mkdir($archiveDirectory, 0777, true);
+		mkdir($archiveDirectory, 0o777, true);
 
 		$archivePath = $archiveDirectory . '/plugin.zip';
 		$this->_createFrameworkArchive($archivePath, [
 			'bootstrap.php' => '<?php echo "framework bootstrap";',
 			'bootstrap.autoloader.php' => '<?php echo "autoload";',
 			'.registry-package.json' => json_encode(['name' => 'radaptor/core/framework'], JSON_PRETTY_PRINT),
-			]);
+		]);
 		$archiveSha = strtolower(hash_file('sha256', $archivePath));
 
 		$this->_writeJson($appRoot . '/radaptor.json', [
 			'registries' => [
 				'default' => [
 					'url' => radaptorAppBootstrapGetPlaceholderRegistryUrl(),
-					],
 				],
-			]);
+			],
+		]);
 		$this->_writeFrameworkLockfile(
 			$appRoot,
 			'radaptor/core/framework',
@@ -130,14 +130,14 @@ final class BootstrapPackageLocatorTest extends TestCase
 		$this->assertSame(
 			radaptorAppBootstrapNormalizePath($frameworkRoot),
 			radaptorAppBootstrapResolveFrameworkRoot($appRoot)
-			);
+		);
 	}
 
 	public function testEnsureCliFrameworkAvailableUsesConfiguredFrameworkPathBeforeRegistryBootstrap(): void
 	{
 		$appRoot = $this->_createTempAppRoot();
 		$customFrameworkRoot = $appRoot . '/vendor/custom/framework';
-		mkdir($customFrameworkRoot, 0777, true);
+		mkdir($customFrameworkRoot, 0o777, true);
 		file_put_contents($customFrameworkRoot . '/bootstrap.php', '<?php');
 
 		$this->_writeJson($appRoot . '/radaptor.json', [
@@ -168,8 +168,8 @@ final class BootstrapPackageLocatorTest extends TestCase
 	private function _createTempAppRoot(): string
 	{
 		$directory = $this->_createTempDirectory('app');
-		mkdir($directory . '/packages/registry/core', 0777, true);
-		mkdir($directory . '/packages/dev/core', 0777, true);
+		mkdir($directory . '/packages/registry/core', 0o777, true);
+		mkdir($directory . '/packages/dev/core', 0o777, true);
 
 		return $directory;
 	}
@@ -178,7 +178,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 	{
 		$directory = sys_get_temp_dir() . '/radaptor-bootstrap-test-' . $prefix . '-' . bin2hex(random_bytes(6));
 
-		mkdir($directory, 0777, true);
+		mkdir($directory, 0o777, true);
 		$this->_tempDirectories[] = $directory;
 
 		return $directory;
@@ -189,7 +189,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 		$parent = dirname($path);
 
 		if (!is_dir($parent)) {
-			mkdir($parent, 0777, true);
+			mkdir($parent, 0o777, true);
 		}
 
 		file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
@@ -201,8 +201,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 		string $version,
 		string $distUrl = '',
 		string $distSha256 = ''
-	): void
-	{
+	): void {
 		$resolved = [
 			'type' => 'registry',
 			'registry' => 'default',
@@ -225,15 +224,15 @@ final class BootstrapPackageLocatorTest extends TestCase
 					'type' => 'core',
 					'id' => 'framework',
 					'package' => $packageName,
-						'source' => [
-							'type' => 'registry',
-							'registry' => 'default',
-							'version' => '^' . $version,
-						],
-						'resolved' => $resolved,
+					'source' => [
+						'type' => 'registry',
+						'registry' => 'default',
+						'version' => '^' . $version,
 					],
+					'resolved' => $resolved,
 				],
-			]);
+			],
+		]);
 	}
 
 	private function _createFrameworkArchive(string $archivePath, array $files): void
