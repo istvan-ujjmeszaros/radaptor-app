@@ -9,15 +9,17 @@ It is intentionally small:
 
 ## Quick start
 
-1. Start the local stack:
+1. Build the local PHP platform image:
+   - `./docker/build-php-platform.sh dev`
+2. Start the local stack:
    - `docker compose -f docker-compose-dev.yml up -d --build`
-2. Run CLI commands in the `php` container:
+3. Run CLI commands in the `php` container:
    - Docker Desktop path: open a terminal for the `php` container and run `bash`
    - shell shortcut: `./php-shell.sh`
    - direct shortcuts:
      - `./composer.sh install`
      - `./radaptor.sh install --json`
-3. Open the site:
+4. Open the site:
    - homepage: `http://localhost/`
    - login: `http://localhost/login.html`
    - admin: `http://localhost/admin/index.html`
@@ -27,6 +29,10 @@ project name before `docker compose up`.
 
 All supported CLI work happens inside Docker. Host PHP and host Composer are not part of the
 supported workflow.
+
+The `php` runtime image is intentionally thin. The slow PHP extension/tooling layer now lives in a
+separate local platform image so routine runtime Dockerfile changes do not rebuild `swoole`,
+`redis`, `brotli`, Composer, Phive, and `php-cs-fixer`.
 
 Default ACL baseline after install:
 - `/login.html` is an explicitly public special page
@@ -62,6 +68,26 @@ docker compose -f docker-compose-dev.yml up -d --build
 
 If you want to validate a second copy without stopping an existing app instance, use a different
 folder and give that copy its own compose project name and host ports via shell env or `.env`.
+
+## Local PHP platform image
+
+The PHP 8.4 stack is split into:
+- a heavy local platform image built by `./docker/build-php-platform.sh`
+- a thin runtime image used by `docker compose`
+
+The default local platform tags are:
+- `radaptor-app-php-platform:8.4-dev-local`
+- `radaptor-app-php-platform:8.4-prod-local`
+
+If you want to point the runtime at a different prebuilt base later, override:
+- `RADAPTOR_PHP_PLATFORM_DEV_IMAGE`
+- `RADAPTOR_PHP_PLATFORM_PROD_IMAGE`
+
+Examples:
+
+- build dev only: `./docker/build-php-platform.sh dev`
+- build prod only: `./docker/build-php-platform.sh prod`
+- build both: `./docker/build-php-platform.sh all`
 
 ## Default bootstrap credentials
 

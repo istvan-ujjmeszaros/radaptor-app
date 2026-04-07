@@ -1,0 +1,17 @@
+ARG RADAPTOR_PHP_PLATFORM_DEV_IMAGE=radaptor-app-php-platform:8.4-dev-local
+ARG RADAPTOR_PHP_PLATFORM_PROD_IMAGE=radaptor-app-php-platform:8.4-prod-local
+
+FROM ${RADAPTOR_PHP_PLATFORM_DEV_IMAGE} AS dev
+
+COPY ./radaptor /usr/local/bin/radaptor
+RUN chmod +x /usr/local/bin/radaptor
+
+FROM ${RADAPTOR_PHP_PLATFORM_PROD_IMAGE} AS prod
+
+COPY ./99-radaptor-prod.ini "$PHP_INI_DIR/conf.d/99-radaptor-prod.ini"
+COPY ./radaptor /usr/local/bin/radaptor
+RUN chmod +x /usr/local/bin/radaptor \
+    && printf "ping.path = /ping\npm.status_path = /status\n" >> /usr/local/etc/php-fpm.d/zz-docker.conf
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q "pong" || exit 1

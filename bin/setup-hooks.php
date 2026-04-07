@@ -18,6 +18,14 @@ if (!is_dir($gitPath) && !is_file($gitPath)) {
 	exit(0);
 }
 
+exec('command -v git >/dev/null 2>&1', $output, $status);
+
+if ($status !== 0) {
+	fwrite(STDERR, "setup-hooks: git binary not available, skipping.\n");
+
+	exit(0);
+}
+
 $command = sprintf(
 	'git -C %s config core.hooksPath %s',
 	escapeshellarg($repoRoot),
