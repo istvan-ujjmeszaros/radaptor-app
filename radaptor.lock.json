@@ -7,18 +7,18 @@
             "package": "radaptor/core/cms",
             "source": {
                 "registry": "default",
-                "resolved_registry_url": "http://host.docker.internal:8091/registry.json",
+                "resolved_registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "cd6eae587e43eb61a02d972242dcf11fd947b81d61b3fa2dd9833d728fada28e",
-                "dist_url": "http://host.docker.internal:8091/packages/radaptor-core-cms/0.1.2/plugin.zip",
+                "dist_sha256": "d5a8cfe037b2909afb3a1f6b7a1c7adf0219ccdfa4d1d19383a0344d21972b87",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.3/plugin.zip",
                 "path": "packages/registry/core/cms",
                 "registry": "default",
-                "registry_url": "http://host.docker.internal:8091/registry.json",
+                "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.2"
+                "version": "0.1.3"
             },
             "dependencies": {
                 "radaptor/core/framework": "^0.1.0"
@@ -30,18 +30,18 @@
             "package": "radaptor/core/framework",
             "source": {
                 "registry": "default",
-                "resolved_registry_url": "http://host.docker.internal:8091/registry.json",
+                "resolved_registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "fce7e6596d7a28b4da4587224cb22d24a4db2c16506910d07771047bb5fb28d9",
-                "dist_url": "http://host.docker.internal:8091/packages/radaptor-core-framework/0.1.5/plugin.zip",
+                "dist_sha256": "870eb454702e00b2f195f17888a07de8a2227c1200e7cce22e064a7a84759442",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-framework/0.1.7/plugin.zip",
                 "path": "packages/registry/core/framework",
                 "registry": "default",
-                "registry_url": "http://host.docker.internal:8091/registry.json",
+                "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.5"
+                "version": "0.1.7"
             },
             "dependencies": []
         }
@@ -53,16 +53,16 @@
             "package": "radaptor/themes/portal-admin",
             "source": {
                 "registry": "default",
-                "resolved_registry_url": "http://host.docker.internal:8091/registry.json",
+                "resolved_registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
                 "version": "^0.1.0"
             },
             "resolved": {
                 "dist_sha256": "6874682fe7333ada22a14ad8aae714b930ef26e663f837c837aab488e4db6c4f",
-                "dist_url": "http://host.docker.internal:8091/packages/radaptor-themes-portal-admin/0.1.0/plugin.zip",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-portal-admin/0.1.0/plugin.zip",
                 "path": "packages/registry/themes/portal-admin",
                 "registry": "default",
-                "registry_url": "http://host.docker.internal:8091/registry.json",
+                "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
                 "version": "0.1.0"
             },

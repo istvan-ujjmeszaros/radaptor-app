@@ -165,6 +165,7 @@ class AutoloaderGeneratedMap
 		'CmsMenuService' => 'packages/registry/core/cms/modules-common/Cms/classes/class.CmsMenuService.php',
 		'CmsPathHelper' => 'packages/registry/core/cms/modules-common/Cms/classes/class.CmsPathHelper.php',
 		'CmsResourceSpecService' => 'packages/registry/core/cms/modules-common/Cms/classes/class.CmsResourceSpecService.php',
+		'CmsResourceSpecServiceTest' => 'tests/core/CmsResourceSpecServiceTest.php',
 		'CmsSeedHelper' => 'packages/registry/core/cms/modules-common/Cms/classes/class.CmsSeedHelper.php',
 		'CmsThemeAssetHelper' => 'packages/registry/core/cms/modules-common/Cms/classes/class.CmsThemeAssetHelper.php',
 		'CmsThemeAssetHelperTest' => 'tests/core/CmsThemeAssetHelperTest.php',

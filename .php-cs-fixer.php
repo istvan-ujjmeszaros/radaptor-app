@@ -14,7 +14,6 @@ $finder = PhpCsFixer\Finder::create()
 		'bin',
 		'bootstrap',
 		'config',
-		'core',
 		'tests',
 	]);
 

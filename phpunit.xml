@@ -9,9 +9,11 @@
   <testsuites>
     <testsuite name="Project Test Suite">
       <file>tests/core/ConfigTest.php</file>
+      <file>tests/core/CmsResourceSpecServiceTest.php</file>
       <file>tests/core/LocalPackageRegistryBuilderTest.php</file>
       <file>tests/core/PackageConfigTest.php</file>
       <file>tests/core/PackageInstallServiceStorageTest.php</file>
+      <file>tests/core/PackageManifestRegistryOverrideTest.php</file>
       <file>tests/core/PackageLockfileTest.php</file>
       <file>tests/core/PackagePublishServiceTest.php</file>
       <file>tests/core/PackageReleaseServiceTest.php</file>

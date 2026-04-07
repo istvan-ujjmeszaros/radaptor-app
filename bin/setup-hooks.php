@@ -10,17 +10,17 @@ if (!is_dir($repoRoot . DIRECTORY_SEPARATOR . '.githooks')) {
 	exit(0);
 }
 
-$gitConfigPath = $repoRoot . DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR . 'config';
+$gitPath = $repoRoot . DIRECTORY_SEPARATOR . '.git';
 
-if (!is_file($gitConfigPath)) {
-	fwrite(STDERR, "setup-hooks: .git/config not found, skipping.\n");
+if (!is_dir($gitPath) && !is_file($gitPath)) {
+	fwrite(STDERR, "setup-hooks: .git entry not found, skipping.\n");
 
 	exit(0);
 }
 
 $command = sprintf(
-	'git config --file %s core.hooksPath %s',
-	escapeshellarg($gitConfigPath),
+	'git -C %s config core.hooksPath %s',
+	escapeshellarg($repoRoot),
 	escapeshellarg('.githooks')
 );
 

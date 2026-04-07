@@ -106,17 +106,17 @@ echo -e "${GREEN}PHP-CS-Fixer completed successfully!${NC}"
 # Migration schema check
 # If migration files are staged but schema file is not, warn the user
 if git diff --cached --name-only | grep -qE 'migrations/.*\.php$'; then
-	if ! git diff --cached --name-only | grep -q '__db_schema__.php'; then
+	if ! git diff --cached --name-only | grep -q '__db_schema_data__.php'; then
 		echo ""
 		echo -e "${YELLOW}┌──────────────────────────────────────────────────────┐${NC}"
 		echo -e "${YELLOW}│ WARNING: Migration committed without schema update   │${NC}"
 		echo -e "${YELLOW}├──────────────────────────────────────────────────────┤${NC}"
-		echo -e "${YELLOW}│ A migration file is staged but __db_schema__.php    │${NC}"
-		echo -e "${YELLOW}│ is not. Consider running:                           │${NC}"
+		echo -e "${YELLOW}│ A migration file is staged but __db_schema_data__.  │${NC}"
+		echo -e "${YELLOW}│ php is not. Consider running:                       │${NC}"
 		echo -e "${YELLOW}│                                                      │${NC}"
 		echo -e "${YELLOW}│   radaptor migrate:run                               │${NC}"
 		echo -e "${YELLOW}│   radaptor build:db                                  │${NC}"
-		echo -e "${YELLOW}│   git add generated/__db_schema__.php                │${NC}"
+		echo -e "${YELLOW}│   git add generated/__db_schema_data__.php           │${NC}"
 		echo -e "${YELLOW}│                                                      │${NC}"
 		echo -e "${YELLOW}│ Committing anyway (this is just a warning).         │${NC}"
 		echo -e "${YELLOW}└──────────────────────────────────────────────────────┘${NC}"

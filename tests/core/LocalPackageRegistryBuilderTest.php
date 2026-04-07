@@ -112,6 +112,135 @@ final class LocalPackageRegistryBuilderTest extends TestCase
 		);
 	}
 
+	public function testPublishPackageRejectsOverwritingExistingVersionWithoutReplacingExistingArchive(): void
+	{
+		$package_root = $this->createTempDirectory('package');
+		$registry_root = $this->createTempDirectory('registry');
+
+		file_put_contents($package_root . '/.registry-package.json', json_encode([
+			'package' => 'radaptor/core/framework',
+			'type' => 'core',
+			'id' => 'framework',
+			'version' => '0.1.0',
+		], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+		file_put_contents($package_root . '/bootstrap.php', "<?php\n// original\n");
+
+		$metadata = [
+			'package' => 'radaptor/core/framework',
+			'type' => 'core',
+			'id' => 'framework',
+			'version' => '0.1.0',
+			'dependencies' => [],
+			'composer' => [
+				'require' => [],
+			],
+			'assets' => [
+				'public' => [],
+			],
+			'dist_exclude' => [],
+		];
+		$tracked_files = [
+			'.registry-package.json',
+			'bootstrap.php',
+		];
+
+		$first = LocalPackageRegistryBuilder::publishPackage(
+			$registry_root,
+			$package_root,
+			$metadata,
+			$tracked_files
+		);
+		$original_hash = hash_file('sha256', $first['dist_path']);
+		$original_registry = (string) file_get_contents($registry_root . '/registry.json');
+
+		file_put_contents($package_root . '/bootstrap.php', "<?php\n// changed\n");
+
+		try {
+			LocalPackageRegistryBuilder::publishPackage(
+				$registry_root,
+				$package_root,
+				$metadata,
+				$tracked_files
+			);
+			$this->fail('Expected duplicate publish to throw.');
+		} catch (RuntimeException $exception) {
+			$this->assertStringContainsString("version '0.1.0' is already published", $exception->getMessage());
+		}
+
+		$this->assertSame($original_hash, hash_file('sha256', $first['dist_path']));
+		$this->assertSame($original_registry, (string) file_get_contents($registry_root . '/registry.json'));
+	}
+
+	public function testPrereleasePublishDoesNotReplaceExistingStableLatest(): void
+	{
+		$package_root = $this->createTempDirectory('package');
+		$registry_root = $this->createTempDirectory('registry');
+
+		file_put_contents($package_root . '/.registry-package.json', json_encode([
+			'package' => 'radaptor/core/framework',
+			'type' => 'core',
+			'id' => 'framework',
+			'version' => '0.1.1',
+		], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+		file_put_contents($package_root . '/bootstrap.php', '<?php');
+
+		$tracked_files = [
+			'.registry-package.json',
+			'bootstrap.php',
+		];
+
+		LocalPackageRegistryBuilder::publishPackage(
+			$registry_root,
+			$package_root,
+			[
+				'package' => 'radaptor/core/framework',
+				'type' => 'core',
+				'id' => 'framework',
+				'version' => '0.1.1',
+				'dependencies' => [],
+				'composer' => [
+					'require' => [],
+				],
+				'assets' => [
+					'public' => [],
+				],
+				'dist_exclude' => [],
+			],
+			$tracked_files
+		);
+
+		file_put_contents($package_root . '/.registry-package.json', json_encode([
+			'package' => 'radaptor/core/framework',
+			'type' => 'core',
+			'id' => 'framework',
+			'version' => '0.1.2-alpha.1',
+		], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+
+		LocalPackageRegistryBuilder::publishPackage(
+			$registry_root,
+			$package_root,
+			[
+				'package' => 'radaptor/core/framework',
+				'type' => 'core',
+				'id' => 'framework',
+				'version' => '0.1.2-alpha.1',
+				'dependencies' => [],
+				'composer' => [
+					'require' => [],
+				],
+				'assets' => [
+					'public' => [],
+				],
+				'dist_exclude' => [],
+			],
+			$tracked_files
+		);
+
+		$registry = json_decode((string) file_get_contents($registry_root . '/registry.json'), true, 512, JSON_THROW_ON_ERROR);
+		$this->assertSame('0.1.1', $registry['packages']['radaptor/core/framework']['latest']);
+		$this->assertArrayHasKey('0.1.2-alpha.1', $registry['packages']['radaptor/core/framework']['versions']);
+	}
+
 	private function createTempDirectory(string $suffix): string
 	{
 		$directory = sys_get_temp_dir() . '/radaptor-local-registry-test-' . $suffix . '-' . bin2hex(random_bytes(6));
