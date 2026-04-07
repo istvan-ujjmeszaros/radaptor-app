@@ -49,6 +49,7 @@ services:
       - ENVIRONMENT=development
       - TZ=UTC
       - RADAPTOR_REGISTRY_URL=${RADAPTOR_REGISTRY_URL:-}
+      - RADAPTOR_PACKAGE_REGISTRY_ROOT=${RADAPTOR_PACKAGE_REGISTRY_ROOT:-/workspace/radaptor_plugin_registry}
       - DB_DEFAULT_DSN=${DB_DEFAULT_DSN:-mysql:host=mariadb;port=3306;user=root;password=radaptor_app;dbname=radaptor_app}
       - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-redis-session}
       - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}
@@ -72,6 +73,7 @@ services:
         condition: service_healthy
     volumes:
       - ./:/app
+      - ../:/workspace
       - ./docker/99-radaptor-dev.ini:/usr/local/etc/php/conf.d/99-radaptor-dev.ini:ro
 
   redis-cache:
