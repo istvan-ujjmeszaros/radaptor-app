@@ -115,4 +115,96 @@ final class PackageInstallServiceStorageTest extends TestCase
 			$sanitized['packages']['core:framework']['resolved']['dist_url']
 		);
 	}
+
+	public function testSanitizeLockfileForStorageKeepsAbsoluteNonRegistryArtifactUrlsUnchanged(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
+		$method->setAccessible(true);
+
+		$declaredRegistryUrl = 'https://packages.radaptor.com/registry.json';
+		$cdnUrl = 'https://cdn.example.com/radaptor-core-framework/0.1.6/plugin.zip';
+		$sanitized = $method->invoke(
+			null,
+			[
+				'lockfile_version' => 1,
+				'packages' => [
+					'core:framework' => [
+						'type' => 'core',
+						'id' => 'framework',
+						'package' => 'radaptor/core/framework',
+						'source' => [
+							'type' => 'registry',
+							'registry' => 'default',
+							'resolved_registry_url' => 'file:///app/tmp/radaptor-local-registry/registry.json',
+						],
+						'resolved' => [
+							'type' => 'registry',
+							'registry' => 'default',
+							'registry_url' => 'file:///app/tmp/radaptor-local-registry/registry.json',
+							'dist_url' => $cdnUrl,
+							'dist_sha256' => 'abc123',
+							'path' => 'packages/registry/core/framework',
+							'version' => '0.1.6',
+						],
+					],
+				],
+			],
+			[
+				'default' => [
+					'name' => 'default',
+					'url' => $declaredRegistryUrl,
+					'resolved_url' => 'file:///app/tmp/radaptor-local-registry/registry.json',
+				],
+			]
+		);
+
+		$this->assertSame($cdnUrl, $sanitized['packages']['core:framework']['resolved']['dist_url']);
+	}
+
+	public function testSanitizeLockfileForStorageRebasesPlaceholderArtifactUrlsToDeclaredRegistryAuthority(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
+		$method->setAccessible(true);
+
+		$declaredRegistryUrl = 'https://packages.radaptor.com/registry.json';
+		$sanitized = $method->invoke(
+			null,
+			[
+				'lockfile_version' => 1,
+				'packages' => [
+					'core:framework' => [
+						'type' => 'core',
+						'id' => 'framework',
+						'package' => 'radaptor/core/framework',
+						'source' => [
+							'type' => 'registry',
+							'registry' => 'default',
+							'resolved_registry_url' => PackageManifest::getPlaceholderRegistryUrl(),
+						],
+						'resolved' => [
+							'type' => 'registry',
+							'registry' => 'default',
+							'registry_url' => PackageManifest::getPlaceholderRegistryUrl(),
+							'dist_url' => 'https://packages.example.invalid/packages/radaptor-core-framework/0.1.6/plugin.zip',
+							'dist_sha256' => 'abc123',
+							'path' => 'packages/registry/core/framework',
+							'version' => '0.1.6',
+						],
+					],
+				],
+			],
+			[
+				'default' => [
+					'name' => 'default',
+					'url' => $declaredRegistryUrl,
+					'resolved_url' => PackageManifest::getPlaceholderRegistryUrl(),
+				],
+			]
+		);
+
+		$this->assertSame(
+			'https://packages.radaptor.com/packages/radaptor-core-framework/0.1.6/plugin.zip',
+			$sanitized['packages']['core:framework']['resolved']['dist_url']
+		);
+	}
 }

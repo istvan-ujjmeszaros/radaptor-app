@@ -75,6 +75,7 @@ npx sass "$PORTAL_ADMIN_ROOT/scss/radaptor-portal-admin/main.scss" \
      --no-source-map \
      --load-path=node_modules \
      --load-path="$RADAPTOR_ROOT/.." \
+     --silence-deprecation=import,color-functions,global-builtin \
      --quiet-deps
 
 echo "Done! Output: $CSS_OUTPUT_PATH"

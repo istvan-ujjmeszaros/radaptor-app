@@ -12,13 +12,13 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "d5a8cfe037b2909afb3a1f6b7a1c7adf0219ccdfa4d1d19383a0344d21972b87",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.3/plugin.zip",
+                "dist_sha256": "9accf125567f036d0ff919a23c9ec8c2d89169ca7c1d3d771a76069a6cf9436b",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.4/plugin.zip",
                 "path": "packages/registry/core/cms",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.3"
+                "version": "0.1.4"
             },
             "dependencies": {
                 "radaptor/core/framework": "^0.1.0"
@@ -35,13 +35,13 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "870eb454702e00b2f195f17888a07de8a2227c1200e7cce22e064a7a84759442",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-framework/0.1.7/plugin.zip",
+                "dist_sha256": "66e04321faa0edcf245686e3bb29ea67f15f7edfae39ba9fa0f57ee0e41fc60e",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-framework/0.1.8/plugin.zip",
                 "path": "packages/registry/core/framework",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.7"
+                "version": "0.1.8"
             },
             "dependencies": []
         }
@@ -58,7 +58,7 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "6874682fe7333ada22a14ad8aae714b930ef26e663f837c837aab488e4db6c4f",
+                "dist_sha256": "846a7113b587b21ba06c42096b89f04013c5dd1b0689efe3fb0903a0f83fc8da",
                 "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-portal-admin/0.1.0/plugin.zip",
                 "path": "packages/registry/themes/portal-admin",
                 "registry": "default",
