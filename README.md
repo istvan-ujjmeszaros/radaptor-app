@@ -104,7 +104,7 @@ The supported maintainer path is:
 After that:
 
 - commit + push the `radaptor_plugin_registry` repo
-- on the VPS, update the deployed checkout (`update-repo.sh`)
+- pushes to `radaptor_plugin_registry/main` auto-deploy to `https://packages.radaptor.com/`
 
 This repo is both the default consumer app and the default local dev-mode host.
 
