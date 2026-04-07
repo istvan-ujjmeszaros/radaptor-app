@@ -104,6 +104,90 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 		}
 	}
 
+	public function testResolveFolderRejectsWebpageNodes(): void
+	{
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
+
+		try {
+			$seed = new SeedSkeletonBootstrap();
+			$seed->run(new SeedContext('app', 'mandatory', DEPLOY_ROOT . 'app', false));
+
+			$this->assertNull(CmsPathHelper::resolveFolder('/login.html'));
+			$this->assertNull(CmsPathHelper::resolveFolder('/login.html/'));
+		} finally {
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME');
+		}
+	}
+
+	public function testExportWebpageSpecPrefersRenderableExtensionlessPath(): void
+	{
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
+
+		try {
+			$seed = new SeedSkeletonBootstrap();
+			$seed->run(new SeedContext('app', 'mandatory', DEPLOY_ROOT . 'app', false));
+
+			CmsResourceSpecService::upsertFolder(['path' => '/docs/']);
+			CmsResourceSpecService::upsertWebpage([
+				'path' => '/docs/index.html',
+				'layout' => 'public_default',
+			]);
+
+			$spec = CmsResourceSpecService::exportWebpageSpec('/docs/index.html');
+
+			$this->assertSame('/docs/', $spec['path']);
+		} finally {
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME');
+		}
+	}
+
+	public function testAddWidgetUsesWidgetSpecificSettingsHandlerWhenAvailable(): void
+	{
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
+
+		try {
+			$seed = new SeedSkeletonBootstrap();
+			$seed->run(new SeedContext('app', 'mandatory', DEPLOY_ROOT . 'app', false));
+
+			$snapshot = CmsResourceSpecService::addWidget(
+				'/login.html',
+				'content',
+				WidgetList::PLAINHTML,
+				null,
+				[],
+				[
+					'content' => '<p>Injected content</p>',
+				]
+			);
+
+			$this->assertSame(
+				['content' => '<p>Injected content</p>'],
+				PlainHtml::getSettings((int) $snapshot['connection_id'])
+			);
+			$this->assertSame([], WidgetSettings::getSettings((int) $snapshot['connection_id']));
+		} finally {
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME');
+		}
+	}
+
 	public function testRemoveWidgetRejectsConnectionIdsOutsideRequestedPageAndSlot(): void
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
