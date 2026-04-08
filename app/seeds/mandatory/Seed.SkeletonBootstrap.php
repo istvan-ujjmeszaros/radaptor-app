@@ -5,9 +5,11 @@ class SeedSkeletonBootstrap extends AbstractSeed
 	private const string ROLE_SYSTEM_DEVELOPER = 'system_developer';
 	private const string ROLE_SYSTEM_ADMINISTRATOR = 'system_administrator';
 
+	private CmsSeedHelper $_cms;
+
 	public function getVersion(): string
 	{
-		return '1.8.0';
+		return '1.10.0';
 	}
 
 	public function getDescription(): string
@@ -18,6 +20,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 	public function run(SeedContext $context): void
 	{
 		Cache::flush();
+		$this->_cms = new CmsSeedHelper($context);
 
 		$this->ensureSecurityBaseline();
 		$this->ensureBootstrapAdmin();
@@ -82,13 +85,35 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	private function ensureAdminIndex(): void
 	{
-		$page_id = $this->ensureWebpage('/admin/', 'index.html', 'admin_default');
+		$this->_cms->upsertFolder([
+			'path' => '/admin/',
+		]);
 		$this->ensureAdminAclBaseline();
-		$connection_id = $this->ensureWidget($page_id, WidgetList::PLAINHTML);
-
-		PlainHtml::saveSettings([
-			'content' => '<h2>Welcome to Radaptor App</h2><p>This admin shell was bootstrapped from the default mandatory seed.</p><p>Use the side menu to manage users, roles, and resources.</p>',
-		], $connection_id);
+		$this->_cms->upsertWebpage([
+			'path' => '/admin/',
+			'layout' => 'admin_default',
+			'attributes' => [
+				'title' => 'Radaptor admin',
+				'description' => 'Bootstrap administration dashboard.',
+			],
+			'acl' => [
+				'inherit' => true,
+				'usergroups' => [],
+			],
+			'slots' => [
+				ResourceTypeWebpage::DEFAULT_SLOT_NAME => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'settings' => [
+							'content' => $this->getAdminWelcomeHtml(),
+						],
+					],
+					[
+						'widget' => WidgetList::EMAILQUEUESTATS,
+					],
+				],
+			],
+		]);
 	}
 
 	private function ensureLoginPages(): void
@@ -124,6 +149,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 			WidgetList::ROLELIST,
 			WidgetList::RESOURCETREE,
 			WidgetList::ADMINMENU,
+			WidgetList::EMAILOUTBOX,
 			WidgetList::IMPORTEXPORT,
 			WidgetList::I18NWORKBENCH,
 			WidgetList::WIDGETPREVIEW,
@@ -189,6 +215,19 @@ class SeedSkeletonBootstrap extends AbstractSeed
 		}
 
 		return $default;
+	}
+
+	private function getAdminWelcomeHtml(): string
+	{
+		return <<<HTML
+			<div class="card card-hover email-admin-welcome">
+				<div class="card-body">
+					<h2 class="h3 mb-3">Welcome to Radaptor App</h2>
+					<p class="mb-2">This admin shell was bootstrapped from the default mandatory seed.</p>
+					<p class="mb-0">Use the side menu to manage users, roles, and resources.</p>
+				</div>
+			</div>
+			HTML;
 	}
 
 	/**

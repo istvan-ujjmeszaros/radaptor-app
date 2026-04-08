@@ -26,6 +26,7 @@ class LayoutComponentSideMenuAdmin extends AbstractLayoutComponent
 			'admin.menu.resource_tree' => t('admin.menu.resource_tree'),
 			'admin.menu.translations' => t('admin.menu.translations'),
 			'admin.menu.import_export' => t('admin.menu.import_export'),
+			'admin.menu.email_outbox' => self::translateWithFallback('admin.menu.email_outbox', 'Email outbox'),
 			'admin.menu.admin_menu' => t('admin.menu.admin_menu'),
 			'admin.menu.theme_selector' => t('admin.menu.theme_selector'),
 			'admin.menu.section.developer_tools' => t('admin.menu.section.developer_tools'),
@@ -34,6 +35,13 @@ class LayoutComponentSideMenuAdmin extends AbstractLayoutComponent
 			'admin.menu.template_engines' => t('admin.menu.template_engines'),
 			'admin.menu.cli_runner' => t('admin.menu.cli_runner'),
 		];
+	}
+
+	private static function translateWithFallback(string $key, string $fallback): string
+	{
+		$translated = t($key);
+
+		return $translated === $key ? $fallback : $translated;
 	}
 
 	public function buildTree(): array
