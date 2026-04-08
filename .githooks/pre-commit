@@ -18,13 +18,7 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel)
 cd "$PROJECT_ROOT"
 
 RELATIVE_FIXER_BIN="tools/php-cs-fixer"
-PHP_CS_FIXER_BIN="$PROJECT_ROOT/$RELATIVE_FIXER_BIN"
-
-if [ ! -x "$PHP_CS_FIXER_BIN" ]; then
-	echo -e "${RED}PHP-CS-Fixer is not installed (missing $RELATIVE_FIXER_BIN).${NC}"
-	echo -e "${YELLOW}Install it via: phive install --force-accept-unsigned php-cs-fixer${NC}"
-	exit 1
-fi
+PHP_CS_FIXER_WRAPPER="$PROJECT_ROOT/php-cs-fixer.sh"
 
 DOCKER_SERVICE="${RADAPTOR_DOCKER_PHP_SERVICE:-php}"
 RUN_IN_DOCKER=0
@@ -47,8 +41,17 @@ else
 	echo -e "${YELLOW}Docker service '$DOCKER_SERVICE' not detected. Running PHP-CS-Fixer locally.${NC}"
 fi
 
+if [ ! -x "$PHP_CS_FIXER_WRAPPER" ]; then
+	echo -e "${RED}PHP-CS-Fixer wrapper is missing ($PHP_CS_FIXER_WRAPPER).${NC}"
+	exit 1
+fi
+
 # Get list of staged PHP files
-mapfile -d '' -t STAGED_FILES < <(git diff --cached --name-only -z --diff-filter=ACM -- '*.php')
+STAGED_FILES=()
+
+while IFS= read -r -d '' staged_file; do
+	STAGED_FILES+=("$staged_file")
+done < <(git diff --cached --name-only -z --diff-filter=ACM -- '*.php')
 
 if [ ${#STAGED_FILES[@]} -eq 0 ]; then
 	# No PHP files staged, allow commit
@@ -87,10 +90,10 @@ echo -e "${YELLOW}Running PHP-CS-Fixer on staged files...${NC}"
 run_fixer() {
 	if [ $RUN_IN_DOCKER -eq 1 ]; then
 		docker compose -f docker-compose-dev.yml exec -T "$DOCKER_SERVICE" bash -lc \
-			"cd /app && $RELATIVE_FIXER_BIN fix --config=.php-cs-fixer.php --quiet --path-mode=intersection -- \"\$@\"" \
+			"cd /app && ./php-cs-fixer.sh --config=.php-cs-fixer.php --quiet --path-mode=intersection -- \"\$@\"" \
 			bash "${STAGED_FILES[@]}"
 	else
-		"$PHP_CS_FIXER_BIN" fix --config=.php-cs-fixer.php --quiet --path-mode=intersection -- "${STAGED_FILES[@]}"
+		"$PHP_CS_FIXER_WRAPPER" --config=.php-cs-fixer.php --quiet --path-mode=intersection -- "${STAGED_FILES[@]}"
 	fi
 }
 
@@ -107,17 +110,17 @@ echo -e "${GREEN}PHP-CS-Fixer completed successfully!${NC}"
 # Migration schema check
 # If migration files are staged but schema file is not, warn the user
 if git diff --cached --name-only | grep -qE 'migrations/.*\.php$'; then
-	if ! git diff --cached --name-only | grep -q '__db_schema__.php'; then
+	if ! git diff --cached --name-only | grep -q '__db_schema_data__.php'; then
 		echo ""
 		echo -e "${YELLOW}┌──────────────────────────────────────────────────────┐${NC}"
 		echo -e "${YELLOW}│ WARNING: Migration committed without schema update   │${NC}"
 		echo -e "${YELLOW}├──────────────────────────────────────────────────────┤${NC}"
-		echo -e "${YELLOW}│ A migration file is staged but __db_schema__.php    │${NC}"
-		echo -e "${YELLOW}│ is not. Consider running:                           │${NC}"
+		echo -e "${YELLOW}│ A migration file is staged but __db_schema_data__.  │${NC}"
+		echo -e "${YELLOW}│ php is not. Consider running:                       │${NC}"
 		echo -e "${YELLOW}│                                                      │${NC}"
 		echo -e "${YELLOW}│   radaptor migrate:run                               │${NC}"
 		echo -e "${YELLOW}│   radaptor build:db                                  │${NC}"
-		echo -e "${YELLOW}│   git add generated/__db_schema__.php                │${NC}"
+		echo -e "${YELLOW}│   git add generated/__db_schema_data__.php           │${NC}"
 		echo -e "${YELLOW}│                                                      │${NC}"
 		echo -e "${YELLOW}│ Committing anyway (this is just a warning).         │${NC}"
 		echo -e "${YELLOW}└──────────────────────────────────────────────────────┘${NC}"

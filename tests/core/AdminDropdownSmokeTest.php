@@ -41,8 +41,8 @@ final class AdminDropdownSmokeTest extends TransactionedTestCase
 	{
 		return [
 			'RadaptorPortalAdmin' => ['RadaptorPortalAdmin', 'admin-dropdown-container'],
-			'SoAdmin'             => ['SoAdmin',             'admin_dropdown_icon'],
-			'Tracker'             => ['Tracker',             'admin_dropdown_icon'],
+			'SoAdmin'             => ['SoAdmin', 'admin_dropdown_icon'],
+			'Tracker'             => ['Tracker', 'admin_dropdown_icon'],
 		];
 	}
 

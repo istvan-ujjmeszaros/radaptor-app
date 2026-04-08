@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 final class ConfigTest extends TransactionedTestCase
 {
@@ -16,4 +18,3 @@ final class ConfigTest extends TransactionedTestCase
 		TestHelperEnvironment::revertEnvironmentVariable('APP_DOMAIN_CONTEXT');
 	}
 }
-

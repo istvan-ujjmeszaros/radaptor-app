@@ -25,8 +25,7 @@ final class FormInputDateTimeConversionTest extends TransactionedTestCase
 		$_POST = [];
 		RequestContextHolder::initializeRequest(get: $_GET, post: $_POST);
 
-		$form = new class ('x1', $this->createMock(iWebpageComposer::class)) extends AbstractForm
-		{
+		$form = new class ('x1', $this->createMock(iWebpageComposer::class)) extends AbstractForm {
 			public function __construct(string $formId, iWebpageComposer $composer)
 			{
 				parent::__construct('DummyDateTimeForm', $formId, $composer);
@@ -102,8 +101,7 @@ final class FormInputDateTimeConversionTest extends TransactionedTestCase
 		$_POST = [];
 		RequestContextHolder::initializeRequest(get: $_GET, post: $_POST);
 
-		$form = new class ('x2', $this->createMock(iWebpageComposer::class)) extends AbstractForm
-		{
+		$form = new class ('x2', $this->createMock(iWebpageComposer::class)) extends AbstractForm {
 			public function __construct(string $formId, iWebpageComposer $composer)
 			{
 				parent::__construct('DummyDateTimeForm', $formId, $composer);

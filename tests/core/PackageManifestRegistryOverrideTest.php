@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
@@ -52,7 +54,7 @@ final class PackageManifestRegistryOverrideTest extends TestCase
 			$manifest['registries']['default']['resolved_url']
 		);
 		$this->assertSame(
-			'http://host.docker.internal:8091/registry.json',
+			'https://packages.example.invalid/registry.json',
 			$manifest['registries']['default']['url']
 		);
 		$this->assertSame(

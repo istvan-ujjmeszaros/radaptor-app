@@ -14,6 +14,7 @@ class SwooleRequestContextStorageTest extends TestCase
 	{
 		// XDEBUG_MODE env var overrides ini; check env first (Xdebug respects it at startup).
 		$mode = getenv('XDEBUG_MODE') ?: ini_get('xdebug.mode');
+
 		if (extension_loaded('xdebug') && $mode !== 'off') {
 			$this->markTestSkipped('Swoole + Xdebug segfaults. Run with XDEBUG_MODE=off to include.');
 		}

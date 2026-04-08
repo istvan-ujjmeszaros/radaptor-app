@@ -1,0 +1,78 @@
+FROM php:8.4-fpm AS base
+
+ARG PHP_VERSION=8.4
+
+RUN apt-get update && apt-get install -y \
+        autoconf \
+        gcc \
+        gettext \
+        git \
+        gnupg \
+        htop \
+        libbrotli-dev \
+        libfcgi-bin \
+        libfreetype6-dev \
+        libicu-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libssl-dev \
+        libtidy-dev \
+        libzip-dev \
+        make \
+        mc \
+        wget \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gettext intl pdo_mysql zip tidy gd calendar \
+    && pecl install redis brotli igbinary \
+    && docker-php-ext-enable redis brotli igbinary \
+    && printf "\n\n\n\n\n" | pecl install swoole \
+    && docker-php-ext-enable swoole \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/app/tools:/app/vendor/bin:${PATH}"
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+RUN wget -O phive.phar https://phar.io/releases/phive.phar \
+    && chmod +x phive.phar \
+    && mv phive.phar /usr/local/bin/phive \
+    && composer global require --no-interaction --no-progress friendsofphp/php-cs-fixer:^3.94 \
+    && git config --global --add safe.directory /app \
+    && ln -sf "$(composer global config home --absolute)/vendor/bin/php-cs-fixer" /usr/local/bin/php-cs-fixer \
+    && php-cs-fixer --version >/dev/null
+
+WORKDIR /app
+
+FROM base AS dev
+
+ARG ENVIRONMENT=dev
+ARG XDEBUG_COMMIT=master
+
+ENV ENVIRONMENT=${ENVIRONMENT}
+ENV RADAPTOR_APP_ROOT=/app
+ENV XDEBUG_FILE_LINK_FORMAT='phpstorm://open?file=%f&line=%l'
+
+RUN git clone https://github.com/xdebug/xdebug.git \
+    && cd xdebug \
+    && git checkout ${XDEBUG_COMMIT} \
+    && phpize \
+    && ./configure \
+    && make \
+    && make install \
+    && docker-php-ext-enable xdebug \
+    && cd .. \
+    && rm -rf xdebug
+
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini" \
+    && echo "memory_limit=-1" > "$PHP_INI_DIR/conf.d/memory-limit.ini"
+
+FROM base AS prod
+
+ARG ENVIRONMENT=prod
+
+ENV ENVIRONMENT=${ENVIRONMENT}
+ENV RADAPTOR_APP_ROOT=/app
+
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && echo "memory_limit=512M" > "$PHP_INI_DIR/conf.d/memory-limit.ini"

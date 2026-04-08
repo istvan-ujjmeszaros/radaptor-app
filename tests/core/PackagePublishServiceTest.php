@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
@@ -58,7 +60,7 @@ final class PackagePublishServiceTest extends TestCase
 	{
 		$directory = sys_get_temp_dir() . '/radaptor-package-publish-' . $prefix . '-' . bin2hex(random_bytes(6));
 
-		if (!mkdir($directory, 0777, true) && !is_dir($directory)) {
+		if (!mkdir($directory, 0o777, true) && !is_dir($directory)) {
 			$this->fail("Unable to create temporary directory: {$directory}");
 		}
 
@@ -71,7 +73,7 @@ final class PackagePublishServiceTest extends TestCase
 	{
 		$directory = dirname($path);
 
-		if (!is_dir($directory) && !mkdir($directory, 0777, true) && !is_dir($directory)) {
+		if (!is_dir($directory) && !mkdir($directory, 0o777, true) && !is_dir($directory)) {
 			$this->fail("Unable to create directory: {$directory}");
 		}
 
