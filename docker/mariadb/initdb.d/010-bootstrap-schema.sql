@@ -2,6 +2,7 @@ SET FOREIGN_KEY_CHECKS=0;
 
 USE `radaptor_app`;
 
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `adminmenu_tree` (
@@ -129,20 +130,6 @@ CREATE TABLE `custom_queries` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_attachments` (
-  `attachment_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `file_name` varchar(255) NOT NULL,
-  `mime_type` varchar(128) NOT NULL,
-  `storage_path` varchar(1024) NOT NULL,
-  `size_bytes` bigint(20) unsigned NOT NULL DEFAULT 0,
-  `checksum_sha256` varchar(64) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`attachment_id`),
-  KEY `idx_email_attachments_checksum` (`checksum_sha256`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `email_outbox` (
   `outbox_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `message_uid` varchar(64) NOT NULL,
@@ -165,21 +152,7 @@ CREATE TABLE `email_outbox` (
   UNIQUE KEY `uq_email_outbox_message_uid` (`message_uid`),
   KEY `idx_email_outbox_status_created` (`status`,`created_at`),
   KEY `fk_email_outbox_template_version` (`template_version_id`),
-  KEY `idx_email_outbox_status_created_outbox` (`status`,`created_at`,`outbox_id`),
-  CONSTRAINT `fk_email_outbox_template_version` FOREIGN KEY (`template_version_id`) REFERENCES `email_template_versions` (`template_version_id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_outbox_attachments` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `outbox_id` bigint(20) unsigned NOT NULL,
-  `attachment_id` bigint(20) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_email_outbox_attachments` (`outbox_id`,`attachment_id`),
-  KEY `fk_email_outbox_attachments_attachment` (`attachment_id`),
-  CONSTRAINT `fk_email_outbox_attachments_attachment` FOREIGN KEY (`attachment_id`) REFERENCES `email_attachments` (`attachment_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_email_outbox_attachments_outbox` FOREIGN KEY (`outbox_id`) REFERENCES `email_outbox` (`outbox_id`) ON DELETE CASCADE
+  KEY `idx_email_outbox_status_created_outbox` (`status`,`created_at`,`outbox_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -220,31 +193,6 @@ CREATE TABLE `email_queue_archive` (
   KEY `idx_email_queue_archive_ttl` (`archived_at`),
   KEY `idx_email_queue_archive_job_type_archived` (`job_type`,`archived_at`),
   KEY `idx_email_queue_archive_source_archived` (`source_table`,`archived_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_queue_bulk` (
-  `queue_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `job_id` varchar(64) NOT NULL,
-  `job_type` varchar(128) NOT NULL,
-  `payload_json` longtext NOT NULL,
-  `requested_by_type` varchar(32) NOT NULL,
-  `requested_by_id` int(11) DEFAULT NULL,
-  `priority` enum('instant','bulk') NOT NULL DEFAULT 'bulk',
-  `status` enum('pending','reserved','retry_wait','completed','failed_auth','failed','dead') NOT NULL DEFAULT 'pending',
-  `attempts` int(11) NOT NULL DEFAULT 0,
-  `run_after_utc` datetime NOT NULL DEFAULT current_timestamp(),
-  `reserved_at` datetime DEFAULT NULL,
-  `completed_at` datetime DEFAULT NULL,
-  `last_error_code` varchar(64) DEFAULT NULL,
-  `last_error_message` text DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`queue_id`),
-  UNIQUE KEY `uq_email_queue_bulk_job_id` (`job_id`),
-  KEY `idx_email_queue_bulk_poll` (`status`,`run_after_utc`,`priority`,`queue_id`),
-  KEY `idx_email_queue_bulk_job_type_queue` (`job_type`,`queue_id`),
-  KEY `idx_email_queue_bulk_created_queue` (`created_at`,`queue_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -292,34 +240,6 @@ CREATE TABLE `email_queue_transactional` (
   KEY `idx_email_queue_transactional_poll` (`status`,`run_after_utc`,`priority`,`queue_id`),
   KEY `idx_email_queue_transactional_job_type_queue` (`job_type`,`queue_id`),
   KEY `idx_email_queue_transactional_created_queue` (`created_at`,`queue_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_template_versions` (
-  `template_version_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `template_id` bigint(20) unsigned NOT NULL,
-  `engine_type` enum('php','blade','twig') NOT NULL,
-  `compiled_source` longtext NOT NULL,
-  `compiled_plain_source` longtext DEFAULT NULL,
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`template_version_id`),
-  KEY `idx_email_template_versions_template` (`template_id`,`is_active`),
-  CONSTRAINT `fk_email_template_versions_template` FOREIGN KEY (`template_id`) REFERENCES `email_templates` (`template_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_templates` (
-  `template_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `slug` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`template_id`),
-  UNIQUE KEY `uq_email_templates_slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -448,85 +368,6 @@ CREATE TABLE `projects` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `project_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `queue_ops_log` (
-  `op_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `action` varchar(64) NOT NULL,
-  `target_table` varchar(64) NOT NULL,
-  `target_pk` varchar(128) NOT NULL,
-  `target_job_id` varchar(64) DEFAULT NULL,
-  `reason` text DEFAULT NULL,
-  `performed_by_user_id` int(10) unsigned DEFAULT NULL,
-  `payload_json` longtext DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`op_id`),
-  KEY `idx_queue_ops_log_target` (`target_table`,`target_pk`,`created_at`),
-  KEY `idx_queue_ops_log_actor` (`performed_by_user_id`,`created_at`),
-  KEY `idx_queue_ops_log_action` (`action`,`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `queued_jobs` (
-  `queue_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `job_id` varchar(64) NOT NULL,
-  `job_type` varchar(128) NOT NULL,
-  `payload_json` longtext NOT NULL,
-  `requested_by_type` varchar(32) NOT NULL,
-  `requested_by_id` int(11) DEFAULT NULL,
-  `status` enum('pending','reserved','retry_wait','completed','failed_auth','failed','dead') NOT NULL DEFAULT 'pending',
-  `attempts` int(11) NOT NULL DEFAULT 0,
-  `run_after_utc` datetime NOT NULL DEFAULT current_timestamp(),
-  `reserved_at` datetime DEFAULT NULL,
-  `completed_at` datetime DEFAULT NULL,
-  `last_error_code` varchar(64) DEFAULT NULL,
-  `last_error_message` text DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`queue_id`),
-  UNIQUE KEY `uq_queued_jobs_job_id` (`job_id`),
-  KEY `idx_queued_jobs_poll` (`status`,`run_after_utc`,`queue_id`),
-  KEY `idx_queued_jobs_job_type_queue` (`job_type`,`queue_id`),
-  KEY `idx_queued_jobs_created_queue` (`created_at`,`queue_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `queued_jobs_archive` (
-  `archive_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `job_id` varchar(64) NOT NULL,
-  `job_type` varchar(128) NOT NULL,
-  `payload_json` longtext NOT NULL,
-  `requested_by_type` varchar(32) NOT NULL,
-  `requested_by_id` int(11) DEFAULT NULL,
-  `attempts` int(11) NOT NULL DEFAULT 0,
-  `completed_at` datetime NOT NULL,
-  `created_at` datetime NOT NULL,
-  `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`archive_id`),
-  KEY `idx_queued_jobs_archive_ttl` (`archived_at`),
-  KEY `idx_queued_jobs_archive_job_type_archived` (`job_type`,`archived_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `queued_jobs_dead_letter` (
-  `dead_letter_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `job_id` varchar(64) NOT NULL,
-  `job_type` varchar(128) NOT NULL,
-  `payload_json` longtext NOT NULL,
-  `requested_by_type` varchar(32) NOT NULL,
-  `requested_by_id` int(11) DEFAULT NULL,
-  `attempts` int(11) NOT NULL DEFAULT 0,
-  `error_code` varchar(64) DEFAULT NULL,
-  `error_message` text DEFAULT NULL,
-  `created_at` datetime NOT NULL,
-  `dead_lettered_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`dead_letter_id`),
-  KEY `idx_queued_jobs_dead_letter_ttl` (`dead_lettered_at`),
-  KEY `idx_queued_jobs_dead_job_type_dead_lettered` (`job_type`,`dead_lettered_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -878,9 +719,12 @@ CREATE TABLE `wrapbootstrap_analytics` (
   KEY `sales3days` (`sales3days`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+
 
 USE `radaptor_app_test`;
 
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `adminmenu_tree` (
@@ -1008,20 +852,6 @@ CREATE TABLE `custom_queries` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_attachments` (
-  `attachment_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `file_name` varchar(255) NOT NULL,
-  `mime_type` varchar(128) NOT NULL,
-  `storage_path` varchar(1024) NOT NULL,
-  `size_bytes` bigint(20) unsigned NOT NULL DEFAULT 0,
-  `checksum_sha256` varchar(64) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`attachment_id`),
-  KEY `idx_email_attachments_checksum` (`checksum_sha256`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `email_outbox` (
   `outbox_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `message_uid` varchar(64) NOT NULL,
@@ -1044,21 +874,7 @@ CREATE TABLE `email_outbox` (
   UNIQUE KEY `uq_email_outbox_message_uid` (`message_uid`),
   KEY `idx_email_outbox_status_created` (`status`,`created_at`),
   KEY `fk_email_outbox_template_version` (`template_version_id`),
-  KEY `idx_email_outbox_status_created_outbox` (`status`,`created_at`,`outbox_id`),
-  CONSTRAINT `fk_email_outbox_template_version` FOREIGN KEY (`template_version_id`) REFERENCES `email_template_versions` (`template_version_id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_outbox_attachments` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `outbox_id` bigint(20) unsigned NOT NULL,
-  `attachment_id` bigint(20) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_email_outbox_attachments` (`outbox_id`,`attachment_id`),
-  KEY `fk_email_outbox_attachments_attachment` (`attachment_id`),
-  CONSTRAINT `fk_email_outbox_attachments_attachment` FOREIGN KEY (`attachment_id`) REFERENCES `email_attachments` (`attachment_id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_email_outbox_attachments_outbox` FOREIGN KEY (`outbox_id`) REFERENCES `email_outbox` (`outbox_id`) ON DELETE CASCADE
+  KEY `idx_email_outbox_status_created_outbox` (`status`,`created_at`,`outbox_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1099,31 +915,6 @@ CREATE TABLE `email_queue_archive` (
   KEY `idx_email_queue_archive_ttl` (`archived_at`),
   KEY `idx_email_queue_archive_job_type_archived` (`job_type`,`archived_at`),
   KEY `idx_email_queue_archive_source_archived` (`source_table`,`archived_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_queue_bulk` (
-  `queue_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `job_id` varchar(64) NOT NULL,
-  `job_type` varchar(128) NOT NULL,
-  `payload_json` longtext NOT NULL,
-  `requested_by_type` varchar(32) NOT NULL,
-  `requested_by_id` int(11) DEFAULT NULL,
-  `priority` enum('instant','bulk') NOT NULL DEFAULT 'bulk',
-  `status` enum('pending','reserved','retry_wait','completed','failed_auth','failed','dead') NOT NULL DEFAULT 'pending',
-  `attempts` int(11) NOT NULL DEFAULT 0,
-  `run_after_utc` datetime NOT NULL DEFAULT current_timestamp(),
-  `reserved_at` datetime DEFAULT NULL,
-  `completed_at` datetime DEFAULT NULL,
-  `last_error_code` varchar(64) DEFAULT NULL,
-  `last_error_message` text DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`queue_id`),
-  UNIQUE KEY `uq_email_queue_bulk_job_id` (`job_id`),
-  KEY `idx_email_queue_bulk_poll` (`status`,`run_after_utc`,`priority`,`queue_id`),
-  KEY `idx_email_queue_bulk_job_type_queue` (`job_type`,`queue_id`),
-  KEY `idx_email_queue_bulk_created_queue` (`created_at`,`queue_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1171,34 +962,6 @@ CREATE TABLE `email_queue_transactional` (
   KEY `idx_email_queue_transactional_poll` (`status`,`run_after_utc`,`priority`,`queue_id`),
   KEY `idx_email_queue_transactional_job_type_queue` (`job_type`,`queue_id`),
   KEY `idx_email_queue_transactional_created_queue` (`created_at`,`queue_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_template_versions` (
-  `template_version_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `template_id` bigint(20) unsigned NOT NULL,
-  `engine_type` enum('php','blade','twig') NOT NULL,
-  `compiled_source` longtext NOT NULL,
-  `compiled_plain_source` longtext DEFAULT NULL,
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`template_version_id`),
-  KEY `idx_email_template_versions_template` (`template_id`,`is_active`),
-  CONSTRAINT `fk_email_template_versions_template` FOREIGN KEY (`template_id`) REFERENCES `email_templates` (`template_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email_templates` (
-  `template_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `slug` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`template_id`),
-  UNIQUE KEY `uq_email_templates_slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1327,85 +1090,6 @@ CREATE TABLE `projects` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `project_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `queue_ops_log` (
-  `op_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `action` varchar(64) NOT NULL,
-  `target_table` varchar(64) NOT NULL,
-  `target_pk` varchar(128) NOT NULL,
-  `target_job_id` varchar(64) DEFAULT NULL,
-  `reason` text DEFAULT NULL,
-  `performed_by_user_id` int(10) unsigned DEFAULT NULL,
-  `payload_json` longtext DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`op_id`),
-  KEY `idx_queue_ops_log_target` (`target_table`,`target_pk`,`created_at`),
-  KEY `idx_queue_ops_log_actor` (`performed_by_user_id`,`created_at`),
-  KEY `idx_queue_ops_log_action` (`action`,`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `queued_jobs` (
-  `queue_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `job_id` varchar(64) NOT NULL,
-  `job_type` varchar(128) NOT NULL,
-  `payload_json` longtext NOT NULL,
-  `requested_by_type` varchar(32) NOT NULL,
-  `requested_by_id` int(11) DEFAULT NULL,
-  `status` enum('pending','reserved','retry_wait','completed','failed_auth','failed','dead') NOT NULL DEFAULT 'pending',
-  `attempts` int(11) NOT NULL DEFAULT 0,
-  `run_after_utc` datetime NOT NULL DEFAULT current_timestamp(),
-  `reserved_at` datetime DEFAULT NULL,
-  `completed_at` datetime DEFAULT NULL,
-  `last_error_code` varchar(64) DEFAULT NULL,
-  `last_error_message` text DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`queue_id`),
-  UNIQUE KEY `uq_queued_jobs_job_id` (`job_id`),
-  KEY `idx_queued_jobs_poll` (`status`,`run_after_utc`,`queue_id`),
-  KEY `idx_queued_jobs_job_type_queue` (`job_type`,`queue_id`),
-  KEY `idx_queued_jobs_created_queue` (`created_at`,`queue_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `queued_jobs_archive` (
-  `archive_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `job_id` varchar(64) NOT NULL,
-  `job_type` varchar(128) NOT NULL,
-  `payload_json` longtext NOT NULL,
-  `requested_by_type` varchar(32) NOT NULL,
-  `requested_by_id` int(11) DEFAULT NULL,
-  `attempts` int(11) NOT NULL DEFAULT 0,
-  `completed_at` datetime NOT NULL,
-  `created_at` datetime NOT NULL,
-  `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`archive_id`),
-  KEY `idx_queued_jobs_archive_ttl` (`archived_at`),
-  KEY `idx_queued_jobs_archive_job_type_archived` (`job_type`,`archived_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `queued_jobs_dead_letter` (
-  `dead_letter_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `job_id` varchar(64) NOT NULL,
-  `job_type` varchar(128) NOT NULL,
-  `payload_json` longtext NOT NULL,
-  `requested_by_type` varchar(32) NOT NULL,
-  `requested_by_id` int(11) DEFAULT NULL,
-  `attempts` int(11) NOT NULL DEFAULT 0,
-  `error_code` varchar(64) DEFAULT NULL,
-  `error_message` text DEFAULT NULL,
-  `created_at` datetime NOT NULL,
-  `dead_lettered_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`dead_letter_id`),
-  KEY `idx_queued_jobs_dead_letter_ttl` (`dead_lettered_at`),
-  KEY `idx_queued_jobs_dead_job_type_dead_lettered` (`job_type`,`dead_lettered_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1757,5 +1441,7 @@ CREATE TABLE `wrapbootstrap_analytics` (
   KEY `sales3days` (`sales3days`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+
 
 SET FOREIGN_KEY_CHECKS=1;

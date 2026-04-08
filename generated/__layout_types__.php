@@ -6,7 +6,7 @@ class LayoutTypes
 		'admin_default',
 		'admin_empty',
 		'admin_nomenu',
-		'empty',
+		'public_empty',
 		'unknown',
 		'widget_previewer',
 	];

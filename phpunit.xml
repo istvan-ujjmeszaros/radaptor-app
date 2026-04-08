@@ -10,6 +10,10 @@
     <testsuite name="Project Test Suite">
       <file>tests/core/ConfigTest.php</file>
       <file>tests/core/CmsResourceSpecServiceTest.php</file>
+      <file>tests/core/EmailOrchestratorTest.php</file>
+      <file>tests/core/EmailOutboxStatusResolverTest.php</file>
+      <file>tests/core/EmailQueueWorkerTest.php</file>
+      <file>tests/core/EmailSmtpTransportTest.php</file>
       <file>tests/core/LocalPackageRegistryBuilderTest.php</file>
       <file>tests/core/PackageConfigTest.php</file>
       <file>tests/core/PackageInstallServiceStorageTest.php</file>

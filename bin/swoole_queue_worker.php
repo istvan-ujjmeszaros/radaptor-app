@@ -24,9 +24,6 @@ if (!class_exists(Swoole\Coroutine::class)) {
 	exit(1);
 }
 
-$processTransactional = true;
-$processBulk = true;
-$processGeneral = true;
 $workerSleepSeconds = max(0.001, (int) Config::EMAIL_QUEUE_WORKER_SLEEP_MS->value() / 1000);
 $purgeIntervalSeconds = max(1, (int) Config::EMAIL_QUEUE_PURGE_INTERVAL_SECONDS->value());
 
@@ -56,7 +53,7 @@ $purgeIntervalSeconds = max(1, (int) Config::EMAIL_QUEUE_PURGE_INTERVAL_SECONDS-
  *   - authorization/data access isolation guarantees,
  *   - idempotency and transactional boundaries for status recomputation.
  */
-\Swoole\Coroutine\run(function () use ($processTransactional, $processBulk, $processGeneral, $workerSleepSeconds, $purgeIntervalSeconds) {
+\Swoole\Coroutine\run(function () use ($workerSleepSeconds, $purgeIntervalSeconds) {
 	$stopRequested = false;
 	$nextPurgeAt = time() + $purgeIntervalSeconds;
 
@@ -68,7 +65,7 @@ $purgeIntervalSeconds = max(1, (int) Config::EMAIL_QUEUE_PURGE_INTERVAL_SECONDS-
 	});
 
 	while (!$stopRequested) {
-		$processed = EmailQueueWorker::runOnce($processTransactional, $processBulk, $processGeneral);
+		$processed = EmailQueueWorker::runOnce();
 
 		if (time() >= $nextPurgeAt) {
 			EmailQueueStorage::purgeArchives();
