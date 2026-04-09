@@ -30,7 +30,9 @@
         "symfony/string": "^7.1",
         "ext-igbinary": "*",
         "ext-brotli": "*",
-        "monolog/monolog": "^3.8"
+        "monolog/monolog": "^3.8",
+        "symfony/mailer": "^7.3",
+        "symfony/mime": "^7.3"
     },
     "scripts": {
         "setup-git-hooks": [

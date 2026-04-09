@@ -1572,18 +1572,6 @@ class DbSchemaData
 				'table_name' => 'email_queue_transactional',
 				'fields' => [
 					0 => [
-						'column_name' => 'queue_id',
-						'type_sql' => 'bigint(20) unsigned',
-						'type_php' => 'int',
-						'comment' => '',
-						'default' => null,
-						'extra' => 'auto_increment',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => true,
-						'is_auto_increment' => true,
-					],
-					1 => [
 						'column_name' => 'job_id',
 						'type_sql' => 'varchar(64)',
 						'type_php' => 'string',
@@ -1592,10 +1580,10 @@ class DbSchemaData
 						'extra' => '',
 						'is_optional' => false,
 						'is_processable' => false,
-						'is_primary_key' => false,
+						'is_primary_key' => true,
 						'is_auto_increment' => false,
 					],
-					2 => [
+					1 => [
 						'column_name' => 'job_type',
 						'type_sql' => 'varchar(128)',
 						'type_php' => 'string',
@@ -1607,7 +1595,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					3 => [
+					2 => [
 						'column_name' => 'payload_json',
 						'type_sql' => 'longtext',
 						'type_php' => 'string',
@@ -1619,7 +1607,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					4 => [
+					3 => [
 						'column_name' => 'requested_by_type',
 						'type_sql' => 'varchar(32)',
 						'type_php' => 'string',
@@ -1631,7 +1619,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					5 => [
+					4 => [
 						'column_name' => 'requested_by_id',
 						'type_sql' => 'int(11)',
 						'type_php' => 'int',
@@ -1643,21 +1631,9 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					6 => [
-						'column_name' => 'priority',
-						'type_sql' => 'enum(\'instant\',\'bulk\')',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => 'instant',
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					7 => [
+					5 => [
 						'column_name' => 'status',
-						'type_sql' => 'enum(\'pending\',\'reserved\',\'retry_wait\',\'completed\',\'failed_auth\',\'failed\',\'dead\')',
+						'type_sql' => 'enum(\'pending\',\'reserved\',\'retry_wait\')',
 						'type_php' => 'string',
 						'comment' => '',
 						'default' => 'pending',
@@ -1667,7 +1643,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					8 => [
+					6 => [
 						'column_name' => 'attempts',
 						'type_sql' => 'int(11)',
 						'type_php' => 'int',
@@ -1679,7 +1655,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					9 => [
+					7 => [
 						'column_name' => 'run_after_utc',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -1691,7 +1667,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					10 => [
+					8 => [
 						'column_name' => 'reserved_at',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -1703,43 +1679,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					11 => [
-						'column_name' => 'completed_at',
-						'type_sql' => 'datetime',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					12 => [
-						'column_name' => 'last_error_code',
-						'type_sql' => 'varchar(64)',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					13 => [
-						'column_name' => 'last_error_message',
-						'type_sql' => 'text',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					14 => [
+					9 => [
 						'column_name' => 'created_at',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -1753,28 +1693,23 @@ class DbSchemaData
 					],
 				],
 				'field_names' => [
-					0 => 'queue_id',
-					1 => 'job_id',
-					2 => 'job_type',
-					3 => 'payload_json',
-					4 => 'requested_by_type',
-					5 => 'requested_by_id',
-					6 => 'priority',
-					7 => 'status',
-					8 => 'attempts',
-					9 => 'run_after_utc',
-					10 => 'reserved_at',
-					11 => 'completed_at',
-					12 => 'last_error_code',
-					13 => 'last_error_message',
-					14 => 'created_at',
+					0 => 'job_id',
+					1 => 'job_type',
+					2 => 'payload_json',
+					3 => 'requested_by_type',
+					4 => 'requested_by_id',
+					5 => 'status',
+					6 => 'attempts',
+					7 => 'run_after_utc',
+					8 => 'reserved_at',
+					9 => 'created_at',
 				],
 				'pkeys' => [
-					0 => 'queue_id',
+					0 => 'job_id',
 				],
 				'processable_fields' => [
 				],
-				'is_auto_increment' => true,
+				'is_auto_increment' => false,
 			],
 			'i18n_build_state' => [
 				'table_name' => 'i18n_build_state',
@@ -6582,18 +6517,6 @@ class DbSchemaData
 				'table_name' => 'email_queue_transactional',
 				'fields' => [
 					0 => [
-						'column_name' => 'queue_id',
-						'type_sql' => 'bigint(20) unsigned',
-						'type_php' => 'int',
-						'comment' => '',
-						'default' => null,
-						'extra' => 'auto_increment',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => true,
-						'is_auto_increment' => true,
-					],
-					1 => [
 						'column_name' => 'job_id',
 						'type_sql' => 'varchar(64)',
 						'type_php' => 'string',
@@ -6602,10 +6525,10 @@ class DbSchemaData
 						'extra' => '',
 						'is_optional' => false,
 						'is_processable' => false,
-						'is_primary_key' => false,
+						'is_primary_key' => true,
 						'is_auto_increment' => false,
 					],
-					2 => [
+					1 => [
 						'column_name' => 'job_type',
 						'type_sql' => 'varchar(128)',
 						'type_php' => 'string',
@@ -6617,7 +6540,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					3 => [
+					2 => [
 						'column_name' => 'payload_json',
 						'type_sql' => 'longtext',
 						'type_php' => 'string',
@@ -6629,7 +6552,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					4 => [
+					3 => [
 						'column_name' => 'requested_by_type',
 						'type_sql' => 'varchar(32)',
 						'type_php' => 'string',
@@ -6641,7 +6564,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					5 => [
+					4 => [
 						'column_name' => 'requested_by_id',
 						'type_sql' => 'int(11)',
 						'type_php' => 'int',
@@ -6653,21 +6576,9 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					6 => [
-						'column_name' => 'priority',
-						'type_sql' => 'enum(\'instant\',\'bulk\')',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => 'instant',
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					7 => [
+					5 => [
 						'column_name' => 'status',
-						'type_sql' => 'enum(\'pending\',\'reserved\',\'retry_wait\',\'completed\',\'failed_auth\',\'failed\',\'dead\')',
+						'type_sql' => 'enum(\'pending\',\'reserved\',\'retry_wait\')',
 						'type_php' => 'string',
 						'comment' => '',
 						'default' => 'pending',
@@ -6677,7 +6588,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					8 => [
+					6 => [
 						'column_name' => 'attempts',
 						'type_sql' => 'int(11)',
 						'type_php' => 'int',
@@ -6689,7 +6600,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					9 => [
+					7 => [
 						'column_name' => 'run_after_utc',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -6701,7 +6612,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					10 => [
+					8 => [
 						'column_name' => 'reserved_at',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -6713,43 +6624,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					11 => [
-						'column_name' => 'completed_at',
-						'type_sql' => 'datetime',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					12 => [
-						'column_name' => 'last_error_code',
-						'type_sql' => 'varchar(64)',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					13 => [
-						'column_name' => 'last_error_message',
-						'type_sql' => 'text',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					14 => [
+					9 => [
 						'column_name' => 'created_at',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -6763,28 +6638,23 @@ class DbSchemaData
 					],
 				],
 				'field_names' => [
-					0 => 'queue_id',
-					1 => 'job_id',
-					2 => 'job_type',
-					3 => 'payload_json',
-					4 => 'requested_by_type',
-					5 => 'requested_by_id',
-					6 => 'priority',
-					7 => 'status',
-					8 => 'attempts',
-					9 => 'run_after_utc',
-					10 => 'reserved_at',
-					11 => 'completed_at',
-					12 => 'last_error_code',
-					13 => 'last_error_message',
-					14 => 'created_at',
+					0 => 'job_id',
+					1 => 'job_type',
+					2 => 'payload_json',
+					3 => 'requested_by_type',
+					4 => 'requested_by_id',
+					5 => 'status',
+					6 => 'attempts',
+					7 => 'run_after_utc',
+					8 => 'reserved_at',
+					9 => 'created_at',
 				],
 				'pkeys' => [
-					0 => 'queue_id',
+					0 => 'job_id',
 				],
 				'processable_fields' => [
 				],
-				'is_auto_increment' => true,
+				'is_auto_increment' => false,
 			],
 			'i18n_build_state' => [
 				'table_name' => 'i18n_build_state',

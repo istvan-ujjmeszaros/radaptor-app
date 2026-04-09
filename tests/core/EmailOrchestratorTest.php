@@ -38,10 +38,35 @@ final class EmailOrchestratorTest extends TransactionedTestCase
 		$this->assertSame('alpha@example.com', $recipients[0]['recipient_email'] ?? null);
 		$this->assertSame('beta@example.com', $recipients[1]['recipient_email'] ?? null);
 
-		$queueRows = DbHelper::selectMany('email_queue_transactional', [], false, 'queue_id ASC');
+		$queueRows = DbHelper::selectMany('email_queue_transactional', [], false, 'job_id ASC');
 		$this->assertCount(2, $queueRows);
 		$this->assertSame('email.transactional.send_snapshot', $queueRows[0]['job_type'] ?? null);
 		$this->assertSame(User::getCurrentUserId(), (int) ($queueRows[0]['requested_by_id'] ?? 0));
+	}
+
+	public function testEnqueueTransactionalSnapshotAsSystemCreatesSystemOwnedQueueRows(): void
+	{
+		$result = EmailOrchestrator::enqueueTransactionalSnapshotAsSystem(
+			'Confirm your early access request',
+			'<p>Confirm</p>',
+			'Confirm',
+			[
+				['email' => 'system@example.com', 'name' => 'System Recipient'],
+			]
+		);
+
+		$this->assertGreaterThan(0, $result['outbox_id']);
+		$this->assertSame(1, $result['queued_jobs']);
+
+		$outbox = DbHelper::selectOne('email_outbox', ['outbox_id' => $result['outbox_id']]);
+		$this->assertIsArray($outbox);
+		$this->assertSame('system', $outbox['requested_by_type'] ?? null);
+		$this->assertNull($outbox['requested_by_id'] ?? null);
+
+		$queueRows = DbHelper::selectMany('email_queue_transactional', [], false, 'job_id ASC');
+		$this->assertCount(1, $queueRows);
+		$this->assertSame('system', $queueRows[0]['requested_by_type'] ?? null);
+		$this->assertNull($queueRows[0]['requested_by_id'] ?? null);
 	}
 
 	private function bootstrapAndImpersonateEmailAdmin(): void

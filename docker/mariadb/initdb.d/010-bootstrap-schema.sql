@@ -220,26 +220,19 @@ CREATE TABLE `email_queue_dead_letter` (
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `email_queue_transactional` (
-  `queue_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `job_id` varchar(64) NOT NULL,
   `job_type` varchar(128) NOT NULL,
   `payload_json` longtext NOT NULL,
   `requested_by_type` varchar(32) NOT NULL,
   `requested_by_id` int(11) DEFAULT NULL,
-  `priority` enum('instant','bulk') NOT NULL DEFAULT 'instant',
-  `status` enum('pending','reserved','retry_wait','completed','failed_auth','failed','dead') NOT NULL DEFAULT 'pending',
+  `status` enum('pending','reserved','retry_wait') NOT NULL DEFAULT 'pending',
   `attempts` int(11) NOT NULL DEFAULT 0,
   `run_after_utc` datetime NOT NULL DEFAULT current_timestamp(),
   `reserved_at` datetime DEFAULT NULL,
-  `completed_at` datetime DEFAULT NULL,
-  `last_error_code` varchar(64) DEFAULT NULL,
-  `last_error_message` text DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`queue_id`),
-  UNIQUE KEY `uq_email_queue_transactional_job_id` (`job_id`),
-  KEY `idx_email_queue_transactional_poll` (`status`,`run_after_utc`,`priority`,`queue_id`),
-  KEY `idx_email_queue_transactional_job_type_queue` (`job_type`,`queue_id`),
-  KEY `idx_email_queue_transactional_created_queue` (`created_at`,`queue_id`)
+  PRIMARY KEY (`job_id`),
+  KEY `idx_email_queue_transactional_ready` (`status`,`run_after_utc`,`job_id`),
+  KEY `idx_email_queue_transactional_reserved` (`status`,`reserved_at`,`job_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
