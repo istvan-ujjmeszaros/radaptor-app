@@ -475,6 +475,7 @@ class AutoloaderGeneratedMap
 		'Migration_20260325_120000_create_cli_runner_webpage' => 'packages/dev/core/framework/migrations/20260325_120000_create_cli_runner_webpage.php',
 		'Migration_20260331_120000_create_seeds_table' => 'packages/dev/core/framework/migrations/20260331_120000_create_seeds_table.php',
 		'Migration_20260408_120000_cleanup_email_queue_to_transactional_only' => 'packages/dev/core/framework/migrations/20260408_120000_cleanup_email_queue_to_transactional_only.php',
+		'Migration_20260408_130000_simplify_transactional_email_queue' => 'packages/dev/core/framework/migrations/20260408_130000_simplify_transactional_email_queue.php',
 		'NativeSessionStorage' => 'packages/dev/core/framework/classes/class.NativeSessionStorage.php',
 		'NestedSet' => 'packages/dev/core/framework/classes/class.NestedSet.php',
 		'NumberToStringHelperEN' => 'packages/dev/core/framework/classes/class.NumberToStringHelperEN.php',

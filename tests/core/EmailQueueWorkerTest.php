@@ -95,6 +95,43 @@ final class EmailQueueWorkerTest extends TransactionedTestCase
 		$this->assertSame('AUTH_DENIED', $deadLetters[0]['error_code'] ?? null);
 	}
 
+	public function testRunOnceRetryableFailureReschedulesJobWithoutDeadLettering(): void
+	{
+		$this->bootstrapAndImpersonateEmailAdmin();
+
+		EmailSmtpTransport::setTestSender(static function (): void {
+			throw new EmailJobProcessingException('SMTP_TEMPORARY_FAILURE', 'Temporary SMTP outage.', true);
+		});
+
+		$result = EmailOrchestrator::enqueueTransactionalSnapshot(
+			'Retry me later',
+			'<p>Retry me later</p>',
+			'Retry me later',
+			[
+				['email' => 'retry@example.com'],
+			]
+		);
+
+		$this->assertTrue(EmailQueueWorker::runOnce());
+
+		$queueRows = DbHelper::selectMany('email_queue_transactional', [], false, 'job_id ASC');
+		$this->assertCount(1, $queueRows);
+		$this->assertSame('retry_wait', $queueRows[0]['status'] ?? null);
+		$this->assertNull($queueRows[0]['reserved_at'] ?? null);
+		$this->assertGreaterThanOrEqual(1, (int) ($queueRows[0]['attempts'] ?? 0));
+
+		$deadLetterCount = (int) DbHelper::selectOneColumnFromQuery('SELECT COUNT(*) FROM email_queue_dead_letter');
+		$this->assertSame(0, $deadLetterCount);
+
+		$outbox = EntityEmailOutbox::findById($result['outbox_id']);
+		$this->assertNotNull($outbox);
+		$this->assertSame('queued', $outbox->status);
+
+		$recipient = DbHelper::selectOne('email_outbox_recipients', ['outbox_id' => $result['outbox_id']]);
+		$this->assertIsArray($recipient);
+		$this->assertSame('queued', $recipient['status'] ?? null);
+	}
+
 	private function bootstrapAndImpersonateEmailAdmin(): void
 	{
 		RequestContextHolder::initializeRequest(server: [
