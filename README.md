@@ -18,7 +18,7 @@ It is intentionally small:
    - shell shortcut: `./php-shell.sh`
    - direct shortcuts:
      - `./composer.sh install`
-     - `./radaptor.sh install --json`
+     - `./radaptor install --json`
 4. Open the site:
    - homepage: `http://localhost/`
    - login: `http://localhost/login.html`
@@ -44,7 +44,7 @@ instead of redirecting to a different URL. Direct access to `/login.html` itself
 
 What happens on first install:
 - `docker compose up` gives you the supported PHP runtime
-- `./radaptor.sh install --json` bootstraps the pinned framework package if it is still missing
+- `./radaptor install --json` bootstraps the pinned framework package if it is still missing
 - then the framework CLI continues the normal install/update/build/migrate/seed flow
 - the committed `radaptor.json` points at the default public package registry:
   `https://packages.radaptor.com/registry.json`
@@ -120,21 +120,21 @@ released as new immutable versions before the consumer app is updated:
 
 - dev mode (`packages/dev/...`) does not need release/publish
 - registry-first validation does need an immutable package release after first-party package changes
-- the consumer app refresh stays the normal `./radaptor.sh update --json`, but only after the
+- the consumer app refresh stays the normal `./radaptor update --json`, but only after the
   registry deploy completed
 - then run a fresh clone / scratch bootstrap proof
 
 The supported maintainer path is:
 
-- stable release: `./radaptor.sh package:release <package-key> --json`
-- prerelease: `./radaptor.sh package:prerelease <package-key> --channel alpha|beta|rc --json`
+- stable release: `./radaptor package:release <package-key> --json`
+- prerelease: `./radaptor package:prerelease <package-key> --channel alpha|beta|rc --json`
 
 After that:
 
 - commit the bumped `.registry-package.json` in the package repo
 - commit + push the `radaptor_plugin_registry` repo
 - pushes to `radaptor_plugin_registry/main` auto-deploy to `https://packages.radaptor.com/`
-- only then run `./radaptor.sh update --json` so `radaptor.lock.json` and `packages/registry/...`
+- only then run `./radaptor update --json` so `radaptor.lock.json` and `packages/registry/...`
   pick up the new version
 
 The low-level `package:publish` and `package:publish-all` commands remain available for internal or
@@ -160,7 +160,8 @@ Use one of these supported approaches:
   and `php radaptor.php ...` directly
 - `./php-shell.sh`: open a shell in the running `php` container
 - `./composer.sh <args>`: run Composer in the `php` container
-- `./radaptor.sh <args>`: run `php radaptor.php ...` in the `php` container
+- `./radaptor <args>`: run the Radaptor CLI in the `php` container
+- `./radaptor.sh <args>`: compatibility shim for `./radaptor <args>`
 
 When you use `--json`, progress chatter is suppressed from stdout and appended to
 `.logs/cli_commands.log`, with each command separated by its own log section.
@@ -168,8 +169,8 @@ When you use `--json`, progress chatter is suppressed from stdout and appended t
 Examples:
 
 - `./composer.sh install`
-- `./radaptor.sh install --json`
-- `./radaptor.sh update --json`
+- `./radaptor install --json`
+- `./radaptor update --json`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 
@@ -185,7 +186,7 @@ The framework ships a public browser-event manual in both JSON and HTML.
 If you add or change documented browser events, rebuild the generated registry inside the `php`
 container:
 
-- `./radaptor.sh build:event-docs`
+- `./radaptor build:event-docs`
 
 ## Notes
 

@@ -8,8 +8,8 @@ cd "$PROJECT_ROOT"
 
 radaptor_wrapper_run_preflight
 
-if [[ "$#" -eq 0 ]]; then
-	radaptor_wrapper_exec_in_php_as_host_user bash
+if radaptor_wrapper_should_print_info "$@"; then
+	printf 'Using docker compose service: php\n' >&2
 fi
 
-radaptor_wrapper_exec_in_php_as_host_user bash -lc "$*"
+radaptor_wrapper_exec_in_php_as_host_user radaptor "$@"

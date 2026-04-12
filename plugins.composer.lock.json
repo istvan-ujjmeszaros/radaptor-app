@@ -91,6 +91,18 @@
             "root_owned": true,
             "owners": []
         },
+        "symfony/mailer": {
+            "constraint": "^7.3",
+            "managed": false,
+            "root_owned": true,
+            "owners": []
+        },
+        "symfony/mime": {
+            "constraint": "^7.3",
+            "managed": false,
+            "root_owned": true,
+            "owners": []
+        },
         "symfony/string": {
             "constraint": "^7.1",
             "managed": false,

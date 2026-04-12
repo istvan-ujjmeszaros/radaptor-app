@@ -31,6 +31,13 @@
         "registry": "default",
         "version": "^0.1.0"
       }
+    },
+    "so-admin": {
+      "package": "radaptor/themes/so-admin",
+      "source": {
+        "type": "dev",
+        "path": "packages/dev/themes/so-admin"
+      }
     }
   },
   "plugins": {}

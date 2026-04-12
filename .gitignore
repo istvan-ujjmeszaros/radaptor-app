@@ -70,6 +70,16 @@ tmp
 config/packages/*.local.php
 config/packages/*.php.example
 public/www/assets/packages/
+_UPLOADS/*
+!_UPLOADS/.gitkeep
+!_UPLOADS/_tmp_/
+_UPLOADS/_tmp_/*
+!_UPLOADS/_tmp_/.gitkeep
+uploaded_files/*
+!uploaded_files/.gitkeep
+!uploaded_files/_tmp_/
+uploaded_files/_tmp_/*
+!uploaded_files/_tmp_/.gitkeep
 packages/dev/core/*
 !packages/dev/core/.gitkeep
 packages/dev/themes/*

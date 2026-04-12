@@ -50,6 +50,24 @@ final class CLIWebRunnerUserBridgeTest extends TestCase
 		$this->assertNull(CLIWebRunnerUserBridge::resolveTrustedUserIdFromEnvironment());
 	}
 
+	public function testExpiredEnvironmentStillMarksProcessAsWebRunner(): void
+	{
+		TestHelperEnvironment::setEnvironmentVariable('APP_CLI_RUNNER_SIGNING_SECRET', 'test-secret');
+
+		$userId = 123;
+		$timestamp = time() - 600;
+		$nonce = str_repeat('a', 32);
+		$signature = $this->invokeBridgeMethod('signPayload', [$userId, $timestamp, $nonce]);
+
+		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_WEB_RUNNER_USER_ID', (string) $userId);
+		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_WEB_RUNNER_TS', (string) $timestamp);
+		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_WEB_RUNNER_NONCE', $nonce);
+		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_WEB_RUNNER_SIG', $signature);
+
+		$this->assertTrue(CLIWebRunnerUserBridge::isWebRunnerProcess());
+		$this->assertNull(CLIWebRunnerUserBridge::resolveTrustedUserIdFromEnvironment());
+	}
+
 	public function testCliApplicationIdentifierOverrideDoesNotInvalidateSignature(): void
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_CLI_RUNNER_SIGNING_SECRET', 'test-secret');
