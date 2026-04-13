@@ -8,7 +8,12 @@
   </php>
   <testsuites>
     <testsuite name="Project Test Suite">
+      <file>tests/core/CLICommandWebRunnerAclTest.php</file>
+      <file>tests/core/CLICommandWebRunnerTest.php</file>
+      <file>tests/core/CLITrustPolicyTest.php</file>
+      <file>tests/core/CLIWebRunnerUserBridgeTest.php</file>
       <file>tests/core/ConfigTest.php</file>
+      <file>tests/core/CmsResourceListServiceTest.php</file>
       <file>tests/core/CmsResourceSpecServiceTest.php</file>
       <file>tests/core/EmailOrchestratorTest.php</file>
       <file>tests/core/EmailOutboxStatusResolverTest.php</file>
@@ -23,6 +28,8 @@
       <file>tests/core/PackageReleaseServiceTest.php</file>
       <file>tests/core/PackageReleaseVersionHelperTest.php</file>
       <file>tests/core/PluginVersionHelperTest.php</file>
+      <file>tests/core/ResourceTreeArchitectureTest.php</file>
+      <file>tests/core/ResourceTreeDeletionTest.php</file>
       <file>tests/core/SkeletonBootstrapSeedTest.php</file>
     </testsuite>
   </testsuites>

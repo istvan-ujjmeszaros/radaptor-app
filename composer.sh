@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/docker/dev-wrapper-common.sh"
+
+PROJECT_ROOT="$(radaptor_wrapper_project_root "${BASH_SOURCE[0]}")"
 cd "$PROJECT_ROOT"
 
-exec_args=(exec)
-if [[ ! -t 0 || ! -t 1 ]]; then
-	exec_args+=(-T)
-fi
+radaptor_wrapper_run_preflight
 
-exec docker compose -f docker-compose-dev.yml "${exec_args[@]}" php composer "$@"
+radaptor_wrapper_exec_in_php_as_host_user composer "$@"

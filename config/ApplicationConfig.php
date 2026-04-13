@@ -73,9 +73,9 @@ class ApplicationConfig
 	public const string PATH_ICONS = '/assets/_common/ico/';
 	public const string PATH_PUBLIC_SITE_ROOT = '';
 	public const string PATH_FONTS_DIRECTORY = '';
-	public const string PATH_UPLOADED_FILES_DIRECTORY = 'uploaded_files/';
-	public const string PATH_UPLOADING_TEMPORARY_DIRECTORY = 'uploaded_files/_tmp_/';
-	public const string PATH_UPLOADING_TEMPORARY_PARTITIONS_DIRECTORY = 'uploaded_files/_tmp_/_partitions_/';
+	public const string PATH_UPLOADED_FILES_DIRECTORY = '_UPLOADS/';
+	public const string PATH_UPLOADING_TEMPORARY_DIRECTORY = '_UPLOADS/_tmp_/';
+	public const string PATH_UPLOADING_TEMPORARY_PARTITIONS_DIRECTORY = '_UPLOADS/_tmp_/_partitions_/';
 
 	/**
 	 * Email settings.
