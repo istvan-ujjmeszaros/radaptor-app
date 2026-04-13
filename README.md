@@ -152,6 +152,11 @@ If you want to work on packages locally, place the checkout inside this app:
 
 Then point `radaptor.json` to those local `source.path` values for dev mode.
 
+The first-party package paths under `packages/dev/...` are expected to be full nested Git repos.
+Normal package PR and release work happens directly inside those nested repos, not through temporary
+PR clones. The legacy workspace-level `package-origins/` directory may still exist for local
+experiments, but it is not part of the standard workflow.
+
 ## Docker CLI options
 
 Use one of these supported approaches:
