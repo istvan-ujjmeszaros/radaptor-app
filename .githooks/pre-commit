@@ -19,7 +19,7 @@ if command -v docker >/dev/null 2>&1; then
 	fi
 fi
 
-if [ -n "$RADAPTOR_DOCKER_PHP_SERVICE" ] && [ "$RUN_IN_DOCKER" -eq 0 ]; then
+if [ -n "${RADAPTOR_DOCKER_PHP_SERVICE:-}" ] && [ "$RUN_IN_DOCKER" -eq 0 ]; then
 	echo -e "${RED}Docker service '$DOCKER_SERVICE' is not running or Docker Compose is unavailable.${NC}"
 	echo -e "${YELLOW}Start it via: docker compose -f docker-compose-dev.yml up -d $DOCKER_SERVICE${NC}"
 	exit 1
