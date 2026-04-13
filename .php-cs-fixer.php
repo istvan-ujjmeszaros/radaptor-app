@@ -7,7 +7,7 @@ use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 $finder = PhpCsFixer\Finder::create()
 	->exclude([
 		'tools',
-		'generated', // Exclude auto-generated files
+		'generated',
 	])
 	->in([
 		'app',
@@ -21,10 +21,6 @@ $config = new PhpCsFixer\Config();
 
 $config->setRules([
 	'@PSR12' => true,
-	// Explicitly disabled: template files use if/endif, foreach/endforeach alternative syntax
-	// for readability when mixing PHP control structures with HTML. The PSR-12 default
-	// enforces curly braces everywhere, but alternative syntax is the conventional style
-	// for view/template files and should not be normalized away.
 	'no_alternative_syntax' => false,
 	'no_spaces_inside_parenthesis' => true,
 	'no_trailing_whitespace' => true,

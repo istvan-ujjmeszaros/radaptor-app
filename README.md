@@ -174,6 +174,15 @@ Examples:
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 
+## Repo baseline
+
+This repo uses tracked Git hooks and a repo-local baseline check.
+
+- `./.githooks/install.sh`: configure `core.hooksPath` to the tracked `.githooks/` directory
+- `./bin/check-repo-baseline.sh`: run the same repo baseline and formatting check that GitHub Actions uses
+
+If you clone or recreate this repo locally, install the tracked hooks before relying on pre-commit behavior.
+
 ## Browser Event API Docs
 
 The framework ships a public browser-event manual in both JSON and HTML.
