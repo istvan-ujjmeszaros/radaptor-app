@@ -152,6 +152,11 @@ If you want to work on packages locally, place the checkout inside this app:
 
 Then point `radaptor.json` to those local `source.path` values for dev mode.
 
+The first-party package paths under `packages/dev/...` are expected to be full nested Git repos.
+Normal package PR and release work happens directly inside those nested repos, not through temporary
+PR clones. The legacy workspace-level `package-origins/` directory may still exist for local
+experiments, but it is not part of the standard workflow.
+
 ## Docker CLI options
 
 Use one of these supported approaches:
@@ -173,6 +178,15 @@ Examples:
 - `./radaptor update --json`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
+
+## Repo baseline
+
+This repo uses tracked Git hooks and a repo-local baseline check.
+
+- `./.githooks/install.sh`: configure `core.hooksPath` to the tracked `.githooks/` directory
+- `./bin/check-repo-baseline.sh`: run the same repo baseline and formatting check that GitHub Actions uses
+
+If you clone or recreate this repo locally, install the tracked hooks before relying on pre-commit behavior.
 
 ## Browser Event API Docs
 

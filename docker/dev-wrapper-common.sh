@@ -43,13 +43,7 @@ radaptor_wrapper_run_preflight() {
 		-e HOST_UID="$host_uid" \
 		-e HOST_GID="$host_gid" \
 		-e WRAPPER_HOME="$wrapper_home" \
-		php sh -lc '
-			mkdir -p "$WRAPPER_HOME/.composer" "$WRAPPER_HOME/.cache/composer" /app/.logs /app/generated &&
-			touch /app/.logs/cli_commands.log &&
-			chown -R "$HOST_UID:$HOST_GID" "$WRAPPER_HOME" /app/.logs /app/generated 2>/dev/null || true &&
-			chmod 0775 "$WRAPPER_HOME" "$WRAPPER_HOME/.composer" "$WRAPPER_HOME/.cache" "$WRAPPER_HOME/.cache/composer" /app/.logs /app/generated 2>/dev/null || true &&
-			chmod 0664 /app/.logs/cli_commands.log 2>/dev/null || true
-		'
+		php bash -lc 'cd /app && ./docker/dev-permissions.sh preflight'
 }
 
 radaptor_wrapper_exec_in_php_as_host_user() {
