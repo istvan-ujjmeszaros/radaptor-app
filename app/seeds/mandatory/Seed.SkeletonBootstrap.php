@@ -108,9 +108,6 @@ class SeedSkeletonBootstrap extends AbstractSeed
 							'content' => $this->getAdminWelcomeHtml(),
 						],
 					],
-					[
-						'widget' => WidgetList::EMAILQUEUESTATS,
-					],
 				],
 			],
 		]);
@@ -149,7 +146,6 @@ class SeedSkeletonBootstrap extends AbstractSeed
 			WidgetList::ROLELIST,
 			WidgetList::RESOURCETREE,
 			WidgetList::ADMINMENU,
-			WidgetList::EMAILOUTBOX,
 			WidgetList::IMPORTEXPORT,
 			WidgetList::I18NWORKBENCH,
 			WidgetList::WIDGETPREVIEW,

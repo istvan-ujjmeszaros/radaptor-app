@@ -124,6 +124,7 @@ class ApplicationConfig
 	public const array GENERATOR_IGNORED_FOLDERS = [
 		'/docker',
 		'/tests',
+		'/tmp/',
 		'/tools/',
 		'/public/',
 		'/vendor/',
