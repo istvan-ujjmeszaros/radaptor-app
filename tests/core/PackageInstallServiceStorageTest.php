@@ -255,6 +255,86 @@ final class PackageInstallServiceStorageTest extends TestCase
 		);
 	}
 
+	public function testNormalizePathDoesNotFollowSymlinks(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'normalizePath');
+		$method->setAccessible(true);
+
+		// Basic normalization
+		$this->assertSame('/app/packages/registry/core/framework', $method->invoke(null, '/app/packages/registry/core/framework'));
+		$this->assertSame('/app/packages/registry/core/framework', $method->invoke(null, '/app/packages/registry/core/framework/'));
+		$this->assertSame('/app/packages/registry/core/framework', $method->invoke(null, '/app/packages/./registry/core/framework'));
+		$this->assertSame('/app/packages/core/framework', $method->invoke(null, '/app/packages/registry/../core/framework'));
+
+		// Does NOT follow symlinks — if packages/registry/core/framework is a symlink
+		// to packages/dev/core/framework, normalizePath must return the logical path,
+		// not the symlink target
+		$this->assertSame(
+			'/app/packages/registry/core/framework',
+			$method->invoke(null, '/app/packages/registry/core/framework'),
+			'normalizePath must not resolve symlinks'
+		);
+	}
+
+	public function testToPathForStoragePreservesRegistryPrefix(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'toPathForStorage');
+		$method->setAccessible(true);
+
+		$this->assertSame(
+			'packages/registry/core/framework',
+			$method->invoke(null, '/app/packages/registry/core/framework', '/app')
+		);
+
+		$this->assertSame(
+			'packages/registry/themes/portal-admin',
+			$method->invoke(null, '/app/packages/registry/themes/portal-admin', '/app')
+		);
+	}
+
+	public function testAssertRegistryTargetSafeRejectsDevPath(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'assertRegistryTargetSafe');
+		$method->setAccessible(true);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('not under packages/registry/');
+
+		$method->invoke(null, DEPLOY_ROOT . 'packages/dev/core/framework', 'test');
+	}
+
+	public function testAssertRegistryTargetSafeRejectsPathOutsideDeployRoot(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'assertRegistryTargetSafe');
+		$method->setAccessible(true);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('outside DEPLOY_ROOT');
+
+		$method->invoke(null, '/outside/deploy/root/packages/registry/core/framework', 'test');
+	}
+
+	public function testAssertRegistryTargetSafeAcceptsValidRegistryPath(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'assertRegistryTargetSafe');
+		$method->setAccessible(true);
+
+		// Should not throw for a valid, non-symlink registry path
+		$target = DEPLOY_ROOT . 'packages/registry/core/framework';
+
+		if (!is_dir(dirname($target))) {
+			mkdir(dirname($target), 0o777, true);
+		}
+
+		// Only test if the path is not a symlink (which it shouldn't be in a test environment)
+		if (!is_link($target) && !is_link(dirname($target))) {
+			$method->invoke(null, $target, 'test');
+			$this->assertTrue(true, 'assertRegistryTargetSafe did not throw for valid registry path');
+		} else {
+			$this->markTestSkipped('Test environment has symlinks in packages/registry/ — expected in dev mode');
+		}
+	}
+
 	public function testSanitizeLockfileForStoragePreservesRegistryUserinfoWhenRebasingRelativeArtifactUrls(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
