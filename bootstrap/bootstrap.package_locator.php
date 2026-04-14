@@ -4,13 +4,31 @@ if (!function_exists('radaptorAppBootstrapNormalizePath')) {
 	function radaptorAppBootstrapNormalizePath(string $path): string
 	{
 		$path = str_replace('\\', '/', $path);
-		$real = realpath($path);
 
-		if ($real !== false) {
-			return rtrim(str_replace('\\', '/', $real), '/');
+		// Do NOT use realpath() — it follows symlinks, corrupting registry paths
+		// when packages/registry/ is symlinked to packages/dev/.
+		if ($path !== '' && $path[0] === '/') {
+			$prefix = '/';
+			$path = substr($path, 1);
+		} else {
+			$prefix = '';
 		}
 
-		return rtrim($path, '/');
+		$parts = [];
+
+		foreach (explode('/', $path) as $segment) {
+			if ($segment === '' || $segment === '.') {
+				continue;
+			}
+
+			if ($segment === '..' && $parts !== [] && end($parts) !== '..') {
+				array_pop($parts);
+			} else {
+				$parts[] = $segment;
+			}
+		}
+
+		return rtrim($prefix . implode('/', $parts), '/');
 	}
 }
 
@@ -639,6 +657,36 @@ if (!function_exists('radaptorAppBootstrapInstallFrameworkPackage')) {
 			}
 
 			$target_dir = $request['target_dir'];
+
+			$app_root_prefix = rtrim(radaptorAppBootstrapNormalizePath($app_root), '/') . '/';
+			$normalized_target = radaptorAppBootstrapNormalizePath($target_dir);
+
+			if (!str_starts_with($normalized_target, $app_root_prefix)) {
+				throw new RuntimeException(
+					"Bootstrap install refused: target '{$normalized_target}' is outside app root."
+				);
+			}
+
+			$relative = substr($normalized_target, strlen($app_root_prefix));
+
+			if (!str_starts_with($relative, 'packages/registry/')) {
+				throw new RuntimeException(
+					"Bootstrap install refused: target '{$relative}' is not under packages/registry/."
+				);
+			}
+
+			$check_path = $normalized_target;
+			$stop_path = rtrim($app_root_prefix, '/');
+
+			while ($check_path !== $stop_path && $check_path !== '' && $check_path !== '/') {
+				if (is_link($check_path)) {
+					throw new RuntimeException(
+						"Bootstrap install refused: path component '{$check_path}' is a symlink."
+					);
+				}
+
+				$check_path = dirname($check_path);
+			}
 
 			radaptorAppBootstrapDeleteDirectory($target_dir);
 
