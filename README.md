@@ -118,11 +118,16 @@ The first-run DB bootstrap currently relies on the MariaDB init schema shipped i
 When this skeleton is validated in registry-first mode, first-party package changes must be
 released as new immutable versions before the consumer app is updated:
 
+- `radaptor.json` is the only supported source selector
+- `packages/registry/...` and `packages/dev/...` must never be connected with symlinks
+- `install` / `update` may only touch `packages/registry/...`; `packages/dev/...` is Git-owned
 - dev mode (`packages/dev/...`) does not need release/publish
 - registry-first validation does need an immutable package release after first-party package changes
 - the consumer app refresh stays the normal `./radaptor update --json`, but only after the
   registry deploy completed
-- then run a fresh clone / scratch bootstrap proof
+- then run registry-first verification on the main app instance: no symlinks under
+  `packages/registry/`, correct `radaptor.lock.json` `resolved.path` values, and a repeated
+  `./radaptor update --json` that leaves `packages/dev/.../.git` intact
 
 The supported maintainer path is:
 
@@ -140,6 +145,10 @@ After that:
 The low-level `package:publish` and `package:publish-all` commands remain available for internal or
 bootstrap cases, but they are not the normal maintainer release workflow and they refuse to
 overwrite an already published version.
+
+`./bin/prove-radaptor-app-bootstrap.sh` is still useful as a bootstrap/dev-mode smoke test, but it
+currently rewrites first-party packages to dev mode and therefore is not a strict registry-first
+proof.
 
 This repo is both the default consumer app and the default local dev-mode host.
 

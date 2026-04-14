@@ -31,6 +31,16 @@ dev checkouts for active development.
 - `radaptor.json` = source configuration (which package runs in dev vs. registry mode)
 - `radaptor.lock.json` = lockfile (exact versions and hashes for reproducible installs)
 
+### Hard rules
+
+- `radaptor.json` is the only supported source selector for first-party packages.
+- `packages/registry/...` and `packages/dev/...` must never be connected with symlinks.
+- `./radaptor.sh install` and `./radaptor.sh update` may only create, delete, or overwrite
+  package content under `packages/registry/...`.
+- `packages/dev/...` is Git-owned working state. Only Git operations may change it.
+- If a package should be editable, mark it explicitly as `dev` in `radaptor.json`. Do not fake
+  dev mode by aliasing a registry path to a dev checkout.
+
 ### Source of truth
 
 - For first-party packages: the **package's own GitHub repo main branch**
@@ -63,6 +73,8 @@ dev checkouts for active development.
 - If a `packages/dev/` directory has lost its `.git` state, that does NOT mean its content is
   up-to-date with the GitHub repo — the `.git` loss may have occurred before the latest GitHub
   merges. Always verify against the remote before any overlay or sync operation.
+- If a registry package path resolves to `packages/dev/...`, or if anything under
+  `packages/registry/...` is a symlink, treat that as corrupted state and stop.
 
 This rule exists because a real incident destroyed merged, working email queue code: a restore
 script assumed app-local content was canonical, but GitHub had newer merged PRs not reflected
