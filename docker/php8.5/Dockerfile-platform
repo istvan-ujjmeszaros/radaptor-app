@@ -1,6 +1,6 @@
-FROM php:8.4-fpm AS base
+FROM php:8.5-fpm AS base
 
-ARG PHP_VERSION=8.4
+ARG PHP_VERSION=8.5
 
 RUN apt-get update && apt-get install -y \
         autoconf \

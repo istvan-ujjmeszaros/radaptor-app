@@ -21,7 +21,6 @@ final class ResourceTreeHandlerSplitTest extends TestCase
 		];
 
 		$method = new ReflectionMethod(ResourceTreeHandler::class, 'splitResourceAndAttributesData');
-		$method->setAccessible(true);
 		[$resourceData, $attributeData] = $method->invoke(null, $input);
 
 		$this->assertSame([

@@ -19,6 +19,7 @@
       <file>tests/core/EmailOutboxStatusResolverTest.php</file>
       <file>tests/core/EmailQueueWorkerTest.php</file>
       <file>tests/core/EmailSmtpTransportTest.php</file>
+      <file>tests/core/ImageManipulatorTest.php</file>
       <file>tests/core/LocalPackageRegistryBuilderTest.php</file>
       <file>tests/core/PackageConfigTest.php</file>
       <file>tests/core/PackageInstallServiceStorageTest.php</file>

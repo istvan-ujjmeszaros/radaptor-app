@@ -89,6 +89,21 @@ locally. The `rsync --delete` wiped them out.
   - PRs that change schema or lockfiles that subsequent PRs depend on
 - Example: framework PR #10 + CMS PR #8 are dependent -> merge framework first, verify, then CMS
 
+## Repo Baseline Minimums
+
+- Every Git repo in this workspace keeps the tracked baseline files for its profile:
+  - `.repo-baseline-profile`
+  - `.githooks/install.sh`
+  - `.githooks/pre-commit`
+  - `bin/check-repo-baseline.sh`
+  - `.github/workflows/repo-checks.yml`
+- Every actual worktree must have `core.hooksPath=.githooks`.
+- Every PHP repo also keeps `.php-cs-fixer.php`.
+- Every PHP-heavy repo also keeps `phpstan.neon`.
+- In the current package set:
+  - `packages/dev/core/framework/` and `packages/dev/core/cms/` are PHP-heavy and must keep `phpstan.neon`
+  - `packages/dev/themes/portal-admin/` and `packages/dev/themes/so-admin/` keep the baseline + fixer config, but do not need PHPStan yet
+
 ## Agent Communication Rules
 
 - In plans and summaries, use **concrete paths**, not abstract jargon
@@ -100,5 +115,9 @@ locally. The `rsync --delete` wiped them out.
 
 - `bin/check-repo-baseline.sh`: repo baseline + formatting check
 - CI: `.github/workflows/repo-checks.yml` runs the same check
+- Default bring-up rule after a reboot and before general verification: `docker compose -f docker-compose-dev.yml up -d --build`
+- Do not start this app with a handpicked service subset unless the task explicitly needs a narrower diagnostic setup.
 - PHPUnit: `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
 - PHPStan: `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
+- Framework PHPStan: `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c packages/dev/core/framework/phpstan.neon`
+- CMS PHPStan: `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c packages/dev/core/cms/phpstan.neon`

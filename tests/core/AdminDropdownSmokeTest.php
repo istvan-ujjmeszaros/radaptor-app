@@ -18,12 +18,14 @@ final class AdminDropdownSmokeTest extends TransactionedTestCase
 {
 	private const int FIXTURE_PAGE_ID = 2;
 
+	#[\Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
 		$this->setRequestContext();
 	}
 
+	#[\Override]
 	protected function tearDown(): void
 	{
 		$this->impersonate(null);

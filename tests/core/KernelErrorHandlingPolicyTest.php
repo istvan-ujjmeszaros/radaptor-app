@@ -11,7 +11,6 @@ class KernelErrorHandlingPolicyTest extends TestCase
 	{
 		$reflection = new ReflectionClass(Kernel::class);
 		$target = $reflection->getMethod($method);
-		$target->setAccessible(true);
 
 		return $target->invokeArgs(null, $args);
 	}
@@ -100,7 +99,6 @@ class KernelErrorHandlingPolicyTest extends TestCase
 	{
 		$holder = new ReflectionClass(SessionContextHolder::class);
 		$initialized = $holder->getProperty('initialized');
-		$initialized->setAccessible(true);
 		$previous = $initialized->getValue();
 
 		try {

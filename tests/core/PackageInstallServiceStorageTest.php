@@ -9,7 +9,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testSanitizeLockfileForStorageRebasesHttpRegistryUrlsToDeclaredRegistryUrl(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
-		$method->setAccessible(true);
 
 		$declaredRegistryUrl = 'https://packages.radaptor.com/registry.json';
 		$sanitized = $method->invoke(
@@ -64,7 +63,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testSanitizeLockfileForStorageRebasesFileRegistryUrlsToDeclaredRegistryUrl(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
-		$method->setAccessible(true);
 
 		$declaredRegistryUrl = 'https://packages.radaptor.com/registry.json';
 		$sanitized = $method->invoke(
@@ -119,7 +117,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testSanitizeLockfileForStorageKeepsAbsoluteNonRegistryArtifactUrlsUnchanged(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
-		$method->setAccessible(true);
 
 		$declaredRegistryUrl = 'https://packages.radaptor.com/registry.json';
 		$cdnUrl = 'https://cdn.example.com/radaptor-core-framework/0.1.6/plugin.zip';
@@ -164,7 +161,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testSanitizeLockfileForStorageRebasesPlaceholderArtifactUrlsToDeclaredRegistryAuthority(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
-		$method->setAccessible(true);
 
 		$declaredRegistryUrl = 'https://packages.radaptor.com/registry.json';
 		$sanitized = $method->invoke(
@@ -211,7 +207,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testSanitizeLockfileForStoragePreservesArtifactQueryAndFragmentWhenRebasingRegistryUrls(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
-		$method->setAccessible(true);
 
 		$declaredRegistryUrl = 'https://packages.radaptor.com/registry.json';
 		$sanitized = $method->invoke(
@@ -258,7 +253,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testNormalizePathDoesNotFollowSymlinks(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'normalizePath');
-		$method->setAccessible(true);
 
 		// Basic normalization
 		$this->assertSame('/app/packages/registry/core/framework', $method->invoke(null, '/app/packages/registry/core/framework'));
@@ -279,7 +273,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testToPathForStoragePreservesRegistryPrefix(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'toPathForStorage');
-		$method->setAccessible(true);
 
 		$this->assertSame(
 			'packages/registry/core/framework',
@@ -295,7 +288,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testAssertRegistryTargetSafeRejectsDevPath(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'assertRegistryTargetSafe');
-		$method->setAccessible(true);
 
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage('not under packages/registry/');
@@ -306,7 +298,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testAssertRegistryTargetSafeRejectsPathOutsideDeployRoot(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'assertRegistryTargetSafe');
-		$method->setAccessible(true);
 
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage('outside DEPLOY_ROOT');
@@ -317,7 +308,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testAssertRegistryTargetSafeAcceptsValidRegistryPath(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'assertRegistryTargetSafe');
-		$method->setAccessible(true);
 
 		// Should not throw for a valid, non-symlink registry path
 		$target = DEPLOY_ROOT . 'packages/registry/core/framework';
@@ -338,7 +328,6 @@ final class PackageInstallServiceStorageTest extends TestCase
 	public function testSanitizeLockfileForStoragePreservesRegistryUserinfoWhenRebasingRelativeArtifactUrls(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'sanitizeLockfileForStorage');
-		$method->setAccessible(true);
 
 		$declaredRegistryUrl = 'https://ci-user:ci-pass@packages.radaptor.com/registry.json';
 		$sanitized = $method->invoke(

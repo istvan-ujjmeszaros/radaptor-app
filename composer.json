@@ -7,7 +7,8 @@
         "illuminate/view": "^12.49",
         "illuminate/events": "^12.49",
         "illuminate/filesystem": "^12.49",
-        "twig/twig": "^3.23"
+        "twig/twig": "^3.23",
+        "rector/rector": "^2.0"
     },
     "config": {
         "allow-plugins": {
@@ -15,7 +16,7 @@
         }
     },
     "require": {
-        "php": "^8.4",
+        "php": "^8.5",
         "ext-pdo": "*",
         "ext-calendar": "*",
         "ext-iconv": "*",

@@ -86,7 +86,7 @@
             "owners": []
         },
         "php": {
-            "constraint": "^8.4",
+            "constraint": "^8.5",
             "managed": false,
             "root_owned": true,
             "owners": []

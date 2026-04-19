@@ -37,11 +37,11 @@ services:
   php:
     build:
       context: ./docker
-      dockerfile: php8.4/Dockerfile-runtime
+      dockerfile: php8.5/Dockerfile-runtime
       target: dev
       args:
-        RADAPTOR_PHP_PLATFORM_DEV_IMAGE: ${RADAPTOR_PHP_PLATFORM_DEV_IMAGE:-radaptor-app-php-platform:8.4-dev-local}
-    image: radaptor-app-phpfpm:8.4-dev
+        RADAPTOR_PHP_PLATFORM_DEV_IMAGE: ${RADAPTOR_PHP_PLATFORM_DEV_IMAGE:-radaptor-app-php-platform:8.5-dev-local}
+    image: radaptor-app-phpfpm:8.5-dev
     working_dir: /app
     env_file:
       - path: .env
@@ -79,7 +79,7 @@ services:
       - ./docker/99-radaptor-dev.ini:/usr/local/etc/php/conf.d/99-radaptor-dev.ini:ro
 
   swoole-queue-worker:
-    image: radaptor-app-phpfpm:8.4-dev
+    image: radaptor-app-phpfpm:8.5-dev
     working_dir: /app
     env_file:
       - path: .env

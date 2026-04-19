@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 final class EmailQueueWorkerTest extends TransactionedTestCase
 {
+	#[\Override]
 	protected function tearDown(): void
 	{
 		EmailSmtpTransport::setTestSender(null);

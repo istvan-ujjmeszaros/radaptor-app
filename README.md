@@ -71,13 +71,13 @@ folder and give that copy its own compose project name and host ports via shell 
 
 ## Local PHP platform image
 
-The PHP 8.4 stack is split into:
+The PHP 8.5 stack is split into:
 - a heavy local platform image built by `./docker/build-php-platform.sh`
 - a thin runtime image used by `docker compose`
 
 The default local platform tags are:
-- `radaptor-app-php-platform:8.4-dev-local`
-- `radaptor-app-php-platform:8.4-prod-local`
+- `radaptor-app-php-platform:8.5-dev-local`
+- `radaptor-app-php-platform:8.5-prod-local`
 
 If you want to point the runtime at a different prebuilt base later, override:
 - `RADAPTOR_PHP_PLATFORM_DEV_IMAGE`

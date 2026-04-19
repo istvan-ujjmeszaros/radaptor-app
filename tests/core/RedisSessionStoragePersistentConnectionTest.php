@@ -17,7 +17,6 @@ class RedisSessionStoragePersistentConnectionTest extends TestCase
 
 		$storage = new RedisSessionStorage();
 		$method = new ReflectionMethod(RedisSessionStorage::class, 'shouldUsePersistentConnection');
-		$method->setAccessible(true);
 
 		$this->assertTrue($method->invoke($storage));
 	}
@@ -29,7 +28,6 @@ class RedisSessionStoragePersistentConnectionTest extends TestCase
 
 		$storage = new RedisSessionStorage();
 		$method = new ReflectionMethod(RedisSessionStorage::class, 'shouldUsePersistentConnection');
-		$method->setAccessible(true);
 
 		$this->assertFalse($method->invoke($storage));
 	}

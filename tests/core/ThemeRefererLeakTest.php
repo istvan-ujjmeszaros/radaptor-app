@@ -22,6 +22,7 @@ class ThemeRefererLeakTest extends TransactionedTestCase
 		'HTTP_HX_REQUEST',
 	];
 
+	#[\Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -42,6 +43,7 @@ class ThemeRefererLeakTest extends TransactionedTestCase
 		RequestContextHolder::initializeRequest();
 	}
 
+	#[\Override]
 	protected function tearDown(): void
 	{
 		// Restore $_SERVER

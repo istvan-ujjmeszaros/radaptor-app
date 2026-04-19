@@ -6,6 +6,7 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 {
 	private const int FIXTURE_PAGE_ID = 2;
 
+	#[\Override]
 	protected function setUp(): void
 	{
 		parent::setUp();

@@ -19,7 +19,7 @@ final class ResourceTreeArchitectureTest extends TestCase
 
 			$path = $file->getPathname();
 
-			if (str_ends_with($path, 'modules-common/Cms/classes/class.ResourceTreeHandler.php')) {
+			if (str_ends_with((string) $path, 'modules-common/Cms/classes/class.ResourceTreeHandler.php')) {
 				continue;
 			}
 

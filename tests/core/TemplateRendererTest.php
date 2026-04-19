@@ -225,7 +225,6 @@ class TemplateRendererTest extends TestCase
 	private function resetBladeFactory(): void
 	{
 		$reflection = new ReflectionProperty(TemplateRendererBlade::class, 'factory');
-		$reflection->setAccessible(true);
 		$reflection->setValue(null, null);
 	}
 
@@ -254,7 +253,6 @@ class TemplateRendererTest extends TestCase
 	private function invokeStaticMethod(string $class, string $method): mixed
 	{
 		$reflection = new ReflectionMethod($class, $method);
-		$reflection->setAccessible(true);
 
 		return $reflection->invoke(null);
 	}

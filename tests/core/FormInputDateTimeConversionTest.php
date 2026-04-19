@@ -5,6 +5,7 @@ final class FormInputDateTimeConversionTest extends TransactionedTestCase
 	private array $originalGet = [];
 	private array $originalPost = [];
 
+	#[\Override]
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -12,6 +13,7 @@ final class FormInputDateTimeConversionTest extends TransactionedTestCase
 		$this->originalPost = $_POST;
 	}
 
+	#[\Override]
 	protected function tearDown(): void
 	{
 		$_GET = $this->originalGet;

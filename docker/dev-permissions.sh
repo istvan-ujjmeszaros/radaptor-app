@@ -98,7 +98,8 @@ check() {
 		"$APP_ROOT/packages/dev/themes/portal-admin" \
 		"$APP_ROOT/packages/dev/themes/so-admin" \
 		"$APP_ROOT/tmp/pr-sync" \
-		"$APP_ROOT/_UPLOADS"; do
+		"$APP_ROOT/_UPLOADS" \
+		"$APP_ROOT/vendor"; do
 		if [ -e "$path" ]; then
 			check_owned_path "$path" dir
 		fi
@@ -114,7 +115,8 @@ repair() {
 	for path in \
 		"$APP_ROOT/packages/dev" \
 		"$APP_ROOT/tmp/pr-sync" \
-		"$APP_ROOT/_UPLOADS"; do
+		"$APP_ROOT/_UPLOADS" \
+		"$APP_ROOT/vendor"; do
 		if [ -e "$path" ]; then
 			chown -R "$HOST_UID:$HOST_GID" "$path"
 		fi

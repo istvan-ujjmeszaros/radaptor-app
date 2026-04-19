@@ -31,7 +31,6 @@ final class DropzoneUploadTest extends TestCase
 	public function testSanitizeFileNameRemovesPathSegmentsAndNullBytes(): void
 	{
 		$method = new ReflectionMethod(DropzoneUpload::class, 'sanitizeFileName');
-		$method->setAccessible(true);
 
 		$this->assertSame(
 			'report.pdf',
@@ -48,7 +47,6 @@ final class DropzoneUploadTest extends TestCase
 		file_put_contents($directory . '/example.txt', 'existing');
 
 		$method = new ReflectionMethod(DropzoneUpload::class, 'buildUniqueFilePath');
-		$method->setAccessible(true);
 
 		$path = $method->invoke(null, $directory, 'example.txt');
 
@@ -69,13 +67,9 @@ final class DropzoneUploadTest extends TestCase
 		$upload = new DropzoneUpload();
 
 		$file_id_property = new ReflectionProperty(DropzoneUpload::class, '_file_id');
-		$file_id_property->setAccessible(true);
 		$partition_index_property = new ReflectionProperty(DropzoneUpload::class, '_partition_index');
-		$partition_index_property->setAccessible(true);
 		$partition_count_property = new ReflectionProperty(DropzoneUpload::class, '_partition_count');
-		$partition_count_property->setAccessible(true);
 		$file_length_property = new ReflectionProperty(DropzoneUpload::class, '_file_length');
-		$file_length_property->setAccessible(true);
 
 		$this->assertSame(
 			hash('sha256', implode('|', [session_id(), 'upload-smoke-big.bin', (string) (3 * 1024 * 1024)])),

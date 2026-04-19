@@ -84,7 +84,6 @@ final class CLIWebRunnerUserBridgeTest extends TestCase
 	private function invokeBridgeMethod(string $method, array $arguments): mixed
 	{
 		$reflection = new ReflectionMethod(CLIWebRunnerUserBridge::class, $method);
-		$reflection->setAccessible(true);
 
 		return $reflection->invokeArgs(null, $arguments);
 	}

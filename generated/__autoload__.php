@@ -409,6 +409,7 @@ class AutoloaderGeneratedMap
 		'Identicon' => 'packages/registry/core/framework/classes/class.Identicon.php',
 		'ImageHandler' => 'packages/registry/core/cms/modules-common/Cms/classes/class.ImageHandler.php',
 		'ImageManipulator' => 'packages/registry/core/cms/modules-common/Cms/classes/class.ImageManipulator.php',
+		'ImageManipulatorTest' => 'tests/core/ImageManipulatorTest.php',
 		'ImagePredefinedAdminThumbnail' => 'packages/registry/core/cms/layouts/imagePredefined/class.ImagePredefinedAdminThumbnail.php',
 		'ImportExportDataset' => 'packages/registry/core/framework/classes/class.ImportExportDataset.php',
 		'ImportExportDatasetI18nTranslations' => 'packages/registry/core/cms/modules-common/I18n/classes/ImportExportDataset.I18nTranslations.php',

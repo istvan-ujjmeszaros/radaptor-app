@@ -1,5 +1,5 @@
-ARG RADAPTOR_PHP_PLATFORM_DEV_IMAGE=radaptor-app-php-platform:8.4-dev-local
-ARG RADAPTOR_PHP_PLATFORM_PROD_IMAGE=radaptor-app-php-platform:8.4-prod-local
+ARG RADAPTOR_PHP_PLATFORM_DEV_IMAGE=radaptor-app-php-platform:8.5-dev-local
+ARG RADAPTOR_PHP_PLATFORM_PROD_IMAGE=radaptor-app-php-platform:8.5-prod-local
 
 FROM ${RADAPTOR_PHP_PLATFORM_DEV_IMAGE} AS dev
 

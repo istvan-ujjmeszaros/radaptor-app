@@ -260,9 +260,9 @@ class TestDatabaseGuard
 		$normalized = preg_replace('/AUTO_INCREMENT=\d+\s*/i', '', $createStmt);
 
 		// Normalize whitespace
-		$normalized = preg_replace('/\s+/', ' ', $normalized);
+		$normalized = preg_replace('/\s+/', ' ', (string) $normalized);
 
-		return trim($normalized);
+		return trim((string) $normalized);
 	}
 
 	/**

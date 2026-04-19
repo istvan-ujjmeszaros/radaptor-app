@@ -2,6 +2,7 @@
 
 class EventAuthorizationPolicyTest extends TransactionedTestCase
 {
+	#[\Override]
 	protected function tearDown(): void
 	{
 		$this->impersonate(null);
