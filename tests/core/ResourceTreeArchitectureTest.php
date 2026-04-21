@@ -8,7 +8,7 @@ final class ResourceTreeArchitectureTest extends TestCase
 {
 	public function testResourceTreeNestedSetCallsStayInsideResourceTreeHandler(): void
 	{
-		$root = DEPLOY_ROOT . 'packages/dev/core';
+		$root = DEPLOY_ROOT . 'packages/registry/core';
 		$violations = [];
 		$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
 

@@ -5,8 +5,9 @@ if (!function_exists('radaptorAppBootstrapNormalizePath')) {
 	{
 		$path = str_replace('\\', '/', $path);
 
-		// Do NOT use realpath() — it follows symlinks, corrupting registry paths
-		// when packages/registry/ is symlinked to packages/dev/.
+		// Do NOT use realpath() — it follows symlinks, which would corrupt the
+		// logical registry path when a local override remaps it onto an editable
+		// checkout under RADAPTOR_DEV_ROOT.
 		if ($path !== '' && $path[0] === '/') {
 			$prefix = '/';
 			$path = substr($path, 1);

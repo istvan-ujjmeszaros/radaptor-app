@@ -86,10 +86,6 @@ uploaded_files/*
 !uploaded_files/_tmp_/
 uploaded_files/_tmp_/*
 !uploaded_files/_tmp_/.gitkeep
-packages/dev/core/*
-!packages/dev/core/.gitkeep
-packages/dev/themes/*
-!packages/dev/themes/.gitkeep
 packages/registry/core/*
 !packages/registry/core/.gitkeep
 packages/registry/themes/*

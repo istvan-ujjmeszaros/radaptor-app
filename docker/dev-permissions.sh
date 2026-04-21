@@ -93,10 +93,6 @@ check() {
 	check_owned_path "$wrapper_home/.cache/composer" dir
 
 	for path in \
-		"$APP_ROOT/packages/dev/core/framework" \
-		"$APP_ROOT/packages/dev/core/cms" \
-		"$APP_ROOT/packages/dev/themes/portal-admin" \
-		"$APP_ROOT/packages/dev/themes/so-admin" \
 		"$APP_ROOT/tmp/pr-sync" \
 		"$APP_ROOT/_UPLOADS" \
 		"$APP_ROOT/vendor"; do
@@ -113,7 +109,6 @@ repair() {
 	preflight
 
 	for path in \
-		"$APP_ROOT/packages/dev" \
 		"$APP_ROOT/tmp/pr-sync" \
 		"$APP_ROOT/_UPLOADS" \
 		"$APP_ROOT/vendor"; do
