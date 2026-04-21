@@ -27,9 +27,13 @@ fi
 
 PORTAL_ADMIN_ROOT=""
 
-for CANDIDATE in \
-	"$RADAPTOR_ROOT/packages/dev/themes/portal-admin" \
-	"$RADAPTOR_ROOT/packages/registry/themes/portal-admin"
+CANDIDATES=()
+if [ -n "${RADAPTOR_DEV_ROOT:-}" ]; then
+	CANDIDATES+=("$RADAPTOR_DEV_ROOT/themes/portal-admin")
+fi
+CANDIDATES+=("$RADAPTOR_ROOT/packages/registry/themes/portal-admin")
+
+for CANDIDATE in "${CANDIDATES[@]}"
 do
 	if [ -f "$CANDIDATE/scss/radaptor-portal-admin/main.scss" ]; then
 		PORTAL_ADMIN_ROOT="$CANDIDATE"
@@ -40,7 +44,9 @@ done
 if [ -z "$PORTAL_ADMIN_ROOT" ]; then
 	echo "Unable to locate portal-admin theme SCSS entrypoint."
 	echo "Expected one of:"
-	echo "  - packages/dev/themes/portal-admin/scss/radaptor-portal-admin/main.scss"
+	if [ -n "${RADAPTOR_DEV_ROOT:-}" ]; then
+		echo "  - \$RADAPTOR_DEV_ROOT/themes/portal-admin/scss/radaptor-portal-admin/main.scss"
+	fi
 	echo "  - packages/registry/themes/portal-admin/scss/radaptor-portal-admin/main.scss"
 	exit 1
 fi
