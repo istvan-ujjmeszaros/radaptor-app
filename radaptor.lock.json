@@ -87,12 +87,18 @@
             "id": "so-admin",
             "package": "radaptor/themes/so-admin",
             "source": {
-                "path": "packages/dev/themes/so-admin",
-                "type": "dev"
+                "registry": "default",
+                "resolved_registry_url": "https://packages.radaptor.com/registry.json",
+                "type": "registry",
+                "version": "0.1.0-alpha.1"
             },
             "resolved": {
-                "path": "packages/dev/themes/so-admin",
-                "type": "dev",
+                "dist_sha256": "ece0e12f642a6d1aab69b953399fb8cc3cb1a09a688212f4107f015dde56105e",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-so-admin/0.1.0-alpha.1/plugin.zip",
+                "path": "packages/registry/themes/so-admin",
+                "registry": "default",
+                "registry_url": "https://packages.radaptor.com/registry.json",
+                "type": "registry",
                 "version": "0.1.0-alpha.1"
             },
             "dependencies": {

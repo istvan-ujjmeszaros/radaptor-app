@@ -7,6 +7,10 @@ It is intentionally small:
 - default plugins: none
 - first-run data: one bootstrap admin user and a placeholder homepage
 
+For internal maintainer workspace topics such as `packages-dev/...`, `radaptor.local.json`, and
+the workspace package-dev Docker override, see the workspace-level
+[README.md](../README.md).
+
 ## Quick start
 
 1. Build the local PHP platform image:
@@ -118,16 +122,17 @@ The first-run DB bootstrap currently relies on the MariaDB init schema shipped i
 When this skeleton is validated in registry-first mode, first-party package changes must be
 released as new immutable versions before the consumer app is updated:
 
-- `radaptor.json` is the only supported source selector
-- `packages/registry/...` and `packages/dev/...` must never be connected with symlinks
-- `install` / `update` may only touch `packages/registry/...`; `packages/dev/...` is Git-owned
-- dev mode (`packages/dev/...`) does not need release/publish
+- committed `radaptor.json` stays registry-first
+- maintainer-local first-party overrides live only in gitignored `radaptor.local.json`
+- `packages/registry/...` and `packages-dev/...` must never be connected with symlinks
+- `install` / `update` may only touch `packages/registry/...`; `packages-dev/...` is Git-owned
+- local dev mode does not need release/publish
 - registry-first validation does need an immutable package release after first-party package changes
 - the consumer app refresh stays the normal `./radaptor update --json`, but only after the
   registry deploy completed
 - then run registry-first verification on the main app instance: no symlinks under
   `packages/registry/`, correct `radaptor.lock.json` `resolved.path` values, and a repeated
-  `./radaptor update --json` that leaves `packages/dev/.../.git` intact
+  `./radaptor update --json` that leaves `packages-dev/.../.git` intact
 
 The supported maintainer path is:
 
@@ -150,21 +155,36 @@ overwrite an already published version.
 currently rewrites first-party packages to dev mode and therefore is not a strict registry-first
 proof.
 
-This repo is both the default consumer app and the default local dev-mode host.
+First-party editable package repos now live at the workspace root:
 
-If you want to work on packages locally, place the checkout inside this app:
+- `/apps/_RADAPTOR/packages-dev/core/framework/`
+- `/apps/_RADAPTOR/packages-dev/core/cms/`
+- `/apps/_RADAPTOR/packages-dev/themes/<theme-id>/`
 
-- `packages/dev/core/framework/`
-- `packages/dev/core/cms/`
-- `packages/dev/themes/<theme-id>/`
-- `plugins/dev/<plugin-id>/`
+Standalone `docker-compose-dev.yml` stays registry-first. If you need first-party package dev mode,
+start the app through the workspace helper so `/workspace/packages-dev/...` is mounted:
 
-Then point `radaptor.json` to those local `source.path` values for dev mode.
+```bash
+cd /apps/_RADAPTOR
+./bin/docker-compose-packages-dev.sh radaptor-app up -d --build
+```
 
-The first-party package paths under `packages/dev/...` are expected to be full nested Git repos.
-Normal package PR and release work happens directly inside those nested repos, not through temporary
-PR clones. The legacy workspace-level `package-origins/` directory may still exist for local
-experiments, but it is not part of the standard workflow.
+To work on packages locally:
+
+1. keep committed `radaptor.json` untouched and registry-first
+2. create gitignored `radaptor.local.json`
+3. start the package-dev runtime via `./bin/docker-compose-packages-dev.sh radaptor-app ...`
+4. map first-party package `source.location` values under `core/...` or `themes/...`
+5. run `./radaptor install --json` or `./radaptor update --json`
+
+While local overrides are active, the app writes `radaptor.local.lock.json` instead of mutating the
+committed lockfile. Use `./radaptor local-lock:refresh --json` after the committed lockfile changes
+upstream and you want to reseed local dev state.
+
+The first-party package repos under `packages-dev/...` are expected to be full nested Git repos.
+Normal package PR and release work happens directly inside those repos. The legacy workspace-level
+`package-origins/` directory may still exist for local experiments, but it is not part of the
+standard workflow.
 
 ## Docker CLI options
 
@@ -213,6 +233,6 @@ container:
 
 ## Notes
 
-- The committed manifest is registry-first. Local package development via `source.path` is supported, but it is an explicit opt-in dev mode.
+- The committed manifest is registry-first. Maintainer-local first-party package development is enabled through gitignored `radaptor.local.json`, but only when the workspace package-dev compose override is active.
 - Package assets are generated under `public/www/assets/packages/` and are git-ignored.
-- `framework`, `cms`, and `portal-admin` are expected to come from the registry, not from sibling working copies.
+- `framework`, `cms`, `portal-admin`, and `so-admin` are expected to come from the registry in committed state; local overrides are maintainer-only runtime state.

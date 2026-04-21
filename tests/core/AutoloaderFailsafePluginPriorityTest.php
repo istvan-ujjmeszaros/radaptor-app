@@ -9,44 +9,77 @@ final class AutoloaderFailsafePluginPriorityTest extends TestCase
 	/** @var string[] */
 	private array $cleanupDirectories = [];
 
+	/** @var array<string, string> */
+	private array $renamedFiles = [];
+
 	protected function tearDown(): void
 	{
+		AutoloaderFromGeneratedMap::reset();
 		AutoloaderFailsafe::reset();
+
+		foreach ($this->renamedFiles as $backup => $original) {
+			if (file_exists($backup) && !file_exists($original)) {
+				rename($backup, $original);
+			}
+		}
 
 		foreach (array_reverse($this->cleanupDirectories) as $directory) {
 			$this->removeDirectoryIfExists($directory);
 		}
 
 		$this->cleanupDirectories = [];
+		$this->renamedFiles = [];
 
 		parent::tearDown();
 	}
 
-	public function testDevPluginClassOverridesRegistryPluginClassInAutoloaderMap(): void
+	public function testFailsafeAutoloadMapIncludesNewAppClass(): void
 	{
-		$plugin_id = 'shadow-test-' . bin2hex(random_bytes(4));
-		$dev_dir = DEPLOY_ROOT . 'plugins/dev/' . $plugin_id;
-		$registry_dir = DEPLOY_ROOT . 'plugins/registry/' . $plugin_id;
-		$dev_file = $dev_dir . '/classes/class.PluginPriorityShadow.php';
-		$registry_file = $registry_dir . '/classes/class.PluginPriorityShadow.php';
+		$module_id = 'AutoloaderShadow' . bin2hex(random_bytes(4));
+		$class_name = 'PluginPriorityShadow' . bin2hex(random_bytes(4));
+		$module_dir = DEPLOY_ROOT . 'app/modules/' . $module_id;
+		$class_file = $module_dir . '/classes/class.' . $class_name . '.php';
 
 		$this->createPhpFile(
-			$dev_file,
-			"<?php\nclass PluginPriorityShadow {}\n"
-		);
-		$this->createPhpFile(
-			$registry_file,
-			"<?php\nclass PluginPriorityShadow {}\n"
+			$class_file,
+			"<?php\nclass {$class_name} {}\n"
 		);
 
-		$this->cleanupDirectories[] = $dev_dir;
-		$this->cleanupDirectories[] = $registry_dir;
+		$this->cleanupDirectories[] = $module_dir;
 
 		AutoloaderFailsafe::reset();
 		$autoload_map = AutoloaderFailsafe::getAutoloadMap();
 
-		$this->assertArrayHasKey('PluginPriorityShadow', $autoload_map);
-		$this->assertSame($dev_file, $autoload_map['PluginPriorityShadow']);
+		$this->assertArrayHasKey($class_name, $autoload_map);
+		$this->assertSame($class_file, $autoload_map[$class_name]);
+	}
+
+	public function testMissingGeneratedAutoloadMapFallsBackToFailsafeAutoloader(): void
+	{
+		$module_id = 'GeneratedMapMissing' . bin2hex(random_bytes(4));
+		$class_name = 'GeneratedMapMissingShadow' . bin2hex(random_bytes(4));
+		$module_dir = DEPLOY_ROOT . 'app/modules/' . $module_id;
+		$class_file = $module_dir . '/classes/class.' . $class_name . '.php';
+		$autoload_path = DEPLOY_ROOT . 'generated/__autoload__.php';
+		$backup_path = $autoload_path . '.bak-' . bin2hex(random_bytes(4));
+
+		if (file_exists($autoload_path)) {
+			rename($autoload_path, $backup_path);
+			$this->renamedFiles[$backup_path] = $autoload_path;
+		}
+
+		$this->createPhpFile(
+			$class_file,
+			"<?php\nclass {$class_name} {}\n"
+		);
+
+		$this->cleanupDirectories[] = $module_dir;
+
+		AutoloaderFromGeneratedMap::reset();
+		AutoloaderFailsafe::reset();
+
+		$this->assertFalse(class_exists($class_name, false));
+		$this->assertTrue(class_exists($class_name));
 	}
 
 	private function createPhpFile(string $path, string $content): void

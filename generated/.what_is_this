@@ -1,1 +1,15 @@
-This folder contains auto-generated PHP files, such as autoloaders, DB descriptors, and other related files.
+This folder contains auto-generated files produced by `./radaptor.sh install` and
+`./radaptor.sh build:all`.
+
+Most generated files remain tracked. The path-sensitive runtime maps below are
+gitignored and regenerated locally:
+
+- `__autoload__.php`
+- `__package_assets__.json`
+- `__templates__.php`
+- `__themed_templates__.php`
+
+Tracked exceptions that intentionally stay in Git include:
+
+- `.what_is_this`
+- `__db_schema_data__.php`
