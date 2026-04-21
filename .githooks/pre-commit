@@ -36,6 +36,11 @@ if [ ! -x "$PHP_CS_FIXER_WRAPPER" ]; then
 	exit 1
 fi
 
+if [ -x "$PROJECT_ROOT/bin/check-local-override-state.sh" ]; then
+	echo -e "${YELLOW}Checking local override guardrails...${NC}"
+	"$PROJECT_ROOT/bin/check-local-override-state.sh"
+fi
+
 STAGED_FILES=()
 while IFS= read -r -d '' staged_file; do
 	STAGED_FILES+=("$staged_file")
@@ -65,10 +70,6 @@ if ! run_build_autoloader; then
 	echo -e "${RED}Failed to regenerate autoloader map.${NC}"
 	echo -e "${YELLOW}Run manually: radaptor build:autoloader${NC}"
 	exit 1
-fi
-
-if [ -f "generated/__autoload__.php" ]; then
-	git add generated/__autoload__.php
 fi
 
 echo -e "${YELLOW}Running PHP-CS-Fixer on staged files...${NC}"

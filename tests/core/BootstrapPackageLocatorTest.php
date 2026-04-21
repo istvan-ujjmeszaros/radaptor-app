@@ -7,10 +7,22 @@ require_once DEPLOY_ROOT . 'bootstrap/bootstrap.package_locator.php';
 final class BootstrapPackageLocatorTest extends TestCase
 {
 	private array $_tempDirectories = [];
+	private array $_originalArgv = [];
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		global $argv;
+		$this->_originalArgv = is_array($argv ?? null) ? $argv : [];
+	}
 
 	protected function tearDown(): void
 	{
 		putenv('RADAPTOR_REGISTRY_URL');
+		putenv('RADAPTOR_DEV_ROOT');
+		putenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES');
+		global $argv;
+		$argv = $this->_originalArgv;
 
 		foreach ($this->_tempDirectories as $directory) {
 			radaptorAppBootstrapDeleteDirectory($directory);
@@ -158,6 +170,154 @@ final class BootstrapPackageLocatorTest extends TestCase
 		]);
 
 		radaptorAppBootstrapEnsureCliFrameworkAvailable($appRoot);
+
+		$this->assertSame(
+			radaptorAppBootstrapNormalizePath($customFrameworkRoot),
+			radaptorAppBootstrapResolveFrameworkRoot($appRoot)
+		);
+	}
+
+	public function testResolveFrameworkRootPrefersValidatedLocalManifestOverrideWhenNoLocalLockExists(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$devRoot = $this->_createTempDirectory('dev-root');
+		$frameworkRoot = $devRoot . '/core/framework';
+		mkdir($frameworkRoot, 0o777, true);
+		file_put_contents($frameworkRoot . '/bootstrap.php', '<?php');
+
+		putenv('RADAPTOR_DEV_ROOT=' . $devRoot);
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'core' => [
+				'framework' => [
+					'source' => [
+						'type' => 'dev',
+						'location' => 'core/framework',
+					],
+				],
+			],
+		]);
+		$this->_writeJson($appRoot . '/radaptor.json', [
+			'registries' => [
+				'default' => [
+					'url' => radaptorAppBootstrapGetPlaceholderRegistryUrl(),
+				],
+			],
+		]);
+
+		$this->assertSame(
+			radaptorAppBootstrapNormalizePath($frameworkRoot),
+			radaptorAppBootstrapResolveFrameworkRoot($appRoot)
+		);
+	}
+
+	public function testResolveFrameworkRootPrefersLocalLockBeforeLocalManifest(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$devRoot = $this->_createTempDirectory('dev-root');
+		$lockedFrameworkRoot = $devRoot . '/core/framework-from-lock';
+		$manifestFrameworkRoot = $devRoot . '/core/framework-from-manifest';
+		mkdir($lockedFrameworkRoot, 0o777, true);
+		mkdir($manifestFrameworkRoot, 0o777, true);
+		file_put_contents($lockedFrameworkRoot . '/bootstrap.php', '<?php');
+		file_put_contents($manifestFrameworkRoot . '/bootstrap.php', '<?php');
+
+		putenv('RADAPTOR_DEV_ROOT=' . $devRoot);
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'core' => [
+				'framework' => [
+					'source' => [
+						'type' => 'dev',
+						'location' => 'core/framework-from-manifest',
+					],
+				],
+			],
+		]);
+		$this->_writeJson($appRoot . '/radaptor.local.lock.json', [
+			'lockfile_version' => 1,
+			'core' => [
+				'framework' => [
+					'type' => 'core',
+					'id' => 'framework',
+					'package' => 'radaptor/core/framework',
+					'source' => [
+						'type' => 'dev',
+						'path' => $lockedFrameworkRoot,
+					],
+					'resolved' => [
+						'type' => 'dev',
+						'path' => $lockedFrameworkRoot,
+					],
+				],
+			],
+		]);
+
+		$this->assertSame(
+			radaptorAppBootstrapNormalizePath($lockedFrameworkRoot),
+			radaptorAppBootstrapResolveFrameworkRoot($appRoot)
+		);
+	}
+
+	public function testResolveFrameworkRootFailsHardForInvalidLocalOverrideFile(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'plugins' => [],
+		]);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage("Local package override file may only define 'manifest_version', 'core', and 'themes'");
+
+		radaptorAppBootstrapResolveFrameworkRoot($appRoot);
+	}
+
+	public function testResolveFrameworkRootFailsHardWhenLocalOverrideExistsWithoutDevRoot(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'core' => [
+				'framework' => [
+					'source' => [
+						'type' => 'dev',
+						'location' => 'core/framework',
+					],
+				],
+			],
+		]);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('RADAPTOR_DEV_ROOT must be set when local package overrides are active');
+
+		radaptorAppBootstrapResolveFrameworkRoot($appRoot);
+	}
+
+	public function testIgnoreLocalOverridesFlagBypassesInvalidLocalOverrideFile(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$customFrameworkRoot = $appRoot . '/vendor/custom/framework';
+		mkdir($customFrameworkRoot, 0o777, true);
+		file_put_contents($customFrameworkRoot . '/bootstrap.php', '<?php');
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'plugins' => [],
+		]);
+		$this->_writeJson($appRoot . '/radaptor.json', [
+			'registries' => [
+				'default' => [
+					'url' => radaptorAppBootstrapGetPlaceholderRegistryUrl(),
+				],
+			],
+			'core' => [
+				'framework' => [
+					'package' => 'radaptor/core/framework',
+					'source' => [
+						'type' => 'path',
+						'path' => 'vendor/custom/framework',
+					],
+				],
+			],
+		]);
+
+		global $argv;
+		$argv[] = '--ignore-local-overrides';
 
 		$this->assertSame(
 			radaptorAppBootstrapNormalizePath($customFrameworkRoot),

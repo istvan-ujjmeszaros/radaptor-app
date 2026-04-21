@@ -35,8 +35,9 @@
     "so-admin": {
       "package": "radaptor/themes/so-admin",
       "source": {
-        "type": "dev",
-        "path": "packages/dev/themes/so-admin"
+        "type": "registry",
+        "registry": "default",
+        "version": "0.1.0-alpha.1"
       }
     }
   },

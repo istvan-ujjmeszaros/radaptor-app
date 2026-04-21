@@ -51,7 +51,6 @@ services:
       - ENVIRONMENT=development
       - TZ=UTC
       - RADAPTOR_REGISTRY_URL=${RADAPTOR_REGISTRY_URL:-}
-      - RADAPTOR_PACKAGE_REGISTRY_ROOT=${RADAPTOR_PACKAGE_REGISTRY_ROOT:-/workspace/radaptor_plugin_registry}
       - DB_DEFAULT_DSN=${DB_DEFAULT_DSN:-mysql:host=mariadb;port=3306;user=root;password=radaptor_app;dbname=radaptor_app}
       - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-redis-session}
       - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}
@@ -75,7 +74,6 @@ services:
         condition: service_healthy
     volumes:
       - ./:/app
-      - ../:/workspace
       - ./docker/99-radaptor-dev.ini:/usr/local/etc/php/conf.d/99-radaptor-dev.ini:ro
 
   swoole-queue-worker:
@@ -88,7 +86,6 @@ services:
       - ENVIRONMENT=development
       - TZ=UTC
       - RADAPTOR_REGISTRY_URL=${RADAPTOR_REGISTRY_URL:-}
-      - RADAPTOR_PACKAGE_REGISTRY_ROOT=${RADAPTOR_PACKAGE_REGISTRY_ROOT:-/workspace/radaptor_plugin_registry}
       - DB_DEFAULT_DSN=${DB_DEFAULT_DSN:-mysql:host=mariadb;port=3306;user=root;password=radaptor_app;dbname=radaptor_app}
       - SESSION_REDIS_HOST=${SESSION_REDIS_HOST:-redis-session}
       - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}
@@ -111,7 +108,6 @@ services:
     command: ["php", "/app/bin/swoole_queue_worker.php"]
     volumes:
       - ./:/app
-      - ../:/workspace
       - ./docker/99-radaptor-dev.ini:/usr/local/etc/php/conf.d/99-radaptor-dev.ini:ro
 
   redis-cache:
@@ -136,4 +132,6 @@ services:
 
 volumes:
   mariadb-data:
+    name: ${RADAPTOR_DOCKER_VOLUME_PREFIX:-radaptor-app-dev}_mariadb-data
   redis-session-data:
+    name: ${RADAPTOR_DOCKER_VOLUME_PREFIX:-radaptor-app-dev}_redis-session-data

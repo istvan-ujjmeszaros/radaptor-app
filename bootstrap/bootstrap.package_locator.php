@@ -66,6 +66,202 @@ if (!function_exists('radaptorAppBootstrapDecodeJsonFile')) {
 	}
 }
 
+if (!function_exists('radaptorAppBootstrapLocalOverridesDisabled')) {
+	function radaptorAppBootstrapLocalOverridesDisabled(): bool
+	{
+		global $argv;
+
+		foreach ($argv ?? [] as $arg) {
+			if ($arg === '--ignore-local-overrides') {
+				return true;
+			}
+		}
+
+		$value = strtolower(trim((string) getenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES')));
+
+		return in_array($value, ['1', 'true', 'yes', 'on'], true);
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapGetDevRoot')) {
+	function radaptorAppBootstrapGetDevRoot(string $app_root): string
+	{
+		$configured = trim((string) getenv('RADAPTOR_DEV_ROOT'));
+
+		if ($configured !== '') {
+			return radaptorAppBootstrapNormalizePath($configured);
+		}
+
+		throw new RuntimeException(
+			'RADAPTOR_DEV_ROOT must be set when local package overrides are active. '
+			. 'Enable the workspace package-dev compose override or pass --ignore-local-overrides.'
+		);
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapResolveLocalOverrideLocation')) {
+	function radaptorAppBootstrapResolveLocalOverrideLocation(string $location, string $app_root): string
+	{
+		$location = trim(str_replace('\\', '/', $location));
+
+		if ($location === '') {
+			throw new RuntimeException('Local package override source.location must not be empty.');
+		}
+
+		if (str_starts_with($location, '/')) {
+			throw new RuntimeException("Local package override location '{$location}' must be relative.");
+		}
+
+		$segments = explode('/', $location);
+
+		foreach ($segments as $segment) {
+			if ($segment === '' || $segment === '.' || $segment === '..') {
+				throw new RuntimeException(
+					"Local package override location '{$location}' contains an invalid path segment."
+				);
+			}
+
+			if (preg_match('/^[A-Za-z0-9._-]+$/', $segment) !== 1) {
+				throw new RuntimeException(
+					"Local package override location '{$location}' contains unsupported characters."
+				);
+			}
+		}
+
+		$dev_root = radaptorAppBootstrapGetDevRoot($app_root);
+		$resolved = radaptorAppBootstrapNormalizePath(rtrim($dev_root, '/') . '/' . implode('/', $segments));
+		$normalized_app_root = rtrim(radaptorAppBootstrapNormalizePath($app_root), '/');
+
+		if (!str_starts_with($resolved . '/', rtrim($dev_root, '/') . '/')) {
+			throw new RuntimeException("Local package override location '{$location}' resolves outside RADAPTOR_DEV_ROOT.");
+		}
+
+		if ($resolved === $normalized_app_root || str_starts_with($resolved, $normalized_app_root . '/')) {
+			throw new RuntimeException("Local package override location '{$location}' must resolve outside the current app root.");
+		}
+
+		return $resolved;
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapDecodeJsonFileOrThrow')) {
+	function radaptorAppBootstrapDecodeJsonFileOrThrow(string $path, string $label): array
+	{
+		$json = file_get_contents($path);
+
+		if ($json === false) {
+			throw new RuntimeException("Unable to read {$label}: {$path}");
+		}
+
+		try {
+			$data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+		} catch (JsonException $exception) {
+			throw new RuntimeException("Invalid JSON in {$label} {$path}: {$exception->getMessage()}", 0, $exception);
+		}
+
+		if (!is_array($data)) {
+			throw new RuntimeException(ucfirst($label) . " must decode to an object: {$path}");
+		}
+
+		return $data;
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapLoadLocalOverrideDocument')) {
+	function radaptorAppBootstrapLoadLocalOverrideDocument(string $app_root): ?array
+	{
+		if (radaptorAppBootstrapLocalOverridesDisabled()) {
+			return null;
+		}
+
+		$path = rtrim($app_root, '/') . '/radaptor.local.json';
+
+		if (!is_file($path)) {
+			return null;
+		}
+
+		$data = radaptorAppBootstrapDecodeJsonFileOrThrow($path, 'local package override');
+		$allowed_root_keys = ['manifest_version', 'core', 'themes'];
+
+		foreach (array_keys($data) as $key) {
+			if (!in_array($key, $allowed_root_keys, true)) {
+				throw new RuntimeException(
+					"Local package override file may only define 'manifest_version', 'core', and 'themes'. Invalid key: '{$key}'."
+				);
+			}
+		}
+
+		foreach (['core', 'themes'] as $section) {
+			$packages = $data[$section] ?? null;
+
+			if ($packages === null) {
+				continue;
+			}
+
+			if (!is_array($packages)) {
+				throw new RuntimeException("Local package override section '{$section}' must be an object.");
+			}
+
+			foreach ($packages as $id => $package) {
+				if (!is_array($package)) {
+					throw new RuntimeException("Local package override entry '{$section}.{$id}' must be an object.");
+				}
+
+				if (array_keys($package) !== ['source']) {
+					throw new RuntimeException("Local package override entry '{$section}.{$id}' may only define 'source'.");
+				}
+
+				$source = $package['source'] ?? null;
+
+				if (!is_array($source)) {
+					throw new RuntimeException("Local package override entry '{$section}.{$id}.source' must be an object.");
+				}
+
+				foreach (array_keys($source) as $key) {
+					if (!in_array($key, ['type', 'location'], true)) {
+						throw new RuntimeException(
+							"Local package override '{$section}.{$id}.source' uses unsupported key '{$key}'."
+						);
+					}
+				}
+
+				if (($source['type'] ?? null) !== 'dev') {
+					throw new RuntimeException("Local package override '{$section}.{$id}' must use source.type='dev'.");
+				}
+
+				radaptorAppBootstrapResolveLocalOverrideLocation((string) ($source['location'] ?? ''), $app_root);
+			}
+		}
+
+		return $data;
+	}
+}
+
+if (!function_exists('radaptorAppBootstrapResolveFrameworkRootFromLocalOverride')) {
+	function radaptorAppBootstrapResolveFrameworkRootFromLocalOverride(array $data, string $app_root): ?string
+	{
+		$framework = $data['core']['framework'] ?? null;
+
+		if (!is_array($framework)) {
+			return null;
+		}
+
+		$source = $framework['source'] ?? null;
+
+		if (!is_array($source)) {
+			throw new RuntimeException("Local package override entry 'core.framework.source' must be an object.");
+		}
+
+		$root = radaptorAppBootstrapResolveLocalOverrideLocation((string) ($source['location'] ?? ''), $app_root);
+
+		if (!is_dir($root)) {
+			throw new RuntimeException("Local framework override directory does not exist: {$root}");
+		}
+
+		return $root;
+	}
+}
+
 if (!function_exists('radaptorAppBootstrapResolveFrameworkRootFromDocument')) {
 	function radaptorAppBootstrapResolveFrameworkRootFromDocument(array $data, string $app_root): ?string
 	{
@@ -104,6 +300,31 @@ if (!function_exists('radaptorAppBootstrapResolveFrameworkRoot')) {
 	{
 		$app_root = rtrim(radaptorAppBootstrapNormalizePath($app_root), '/') . '/';
 
+		$local_override = radaptorAppBootstrapLoadLocalOverrideDocument($app_root);
+
+		if (is_array($local_override)) {
+			$local_lock_path = $app_root . 'radaptor.local.lock.json';
+
+			if (is_file($local_lock_path)) {
+				$local_lock = radaptorAppBootstrapDecodeJsonFileOrThrow($local_lock_path, 'local package lockfile');
+				$local_root = radaptorAppBootstrapResolveFrameworkRootFromDocument($local_lock, $app_root);
+
+				if (!is_string($local_root)) {
+					throw new RuntimeException(
+						'Active radaptor.local.lock.json does not resolve an existing core.framework package root.'
+					);
+				}
+
+				return $local_root;
+			}
+
+			$local_manifest_root = radaptorAppBootstrapResolveFrameworkRootFromLocalOverride($local_override, $app_root);
+
+			if (is_string($local_manifest_root)) {
+				return $local_manifest_root;
+			}
+		}
+
 		foreach (['radaptor.lock.json', 'radaptor.json'] as $document_name) {
 			$data = radaptorAppBootstrapDecodeJsonFile($app_root . $document_name);
 
@@ -119,7 +340,6 @@ if (!function_exists('radaptorAppBootstrapResolveFrameworkRoot')) {
 		}
 
 		foreach ([
-			'packages/dev/core/framework',
 			'packages/registry/core/framework',
 		] as $relative_path) {
 			$candidate = radaptorAppBootstrapResolveStoredPath($app_root, $relative_path);

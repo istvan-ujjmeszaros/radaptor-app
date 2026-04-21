@@ -149,4 +149,10 @@ fi
 require_file ".php-cs-fixer.php"
 run_php_cs_fixer_check
 
+if [ "$PROFILE" = "php-consumer-app" ]; then
+	require_file "bin/check-local-override-state.sh"
+	chmod +x "bin/check-local-override-state.sh"
+	./bin/check-local-override-state.sh
+fi
+
 success "Repo baseline check passed for profile: $PROFILE"

@@ -3,121 +3,101 @@
 ## Project Overview
 
 This is `radaptor-app`, a registry-first consumer application built on the Radaptor framework.
-It uses 4 first-party packages (framework, CMS, 2 themes), each with its own GitHub repository.
-Packages are consumed either from the public registry (default, production-safe) or from local
-dev checkouts for active development.
+It uses 4 first-party packages (framework, CMS, `portal-admin`, `so-admin`), each with its own
+GitHub repository.
 
-## Package Architecture
+Committed state is always registry-first:
+- `radaptor.json`
+- `radaptor.lock.json`
 
-### Two modes
+Maintainer-local dev state is opt-in and gitignored:
+- `radaptor.local.json`
+- `radaptor.local.lock.json`
 
-- **registry mode** (`packages/registry/...`): Version-pinned, read-only package installed from
-  the registry. This is the default, production-safe state. The `radaptor.lock.json` records
-  the exact version and hash.
-- **dev mode** (`packages/dev/...`): Local Git checkout, editable. Used to develop and test
-  first-party packages (framework, CMS, themes) in the context of this consumer app.
+## First-Party Package Workflow
 
-### Dev mode workflow
+### Canonical editable repos
 
-1. The package lives under `packages/dev/<type>/<id>/` as a nested Git repo (its own `.git`)
-2. In `radaptor.json`, the package source is set to `"type": "dev"` + `"path"`
-3. Development and testing happen inside this consumer app
-4. When ready: PR to the package's own GitHub repo -> code review -> merge
-5. After merge: publish a new version (`./radaptor.sh package:release <key> --json`)
-6. Switch the consumer app back to registry mode: update `radaptor.json` source -> `./radaptor.sh update --json`
+First-party editable repos live outside the app tree:
+- host path: `/apps/_RADAPTOR/packages-dev/core/framework`
+- host path: `/apps/_RADAPTOR/packages-dev/core/cms`
+- host path: `/apps/_RADAPTOR/packages-dev/themes/portal-admin`
+- host path: `/apps/_RADAPTOR/packages-dev/themes/so-admin`
 
-### Manifest files
+Inside Docker, the same repos are visible under the workspace package-dev compose override:
+- `/workspace/packages-dev/core/framework`
+- `/workspace/packages-dev/core/cms`
+- `/workspace/packages-dev/themes/portal-admin`
+- `/workspace/packages-dev/themes/so-admin`
 
-- `radaptor.json` = source configuration (which package runs in dev vs. registry mode)
-- `radaptor.lock.json` = lockfile (exact versions and hashes for reproducible installs)
+### Two states
 
-### Hard rules
+- `packages/registry/...`: immutable installed runtime content managed by `install` / `update`
+- `packages-dev/...`: Git-owned editable source repos managed only by Git
 
-- `radaptor.json` is the only supported source selector for first-party packages.
-- `packages/registry/...` and `packages/dev/...` must never be connected with symlinks.
-- `./radaptor.sh install` and `./radaptor.sh update` may only create, delete, or overwrite
-  package content under `packages/registry/...`.
-- `packages/dev/...` is Git-owned working state. Only Git operations may change it.
-- If a package should be editable, mark it explicitly as `dev` in `radaptor.json`. Do not fake
-  dev mode by aliasing a registry path to a dev checkout.
+### Local override workflow
 
-### Source of truth
+1. Keep committed `radaptor.json` registry-first.
+2. Put maintainer-local overrides into gitignored `radaptor.local.json`.
+3. Start the package-dev runtime with `./bin/docker-compose-packages-dev.sh radaptor-app up -d --build`.
+4. Point first-party package overrides at logical `location` values under `RADAPTOR_DEV_ROOT`.
+5. Let `install` / `update` write only `radaptor.local.lock.json` while local overrides are active.
 
-- For first-party packages: the **package's own GitHub repo main branch**
-- The `packages/dev/` content is a temporary development copy — it may be newer or older than GitHub
-- NEVER assume `packages/dev/` content is canonical without verifying against the GitHub remote
+Example:
 
-### Current package state
+```json
+{
+  "core": {
+    "framework": { "source": { "type": "dev", "location": "core/framework" } },
+    "cms": { "source": { "type": "dev", "location": "core/cms" } }
+  },
+  "themes": {
+    "portal-admin": { "source": { "type": "dev", "location": "themes/portal-admin" } }
+  }
+}
+```
 
-| Package | Mode | Path |
-|---|---|---|
-| core/framework | registry | `packages/registry/core/framework/` |
-| core/cms | registry | `packages/registry/core/cms/` |
-| themes/portal-admin | registry | `packages/registry/themes/portal-admin/` |
-| themes/so-admin | dev | `packages/dev/themes/so-admin/` |
+## Hard Rules
+
+- Committed `radaptor.json` must stay registry-first under `core` and `themes`.
+- `radaptor.local.json` and `radaptor.local.lock.json` must never be tracked.
+- `radaptor.json` is the only committed source selector; `radaptor.local.json` is the only supported local override file.
+- `packages/registry/...` and `packages-dev/...` must never be connected with symlinks.
+- `./radaptor.sh install` and `./radaptor.sh update` may only create, delete, or overwrite content under `packages/registry/...`.
+- `packages-dev/...` is Git-owned working state. Only Git operations may change it.
+- If local overrides are active, committed `radaptor.lock.json` must remain unchanged; only `radaptor.local.lock.json` may be written.
+- If `radaptor.local.json` exists but the package-dev compose override is not active, bootstrap/CLI must fail hard instead of guessing a dev root.
+- Bootstrap proof and registry-first validation must run with `RADAPTOR_DISABLE_LOCAL_OVERRIDES=1`.
 
 ## Worktree Isolation Rule
 
-- Git worktree-s MUST NOT use `packages/dev/` in dev mode — only registry packages
-- First-party package modifications happen exclusively in the main `radaptor-app/` working copy
-- When creating a worktree, `radaptor.json` / `radaptor.lock.json` must not be set to dev sources
-- If a feature branch also needs module changes: create a separate PR in the module repo,
-  developed and tested in the main working copy, not in the worktree
+- Git worktrees must stay registry-first. Do not commit first-party `dev` sources in `radaptor.json`.
+- First-party package modifications happen in `/apps/_RADAPTOR/packages-dev/...`, not inside a worktree copy of the app.
+- If a feature branch also needs framework/CMS/theme changes, make separate repo-local commits/PRs in the affected package repo.
 
 ## Destructive Operations Safety
 
-- Before any delete/overwrite operation (rsync --delete, rm -rf, force-push, reset --hard):
-  run `git fetch && git diff origin/main` in every affected repo
-- If the diff is non-empty or contains unexpected changes: **STOP and report to the maintainer**
-- NEVER treat `packages/dev/` content as source of truth for first-party packages
-- If a `packages/dev/` directory has lost its `.git` state, that does NOT mean its content is
-  up-to-date with the GitHub repo — the `.git` loss may have occurred before the latest GitHub
-  merges. Always verify against the remote before any overlay or sync operation.
-- If a registry package path resolves to `packages/dev/...`, or if anything under
-  `packages/registry/...` is a symlink, treat that as corrupted state and stop.
-
-This rule exists because a real incident destroyed merged, working email queue code: a restore
-script assumed app-local content was canonical, but GitHub had newer merged PRs not reflected
-locally. The `rsync --delete` wiped them out.
-
-## Commit & Pull Request Guidelines
-
-- Independent PRs (different repos, different files, no dependency) can be batch-merged
-- Dependent PRs must be merged one at a time, in order, with verification after each:
-  - PRs that modify the same files or repo
-  - PRs where one builds on changes from another (e.g., framework PR required by CMS PR)
-  - PRs that change schema or lockfiles that subsequent PRs depend on
-- Example: framework PR #10 + CMS PR #8 are dependent -> merge framework first, verify, then CMS
+- Before any delete/overwrite operation against a first-party repo, run `git fetch && git diff origin/main` in that repo.
+- NEVER treat stale files under an app-local `packages/dev/...` directory as canonical source.
+- If a registry package path resolves to an editable checkout, or if anything under `packages/registry/...` is a symlink, stop and report corrupted state.
 
 ## Repo Baseline Minimums
 
-- Every Git repo in this workspace keeps the tracked baseline files for its profile:
-  - `.repo-baseline-profile`
-  - `.githooks/install.sh`
-  - `.githooks/pre-commit`
-  - `bin/check-repo-baseline.sh`
-  - `.github/workflows/repo-checks.yml`
-- Every actual worktree must have `core.hooksPath=.githooks`.
-- Every PHP repo also keeps `.php-cs-fixer.php`.
-- Every PHP-heavy repo also keeps `phpstan.neon`.
-- In the current package set:
-  - `packages/dev/core/framework/` and `packages/dev/core/cms/` are PHP-heavy and must keep `phpstan.neon`
-  - `packages/dev/themes/portal-admin/` and `packages/dev/themes/so-admin/` keep the baseline + fixer config, but do not need PHPStan yet
-
-## Agent Communication Rules
-
-- In plans and summaries, use **concrete paths**, not abstract jargon
-- Instead of "the app-local content": write "the current content of `packages/dev/core/framework/`"
-- If a term might be unclear, define it inline or reference `meta/radaptor-developer-reference.md`
-- If an expression is ambiguous, that is the plan's fault, not the maintainer's — fix it
+- This repo keeps the tracked baseline files for the `php-consumer-app` profile.
+- The worktree must have `core.hooksPath=.githooks`.
+- This is a PHP-heavy repo, so it must keep:
+  - `.php-cs-fixer.php`
+  - `phpstan.neon`
+- The local-override guard is part of the baseline and must stay enabled.
 
 ## Verification
 
-- `bin/check-repo-baseline.sh`: repo baseline + formatting check
-- CI: `.github/workflows/repo-checks.yml` runs the same check
-- Default bring-up rule after a reboot and before general verification: `docker compose -f docker-compose-dev.yml up -d --build`
-- Do not start this app with a handpicked service subset unless the task explicitly needs a narrower diagnostic setup.
-- PHPUnit: `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
-- PHPStan: `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
-- Framework PHPStan: `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c packages/dev/core/framework/phpstan.neon`
-- CMS PHPStan: `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c packages/dev/core/cms/phpstan.neon`
+- `bin/check-repo-baseline.sh`
+- `docker compose -f docker-compose-dev.yml up -d --build`
+- `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
+- `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
+- `docker compose -f docker-compose-dev.yml exec -T php bash -lc 'cd /app && ./php-cs-fixer.sh --config=.php-cs-fixer.php'`
+- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T php bash -lc 'cd /workspace/packages-dev/core/framework && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
+- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T php bash -lc 'cd /workspace/packages-dev/core/cms && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
+- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c /workspace/packages-dev/core/framework/phpstan.neon`
+- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c /workspace/packages-dev/core/cms/phpstan.neon`

@@ -12,6 +12,8 @@
       <file>tests/core/CLICommandWebRunnerTest.php</file>
       <file>tests/core/CLITrustPolicyTest.php</file>
       <file>tests/core/CLIWebRunnerUserBridgeTest.php</file>
+      <file>tests/core/AutoloaderFailsafePluginPriorityTest.php</file>
+      <file>tests/core/BootstrapPackageLocatorTest.php</file>
       <file>tests/core/ConfigTest.php</file>
       <file>tests/core/CmsResourceListServiceTest.php</file>
       <file>tests/core/CmsResourceSpecServiceTest.php</file>
