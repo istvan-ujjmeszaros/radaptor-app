@@ -181,6 +181,26 @@ While local overrides are active, the app writes `radaptor.local.lock.json` inst
 committed lockfile. Use `./radaptor local-lock:refresh --json` after the committed lockfile changes
 upstream and you want to reseed local dev state.
 
+The workspace package-dev runtime makes dev mode explicit:
+
+- `RADAPTOR_WORKSPACE_DEV_MODE=1`
+- `RADAPTOR_DEV_ROOT=/workspace/packages-dev`
+- only the literal `RADAPTOR_WORKSPACE_DEV_MODE=1` value enables workspace dev mode
+
+If `radaptor.local.json` exists without that runtime mode, bootstrap and CLI now fail fast instead
+of guessing.
+
+`packages/registry/...` is install-owned runtime state. It is not the source of truth and should
+not be edited for first-party package development.
+
+Useful maintainer package commands:
+
+- `./radaptor package:status --json`
+- `./radaptor package:release <package-key> --json`
+- `./radaptor package:prerelease <package-key> --channel alpha|beta|rc --json`
+- `cd /apps/_RADAPTOR && ./bin/check-workspace-package-state.sh --strict`
+- `cd /apps/_RADAPTOR && ./bin/refresh-workspace-consumer-locks.sh`
+
 The first-party package repos under `packages-dev/...` are expected to be full nested Git repos.
 Normal package PR and release work happens directly inside those repos. The legacy workspace-level
 `package-origins/` directory may still exist for local experiments, but it is not part of the

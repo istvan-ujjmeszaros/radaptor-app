@@ -408,4 +408,59 @@ final class PackageInstallServiceStorageTest extends TestCase
 		$this->assertNull($theme_names->getValue());
 		$this->assertSame([], $config_cache->getValue());
 	}
+
+	public function testHasTrackedFilesUnderRecognizesTrackedConsumerContent(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'hasTrackedFilesUnder');
+
+		$this->assertTrue($method->invoke(null, 'config'));
+	}
+
+	public function testAssertRegistryCleanupSafeRejectsNestedGitMetadata(): void
+	{
+		$method = new ReflectionMethod(PackageInstallService::class, 'assertRegistryCleanupSafe');
+		$target = DEPLOY_ROOT . 'packages/registry/core/test-cleanup-nested-git';
+
+		if (!is_dir($target . '/.git') && !mkdir($target . '/.git', 0o777, true) && !is_dir($target . '/.git')) {
+			$this->fail("Unable to create nested git marker: {$target}/.git");
+		}
+
+		try {
+			$this->expectException(RuntimeException::class);
+			$this->expectExceptionMessage('contains .git metadata or a nested repository marker');
+
+			$method->invoke(null, $target, 'override cleanup for test');
+		} finally {
+			$this->removeDirectory($target);
+		}
+	}
+
+	private function removeDirectory(string $directory): void
+	{
+		if (!is_dir($directory)) {
+			return;
+		}
+
+		$items = scandir($directory);
+
+		if ($items === false) {
+			return;
+		}
+
+		foreach ($items as $item) {
+			if ($item === '.' || $item === '..') {
+				continue;
+			}
+
+			$path = $directory . '/' . $item;
+
+			if (is_dir($path) && !is_link($path)) {
+				$this->removeDirectory($path);
+			} elseif (file_exists($path)) {
+				unlink($path);
+			}
+		}
+
+		rmdir($directory);
+	}
 }

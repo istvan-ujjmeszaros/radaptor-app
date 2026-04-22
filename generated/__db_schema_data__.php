@@ -6517,18 +6517,6 @@ class DbSchemaData
 				'table_name' => 'email_queue_transactional',
 				'fields' => [
 					0 => [
-						'column_name' => 'queue_id',
-						'type_sql' => 'bigint(20) unsigned',
-						'type_php' => 'int',
-						'comment' => '',
-						'default' => null,
-						'extra' => 'auto_increment',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => true,
-						'is_auto_increment' => true,
-					],
-					1 => [
 						'column_name' => 'job_id',
 						'type_sql' => 'varchar(64)',
 						'type_php' => 'string',
@@ -6537,10 +6525,10 @@ class DbSchemaData
 						'extra' => '',
 						'is_optional' => false,
 						'is_processable' => false,
-						'is_primary_key' => false,
+						'is_primary_key' => true,
 						'is_auto_increment' => false,
 					],
-					2 => [
+					1 => [
 						'column_name' => 'job_type',
 						'type_sql' => 'varchar(128)',
 						'type_php' => 'string',
@@ -6552,7 +6540,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					3 => [
+					2 => [
 						'column_name' => 'payload_json',
 						'type_sql' => 'longtext',
 						'type_php' => 'string',
@@ -6564,7 +6552,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					4 => [
+					3 => [
 						'column_name' => 'requested_by_type',
 						'type_sql' => 'varchar(32)',
 						'type_php' => 'string',
@@ -6576,7 +6564,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					5 => [
+					4 => [
 						'column_name' => 'requested_by_id',
 						'type_sql' => 'int(11)',
 						'type_php' => 'int',
@@ -6588,21 +6576,9 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					6 => [
-						'column_name' => 'priority',
-						'type_sql' => 'enum(\'instant\',\'bulk\')',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => 'instant',
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					7 => [
+					5 => [
 						'column_name' => 'status',
-						'type_sql' => 'enum(\'pending\',\'reserved\',\'retry_wait\',\'completed\',\'failed_auth\',\'failed\',\'dead\')',
+						'type_sql' => 'enum(\'pending\',\'reserved\',\'retry_wait\')',
 						'type_php' => 'string',
 						'comment' => '',
 						'default' => 'pending',
@@ -6612,7 +6588,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					8 => [
+					6 => [
 						'column_name' => 'attempts',
 						'type_sql' => 'int(11)',
 						'type_php' => 'int',
@@ -6624,7 +6600,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					9 => [
+					7 => [
 						'column_name' => 'run_after_utc',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -6636,7 +6612,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					10 => [
+					8 => [
 						'column_name' => 'reserved_at',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -6648,43 +6624,7 @@ class DbSchemaData
 						'is_primary_key' => false,
 						'is_auto_increment' => false,
 					],
-					11 => [
-						'column_name' => 'completed_at',
-						'type_sql' => 'datetime',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					12 => [
-						'column_name' => 'last_error_code',
-						'type_sql' => 'varchar(64)',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					13 => [
-						'column_name' => 'last_error_message',
-						'type_sql' => 'text',
-						'type_php' => 'string',
-						'comment' => '',
-						'default' => null,
-						'extra' => '',
-						'is_optional' => true,
-						'is_processable' => false,
-						'is_primary_key' => false,
-						'is_auto_increment' => false,
-					],
-					14 => [
+					9 => [
 						'column_name' => 'created_at',
 						'type_sql' => 'datetime',
 						'type_php' => 'string',
@@ -6698,28 +6638,23 @@ class DbSchemaData
 					],
 				],
 				'field_names' => [
-					0 => 'queue_id',
-					1 => 'job_id',
-					2 => 'job_type',
-					3 => 'payload_json',
-					4 => 'requested_by_type',
-					5 => 'requested_by_id',
-					6 => 'priority',
-					7 => 'status',
-					8 => 'attempts',
-					9 => 'run_after_utc',
-					10 => 'reserved_at',
-					11 => 'completed_at',
-					12 => 'last_error_code',
-					13 => 'last_error_message',
-					14 => 'created_at',
+					0 => 'job_id',
+					1 => 'job_type',
+					2 => 'payload_json',
+					3 => 'requested_by_type',
+					4 => 'requested_by_id',
+					5 => 'status',
+					6 => 'attempts',
+					7 => 'run_after_utc',
+					8 => 'reserved_at',
+					9 => 'created_at',
 				],
 				'pkeys' => [
-					0 => 'queue_id',
+					0 => 'job_id',
 				],
 				'processable_fields' => [
 				],
-				'is_auto_increment' => true,
+				'is_auto_increment' => false,
 			],
 			'i18n_build_state' => [
 				'table_name' => 'i18n_build_state',
@@ -9986,6 +9921,44 @@ class DbSchemaData
 		],
 	];
 
+	/** @var array<int, array<string, array<string, ShapeSQLTable>>> */
+	private static array $_runtime_schema_stack = [];
+
+	private static int $_runtime_schema_counter = 0;
+
+	/**
+	 * @param array<string, array<string, ShapeSQLTable>> $schema_info
+	 */
+	public static function pushRuntimeSchema(array $schema_info): int
+	{
+		$token = ++self::$_runtime_schema_counter;
+		self::$_runtime_schema_stack[$token] = $schema_info;
+
+		return $token;
+	}
+
+	public static function popRuntimeSchema(int $token): void
+	{
+		unset(self::$_runtime_schema_stack[$token]);
+	}
+
+	/**
+	 * @template T
+	 * @param array<string, array<string, ShapeSQLTable>> $schema_info
+	 * @param callable(): T $callback
+	 * @return T
+	 */
+	public static function withRuntimeSchema(array $schema_info, callable $callback): mixed
+	{
+		$token = self::pushRuntimeSchema($schema_info);
+
+		try {
+			return $callback();
+		} finally {
+			self::popRuntimeSchema($token);
+		}
+	}
+
 	/**
 	 * @param string $table_name
 	 * @param string $dsn
@@ -9993,8 +9966,13 @@ class DbSchemaData
 	 */
 	public static function getTableData(string $table_name, string $dsn = ''): ?array
 	{
-		$dsn = Db::normalizeDsn($dsn);
-		$clean_dsn = Db::redactDSNUserAndPassword($dsn);
+		$clean_dsn = self::normalizeCleanDsn($dsn);
+
+		foreach (array_reverse(self::$_runtime_schema_stack, true) as $schema_info) {
+			if (isset($schema_info[$clean_dsn][$table_name])) {
+				return $schema_info[$clean_dsn][$table_name];
+			}
+		}
 
 		return self::TABLE_DATA[$clean_dsn][$table_name] ?? null;
 	}
@@ -10005,9 +9983,21 @@ class DbSchemaData
 	 */
 	public static function getSchemaInfo(string $dsn = ''): ?array
 	{
-		$dsn = Db::normalizeDsn($dsn);
-		$clean_dsn = Db::redactDSNUserAndPassword($dsn);
+		$clean_dsn = self::normalizeCleanDsn($dsn);
+
+		foreach (array_reverse(self::$_runtime_schema_stack, true) as $schema_info) {
+			if (isset($schema_info[$clean_dsn])) {
+				return $schema_info[$clean_dsn];
+			}
+		}
 
 		return self::TABLE_DATA[$clean_dsn] ?? null;
+	}
+
+	private static function normalizeCleanDsn(string $dsn = ''): string
+	{
+		$dsn = Db::normalizeDsn($dsn);
+
+		return Db::redactDSNUserAndPassword($dsn);
 	}
 }

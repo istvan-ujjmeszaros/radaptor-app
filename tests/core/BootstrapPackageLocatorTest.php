@@ -8,19 +8,33 @@ final class BootstrapPackageLocatorTest extends TestCase
 {
 	private array $_tempDirectories = [];
 	private array $_originalArgv = [];
+	private array $_originalEnv = [];
 
 	protected function setUp(): void
 	{
 		parent::setUp();
 		global $argv;
 		$this->_originalArgv = is_array($argv ?? null) ? $argv : [];
+		$this->_originalEnv = [
+			'RADAPTOR_REGISTRY_URL' => getenv('RADAPTOR_REGISTRY_URL'),
+			'RADAPTOR_WORKSPACE_DEV_MODE' => getenv('RADAPTOR_WORKSPACE_DEV_MODE'),
+			'RADAPTOR_DEV_ROOT' => getenv('RADAPTOR_DEV_ROOT'),
+			'RADAPTOR_DISABLE_LOCAL_OVERRIDES' => getenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES'),
+		];
 	}
 
 	protected function tearDown(): void
 	{
-		putenv('RADAPTOR_REGISTRY_URL');
-		putenv('RADAPTOR_DEV_ROOT');
-		putenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES');
+		foreach ($this->_originalEnv as $key => $value) {
+			if ($value === false) {
+				putenv($key);
+
+				continue;
+			}
+
+			putenv($key . '=' . $value);
+		}
+
 		global $argv;
 		$argv = $this->_originalArgv;
 
@@ -29,6 +43,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 		}
 
 		$this->_tempDirectories = [];
+		$this->_originalEnv = [];
 	}
 
 	public function testRegistryUrlPrefersEnvironmentOverride(): void
@@ -186,6 +201,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 		file_put_contents($frameworkRoot . '/bootstrap.php', '<?php');
 
 		putenv('RADAPTOR_DEV_ROOT=' . $devRoot);
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE=1');
 		$this->_writeJson($appRoot . '/radaptor.local.json', [
 			'core' => [
 				'framework' => [
@@ -222,6 +238,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 		file_put_contents($manifestFrameworkRoot . '/bootstrap.php', '<?php');
 
 		putenv('RADAPTOR_DEV_ROOT=' . $devRoot);
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE=1');
 		$this->_writeJson($appRoot . '/radaptor.local.json', [
 			'core' => [
 				'framework' => [
@@ -273,6 +290,8 @@ final class BootstrapPackageLocatorTest extends TestCase
 	public function testResolveFrameworkRootFailsHardWhenLocalOverrideExistsWithoutDevRoot(): void
 	{
 		$appRoot = $this->_createTempAppRoot();
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE');
+		putenv('RADAPTOR_DEV_ROOT');
 		$this->_writeJson($appRoot . '/radaptor.local.json', [
 			'core' => [
 				'framework' => [
@@ -285,7 +304,51 @@ final class BootstrapPackageLocatorTest extends TestCase
 		]);
 
 		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('RADAPTOR_DEV_ROOT must be set when local package overrides are active');
+		$this->expectExceptionMessage('RADAPTOR_WORKSPACE_DEV_MODE=1 must be set when local package overrides are active');
+
+		radaptorAppBootstrapResolveFrameworkRoot($appRoot);
+	}
+
+	public function testResolveFrameworkRootRejectsTruthyWorkspaceModeValuesOtherThanLiteralOne(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE=true');
+		putenv('RADAPTOR_DEV_ROOT=' . $this->_createTempDirectory('dev-root'));
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'core' => [
+				'framework' => [
+					'source' => [
+						'type' => 'dev',
+						'location' => 'core/framework',
+					],
+				],
+			],
+		]);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('RADAPTOR_WORKSPACE_DEV_MODE=1 must be set when local package overrides are active');
+
+		radaptorAppBootstrapResolveFrameworkRoot($appRoot);
+	}
+
+	public function testResolveFrameworkRootFailsHardWhenWorkspaceModeEnabledWithoutDevRoot(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE=1');
+		putenv('RADAPTOR_DEV_ROOT');
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'core' => [
+				'framework' => [
+					'source' => [
+						'type' => 'dev',
+						'location' => 'core/framework',
+					],
+				],
+			],
+		]);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('RADAPTOR_WORKSPACE_DEV_MODE=1 and RADAPTOR_DEV_ROOT must be set');
 
 		radaptorAppBootstrapResolveFrameworkRoot($appRoot);
 	}

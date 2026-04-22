@@ -14,6 +14,7 @@
       <file>tests/core/CLIWebRunnerUserBridgeTest.php</file>
       <file>tests/core/AutoloaderFailsafePluginPriorityTest.php</file>
       <file>tests/core/BootstrapPackageLocatorTest.php</file>
+      <file>tests/core/DbSchemaDataRuntimeTest.php</file>
       <file>tests/core/ConfigTest.php</file>
       <file>tests/core/CmsResourceListServiceTest.php</file>
       <file>tests/core/CmsResourceSpecServiceTest.php</file>
@@ -25,6 +26,7 @@
       <file>tests/core/LocalPackageRegistryBuilderTest.php</file>
       <file>tests/core/PackageConfigTest.php</file>
       <file>tests/core/PackageInstallServiceStorageTest.php</file>
+      <file>tests/core/PackageStateInspectorTest.php</file>
       <file>tests/core/PackageManifestRegistryOverrideTest.php</file>
       <file>tests/core/PackageLockfileTest.php</file>
       <file>tests/core/PackagePublishServiceTest.php</file>

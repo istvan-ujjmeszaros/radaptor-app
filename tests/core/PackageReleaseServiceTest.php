@@ -10,6 +10,9 @@ final class PackageReleaseServiceTest extends TestCase
 
 	protected function tearDown(): void
 	{
+		putenv('RADAPTOR_PACKAGE_REGISTRY_ROOT');
+		putenv('RADAPTOR_WORKSPACE_ROOT');
+
 		foreach (array_reverse($this->cleanupDirectories) as $directory) {
 			$this->removeDirectoryIfExists($directory);
 		}
@@ -115,6 +118,81 @@ final class PackageReleaseServiceTest extends TestCase
 		$this->assertNull($result['build']);
 		$this->assertSame('0.1.0', PackageMetadataHelper::loadFromSourcePath($packageRoot)['version']);
 		$this->assertFileDoesNotExist($registryRoot . '/registry.json');
+	}
+
+	public function testReleaseWarnsWhenWorkspaceConsumerLockFallsBehind(): void
+	{
+		$workspaceRoot = $this->makeTempDirectory('workspace');
+		$registryRoot = $workspaceRoot . '/radaptor_plugin_registry';
+		$consumerRoot = $workspaceRoot . '/consumer-app';
+		$packageRoot = $this->makeTempDirectory('package');
+
+		mkdir($registryRoot, 0o777, true);
+		mkdir($workspaceRoot . '/packages-dev', 0o777, true);
+		mkdir($consumerRoot, 0o777, true);
+		$this->initializeGitRepository($packageRoot);
+		$this->writeFile($packageRoot . '/.registry-package.json', json_encode([
+			'package' => 'radaptor/core/tooling',
+			'type' => 'core',
+			'id' => 'tooling',
+			'version' => '0.1.0',
+		], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+		$this->writeFile($packageRoot . '/src/Tooling.php', "<?php\n");
+		$this->runGit($packageRoot, 'add', '.registry-package.json', 'src/Tooling.php');
+		$this->runGit($packageRoot, 'commit', '-m', 'Initial package');
+		$this->initializeGitRepository($consumerRoot);
+		$this->writeFile($consumerRoot . '/radaptor.json', json_encode([
+			'manifest_version' => 1,
+			'registries' => [
+				'default' => [
+					'url' => 'https://packages.radaptor.com/registry.json',
+				],
+			],
+			'core' => [
+				'tooling' => [
+					'package' => 'radaptor/core/tooling',
+					'source' => [
+						'type' => 'registry',
+						'registry' => 'default',
+						'version' => '^0.1.0',
+					],
+				],
+			],
+		], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+		$this->writeFile($consumerRoot . '/radaptor.lock.json', json_encode([
+			'lockfile_version' => 1,
+			'core' => [
+				'tooling' => [
+					'type' => 'core',
+					'id' => 'tooling',
+					'package' => 'radaptor/core/tooling',
+					'source' => [
+						'type' => 'registry',
+						'registry' => 'default',
+						'version' => '^0.1.0',
+						'resolved_registry_url' => 'https://packages.radaptor.com/registry.json',
+					],
+					'resolved' => [
+						'type' => 'registry',
+						'registry' => 'default',
+						'registry_url' => 'https://packages.radaptor.com/registry.json',
+						'version' => '0.1.0',
+						'path' => 'packages/registry/core/tooling',
+						'dist_url' => 'https://packages.radaptor.com/packages/radaptor-core-tooling/0.1.0/plugin.zip',
+						'dist_sha256' => 'abc123',
+					],
+				],
+			],
+		], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+		$this->runGit($consumerRoot, 'add', 'radaptor.json', 'radaptor.lock.json');
+		$this->runGit($consumerRoot, 'commit', '-m', 'Initial consumer');
+		putenv('RADAPTOR_PACKAGE_REGISTRY_ROOT=' . $registryRoot);
+		putenv('RADAPTOR_WORKSPACE_ROOT=' . $workspaceRoot);
+
+		$result = PackageReleaseService::releaseFromSourcePath($packageRoot, $registryRoot, false);
+
+		$this->assertNotEmpty($result['warnings']);
+		$this->assertStringContainsString('consumer-app', $result['warnings'][0]);
 	}
 
 	private function initializeGitRepository(string $repositoryPath): void
