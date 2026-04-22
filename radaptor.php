@@ -18,6 +18,20 @@ session_start();
 // Initialize the kernel
 Kernel::initialize();
 
+// Fresh installs bootstrap the framework before the full package set exists.
+// Clear discovery/config caches before dispatch so install/update rebuilds see newly extracted packages.
+if (class_exists('PackageConfig')) {
+	PackageConfig::reset();
+}
+
+if (class_exists('PackagePathHelper')) {
+	PackagePathHelper::reset();
+}
+
+if (class_exists('PackageThemeScanHelper')) {
+	PackageThemeScanHelper::reset();
+}
+
 // Dispatch the CLI command
 CLICommandResolver::dispatch();
 

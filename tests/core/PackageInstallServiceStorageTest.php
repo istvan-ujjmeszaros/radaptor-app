@@ -370,4 +370,42 @@ final class PackageInstallServiceStorageTest extends TestCase
 			$sanitized['packages']['core:framework']['resolved']['dist_url']
 		);
 	}
+
+	public function testRefreshInstalledPackageDiscoveryStateClearsCachedPackageLookups(): void
+	{
+		$refresh_method = new ReflectionMethod(PackageInstallService::class, 'refreshInstalledPackageDiscoveryState');
+		$path_helper = new ReflectionClass(PackagePathHelper::class);
+		$theme_helper = new ReflectionClass(PackageThemeScanHelper::class);
+		$package_config = new ReflectionClass(PackageConfig::class);
+
+		$path_active_packages = $path_helper->getProperty('_activePackages');
+		$path_cache_key = $path_helper->getProperty('_cacheKey');
+		$theme_active_roots = $theme_helper->getProperty('_activeRoots');
+		$theme_cache_key = $theme_helper->getProperty('_activeRootsCacheKey');
+		$theme_names = $theme_helper->getProperty('_themeNamesByPackageRoot');
+		$config_cache = $package_config->getProperty('_cache');
+
+		$path_active_packages->setValue(null, [
+			'core:framework' => [
+				'root' => '/stale/framework',
+				'source_type' => 'registry',
+				'type' => 'core',
+				'id' => 'framework',
+			],
+		]);
+		$path_cache_key->setValue(null, 'stale-package-cache');
+		$theme_active_roots->setValue(null, ['/stale/theme']);
+		$theme_cache_key->setValue(null, 'stale-theme-cache');
+		$theme_names->setValue(null, ['/stale/theme' => 'SoAdmin']);
+		$config_cache->setValue(null, ['core:framework:/stale/framework' => ['foo' => 'bar']]);
+
+		$refresh_method->invoke(null);
+
+		$this->assertNull($path_active_packages->getValue());
+		$this->assertNull($path_cache_key->getValue());
+		$this->assertNull($theme_active_roots->getValue());
+		$this->assertNull($theme_cache_key->getValue());
+		$this->assertNull($theme_names->getValue());
+		$this->assertSame([], $config_cache->getValue());
+	}
 }
