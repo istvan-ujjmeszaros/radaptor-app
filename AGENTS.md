@@ -69,6 +69,7 @@ Example:
 - If `radaptor.local.json` exists but the package-dev compose override is not active, bootstrap/CLI must fail hard instead of guessing a dev root.
 - Bootstrap proof and registry-first validation must run with `RADAPTOR_DISABLE_LOCAL_OVERRIDES=1`.
 - Host-side workflow is Git-only. Hooks and helper scripts must dispatch every non-Git check into the supported container; never require host PHP, Composer, Python, php-cs-fixer, or Radaptor CLI.
+- App-local transient QA outputs belong under `tmp/`. Do not leave `playwright-report/`, `test-results/`, proof clones, restore sandboxes, or scratch verification directories at repo root.
 
 ## Worktree Isolation Rule
 
@@ -94,6 +95,7 @@ Example:
 ## Verification
 
 - `bin/check-repo-baseline.sh`
+- `../bin/cleanup-workspace-ephemera.sh --phase registry-first`
 - `docker compose -f docker-compose-dev.yml up -d --build`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
