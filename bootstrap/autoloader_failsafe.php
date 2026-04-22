@@ -140,6 +140,17 @@ class AutoloaderFailsafe
 		return $className;
 	}
 
+	private static function isBuildAutoloaderCliInvocation(): bool
+	{
+		global $argv;
+
+		if (!isset($argv[1])) {
+			return false;
+		}
+
+		return $argv[1] === 'build:autoloader';
+	}
+
 	public static function autoloaderClassExists(string $name): bool
 	{
 		// We do NOT call init() here because we do check for class existence at different places in the code on
@@ -150,8 +161,12 @@ class AutoloaderFailsafe
 		// This is a neat trick to NOT cause a performance penalty when the generated autoloader is up-to-date, but
 		// this fallback method will work as expected if the generated autoloader is not up-to-date, because the
 		// fallback autoloader will build the mapping before the existence check happens.
+		// Boot path: inspect $argv directly instead of going through
+		// EventResolver::getEventnameFromCommandline(), which Kernel::aborts on non-event argv
+		// (e.g. top-level commands like "install") and would kill any class_exists() check
+		// before the autoloader map is built. The failsafe must stay self-sufficient.
 		if (
-			(defined('RADAPTOR_CLI') && EventResolver::getEventnameFromCommandline() === 'BuildAutoloader')
+			(defined('RADAPTOR_CLI') && self::isBuildAutoloaderCliInvocation())
 			|| (EventResolver::getEventnameFromUrl() === 'BuildAutoloader')
 		) {
 			self::init();
