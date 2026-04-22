@@ -250,6 +250,13 @@ final class PackageInstallServiceStorageTest extends TestCase
 		);
 	}
 
+	public function testPackageRegistryClientAllowsWorkspaceMountedLocalRegistryUrl(): void
+	{
+		$this->assertTrue(
+			PackageRegistryClient::isSupportedRegistryUrl('file:///workspace/radaptor_plugin_registry/registry.json')
+		);
+	}
+
 	public function testNormalizePathDoesNotFollowSymlinks(): void
 	{
 		$method = new ReflectionMethod(PackageInstallService::class, 'normalizePath');
