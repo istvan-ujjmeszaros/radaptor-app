@@ -9,36 +9,86 @@ NC='\033[0m'
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 cd "$PROJECT_ROOT"
 
-PHP_CS_FIXER_WRAPPER="$PROJECT_ROOT/php-cs-fixer.sh"
 DOCKER_SERVICE="${RADAPTOR_DOCKER_PHP_SERVICE:-php}"
-RUN_IN_DOCKER=0
+DOCKER_CONTAINER=""
 
-if command -v docker >/dev/null 2>&1; then
-	if docker compose -f docker-compose-dev.yml ps "$DOCKER_SERVICE" 2>/dev/null | grep -q "Up"; then
-		RUN_IN_DOCKER=1
+has_workspace_local_override() {
+	local override_file=""
+
+	for override_file in \
+		"$PROJECT_ROOT/radaptor.local.json" \
+		"$PROJECT_ROOT/radaptor.local.lock.json"
+	do
+		if [ ! -f "$override_file" ]; then
+			continue
+		fi
+
+		if grep -q '/workspace/packages-dev/' "$override_file"; then
+			return 0
+		fi
+	done
+
+	return 1
+}
+
+find_running_docker_container() {
+	local working_dir="$1"
+	local preferred_container=""
+	local fallback_container=""
+	local container_name=""
+	local config_files=""
+
+	if ! command -v docker >/dev/null 2>&1; then
+		return 1
 	fi
-fi
 
-if [ -n "${RADAPTOR_DOCKER_PHP_SERVICE:-}" ] && [ "$RUN_IN_DOCKER" -eq 0 ]; then
+	while IFS=$'\t' read -r container_name config_files; do
+		if [ -z "$container_name" ]; then
+			continue
+		fi
+
+		if [ -z "$fallback_container" ]; then
+			fallback_container="$container_name"
+		fi
+
+		if [[ "$config_files" == *"docker-compose.packages-dev.yml"* ]]; then
+			preferred_container="$container_name"
+			break
+		fi
+	done < <(
+		docker ps \
+			--filter "label=com.docker.compose.project.working_dir=$working_dir" \
+			--filter "label=com.docker.compose.service=$DOCKER_SERVICE" \
+			--format '{{.Names}}\t{{.Label "com.docker.compose.project.config_files"}}'
+	)
+
+	if [ -n "$preferred_container" ]; then
+		printf '%s\n' "$preferred_container"
+		return 0
+	fi
+
+	if [ -n "$fallback_container" ]; then
+		printf '%s\n' "$fallback_container"
+		return 0
+	fi
+
+	return 1
+}
+
+if ! DOCKER_CONTAINER="$(find_running_docker_container "$PROJECT_ROOT")"; then
 	echo -e "${RED}Docker service '$DOCKER_SERVICE' is not running or Docker Compose is unavailable.${NC}"
-	echo -e "${YELLOW}Start it via: docker compose -f docker-compose-dev.yml up -d $DOCKER_SERVICE${NC}"
+	if has_workspace_local_override; then
+		echo -e "${YELLOW}Workspace package-dev local overrides are active, so host-side fallback is not supported.${NC}"
+	fi
+	echo -e "${YELLOW}Start the supported php container for this repo and retry.${NC}"
 	exit 1
 fi
 
-if [ "$RUN_IN_DOCKER" -eq 1 ]; then
-	echo -e "${YELLOW}Running PHP-CS-Fixer inside Docker service: $DOCKER_SERVICE${NC}"
-else
-	echo -e "${YELLOW}Docker service '$DOCKER_SERVICE' not detected. Running PHP-CS-Fixer locally.${NC}"
-fi
-
-if [ ! -x "$PHP_CS_FIXER_WRAPPER" ]; then
-	echo -e "${RED}PHP-CS-Fixer wrapper is missing ($PHP_CS_FIXER_WRAPPER).${NC}"
-	exit 1
-fi
+echo -e "${YELLOW}Running pre-commit checks inside Docker container: $DOCKER_CONTAINER${NC}"
 
 if [ -x "$PROJECT_ROOT/bin/check-local-override-state.sh" ]; then
 	echo -e "${YELLOW}Checking local override guardrails...${NC}"
-	"$PROJECT_ROOT/bin/check-local-override-state.sh"
+	docker exec "$DOCKER_CONTAINER" bash -lc "cd /app && ./bin/check-local-override-state.sh"
 fi
 
 STAGED_FILES=()
@@ -52,21 +102,7 @@ fi
 
 echo -e "${YELLOW}Regenerating autoloader map...${NC}"
 
-run_build_autoloader() {
-	if [ "$RUN_IN_DOCKER" -eq 1 ]; then
-		docker compose -f docker-compose-dev.yml exec -T "$DOCKER_SERVICE" bash -lc "cd /app && radaptor build:autoloader"
-	else
-		if command -v radaptor >/dev/null 2>&1; then
-			radaptor build:autoloader
-		elif [ -f "$PROJECT_ROOT/radaptor.php" ]; then
-			php "$PROJECT_ROOT/radaptor.php" build:autoloader
-		else
-			return 127
-		fi
-	fi
-}
-
-if ! run_build_autoloader; then
+if ! docker exec "$DOCKER_CONTAINER" bash -lc "cd /app && radaptor build:autoloader"; then
 	echo -e "${RED}Failed to regenerate autoloader map.${NC}"
 	echo -e "${YELLOW}Run manually: radaptor build:autoloader${NC}"
 	exit 1
@@ -74,17 +110,9 @@ fi
 
 echo -e "${YELLOW}Running PHP-CS-Fixer on staged files...${NC}"
 
-run_fixer() {
-	if [ "$RUN_IN_DOCKER" -eq 1 ]; then
-		docker compose -f docker-compose-dev.yml exec -T "$DOCKER_SERVICE" bash -lc \
-			"cd /app && ./php-cs-fixer.sh --config=.php-cs-fixer.php --quiet --path-mode=intersection -- \"\$@\"" \
-			bash "${STAGED_FILES[@]}"
-	else
-		"$PHP_CS_FIXER_WRAPPER" --config=.php-cs-fixer.php --quiet --path-mode=intersection -- "${STAGED_FILES[@]}"
-	fi
-}
-
-if ! run_fixer; then
+if ! docker exec "$DOCKER_CONTAINER" bash -lc \
+	"cd /app && ./php-cs-fixer.sh --config=.php-cs-fixer.php --quiet --path-mode=intersection -- \"\$@\"" \
+	bash "${STAGED_FILES[@]}"; then
 	echo -e "${RED}PHP-CS-Fixer encountered errors. Please fix them and try again.${NC}"
 	exit 1
 fi

@@ -68,6 +68,7 @@ Example:
 - If local overrides are active, committed `radaptor.lock.json` must remain unchanged; only `radaptor.local.lock.json` may be written.
 - If `radaptor.local.json` exists but the package-dev compose override is not active, bootstrap/CLI must fail hard instead of guessing a dev root.
 - Bootstrap proof and registry-first validation must run with `RADAPTOR_DISABLE_LOCAL_OVERRIDES=1`.
+- Host-side workflow is Git-only. Hooks and helper scripts must dispatch every non-Git check into the supported container; never require host PHP, Composer, Python, php-cs-fixer, or Radaptor CLI.
 
 ## Worktree Isolation Rule
 

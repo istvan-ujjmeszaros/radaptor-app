@@ -26,62 +26,99 @@ do
 	fi
 done
 
-python3 - "$REPO_ROOT" "$REPO_ROOT/radaptor.json" "$REPO_ROOT/radaptor.lock.json" <<'PY'
-import json
-import pathlib
-import subprocess
-import sys
+php -r '
+$repo_root = $argv[1];
+$manifest_path = $argv[2];
+$lock_path = $argv[3];
 
-repo_root = pathlib.Path(sys.argv[1])
-manifest_path = pathlib.Path(sys.argv[2])
-lock_path = pathlib.Path(sys.argv[3])
+$fail = static function (string $message): never {
+	fwrite(STDERR, $message . PHP_EOL);
+	exit(1);
+};
 
-if manifest_path.is_file():
-    manifest = json.loads(manifest_path.read_text())
-    violations: list[str] = []
+if (is_file($manifest_path)) {
+	$raw_manifest = file_get_contents($manifest_path);
 
-    for section in ("core", "themes"):
-        entries = manifest.get(section) or {}
-        if not isinstance(entries, dict):
-            continue
+	if ($raw_manifest === false) {
+		$fail("Unable to read manifest: {$manifest_path}");
+	}
 
-        for package_id, package in entries.items():
-            if not isinstance(package, dict):
-                continue
-            source = package.get("source")
-            if isinstance(source, dict) and source.get("type") == "dev":
-                violations.append(f"{section}.{package_id}")
+	$manifest = json_decode($raw_manifest, true);
 
-    if violations:
-        joined = ", ".join(sorted(violations))
-        raise SystemExit(
-            f"Committed radaptor.json must stay registry-first; first-party dev sources are not allowed: {joined}"
-        )
+	if (!is_array($manifest)) {
+		$fail("Unable to decode manifest JSON: {$manifest_path}");
+	}
 
-if lock_path.is_file():
-    content = lock_path.read_text()
-    if "/workspace/packages-dev/" in content:
-        raise SystemExit("Committed radaptor.lock.json must not contain /workspace/packages-dev/ paths.")
+	$violations = [];
 
-tracked_generated = subprocess.check_output(
-    ["git", "-C", str(repo_root), "ls-files", "generated"],
-    text=True,
-).splitlines()
+	foreach (["core", "themes"] as $section) {
+		$entries = $manifest[$section] ?? [];
 
-for relative_path in tracked_generated:
-    generated_path = repo_root / relative_path
+		if (!is_array($entries)) {
+			continue;
+		}
 
-    if not generated_path.is_file():
-        continue
+		foreach ($entries as $package_id => $package) {
+			if (!is_array($package)) {
+				continue;
+			}
 
-    try:
-        content = generated_path.read_text()
-    except UnicodeDecodeError:
-        continue
+			$source = $package["source"] ?? null;
 
-    for marker in ("/workspace/packages-dev/", "packages/dev/", "/app/packages/"):
-        if marker in content:
-            raise SystemExit(
-                f"Tracked generated file must not contain package dev paths: {relative_path} ({marker})"
-            )
-PY
+			if (is_array($source) && ($source["type"] ?? null) === "dev") {
+				$violations[] = $section . "." . $package_id;
+			}
+		}
+	}
+
+	if ($violations !== []) {
+		sort($violations);
+		$fail(
+			"Committed radaptor.json must stay registry-first; first-party dev sources are not allowed: "
+			. implode(", ", $violations)
+		);
+	}
+}
+
+if (is_file($lock_path)) {
+	$lock_content = file_get_contents($lock_path);
+
+	if ($lock_content === false) {
+		$fail("Unable to read lockfile: {$lock_path}");
+	}
+
+	if (str_contains($lock_content, "/workspace/packages-dev/")) {
+		$fail("Committed radaptor.lock.json must not contain /workspace/packages-dev/ paths.");
+	}
+}
+
+$tracked_generated = [];
+$exit_code = 0;
+exec("git -C " . escapeshellarg($repo_root) . " ls-files generated", $tracked_generated, $exit_code);
+
+if ($exit_code !== 0) {
+	$fail("Unable to list tracked generated files.");
+}
+
+foreach ($tracked_generated as $relative_path) {
+	$generated_path = $repo_root . "/" . $relative_path;
+
+	if (!is_file($generated_path)) {
+		continue;
+	}
+
+	$content = @file_get_contents($generated_path);
+
+	if ($content === false) {
+		continue;
+	}
+
+	foreach (["/workspace/packages-dev/", "packages/dev/", "/app/packages/"] as $marker) {
+		if (str_contains($content, $marker)) {
+			$fail(
+				"Tracked generated file must not contain package dev paths: {$relative_path} ({$marker})"
+			);
+		}
+	}
+}
+' "$REPO_ROOT" "$REPO_ROOT/radaptor.json" "$REPO_ROOT/radaptor.lock.json"
