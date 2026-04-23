@@ -9,11 +9,30 @@ final class PackageStateInspectorTest extends TestCase
 	/** @var string[] */
 	private array $cleanupDirectories = [];
 
+	/** @var array<string, false|string> */
+	private array $originalEnv = [];
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->originalEnv = [
+			'RADAPTOR_PACKAGE_REGISTRY_ROOT' => getenv('RADAPTOR_PACKAGE_REGISTRY_ROOT'),
+			'RADAPTOR_WORKSPACE_DEV_MODE' => getenv('RADAPTOR_WORKSPACE_DEV_MODE'),
+			'RADAPTOR_DEV_ROOT' => getenv('RADAPTOR_DEV_ROOT'),
+		];
+	}
+
 	protected function tearDown(): void
 	{
-		putenv('RADAPTOR_PACKAGE_REGISTRY_ROOT');
-		putenv('RADAPTOR_WORKSPACE_DEV_MODE');
-		putenv('RADAPTOR_DEV_ROOT');
+		foreach ($this->originalEnv as $key => $value) {
+			if ($value === false) {
+				putenv($key);
+
+				continue;
+			}
+
+			putenv($key . '=' . $value);
+		}
 
 		PackageLocalOverrideHelper::reset();
 
@@ -21,6 +40,7 @@ final class PackageStateInspectorTest extends TestCase
 			$this->removeDirectory($directory);
 		}
 
+		$this->originalEnv = [];
 		parent::tearDown();
 	}
 
@@ -86,6 +106,9 @@ final class PackageStateInspectorTest extends TestCase
 	public function testStatusReportsInconsistentModeWhenLocalOverridesExistWithoutWorkspaceMode(): void
 	{
 		$appRoot = $this->makeScratchAppRoot();
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE');
+		putenv('RADAPTOR_DEV_ROOT');
+		PackageLocalOverrideHelper::reset();
 
 		$this->writeJson($appRoot . '/radaptor.local.json', [
 			'core' => [
