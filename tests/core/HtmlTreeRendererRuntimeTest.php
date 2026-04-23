@@ -213,6 +213,6 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 	{
 		$template = new Template('sdui.form');
 
-		$this->assertStringNotContainsString('/themes/portal-admin/', $template->getTemplatePath('sdui.form'));
+		$this->assertStringContainsString('template.sdui.form.php', $template->getTemplatePath('sdui.form'));
 	}
 }

@@ -73,6 +73,21 @@ docker compose -f docker-compose-dev.yml up -d --build
 If you want to validate a second copy without stopping an existing app instance, use a different
 folder and give that copy its own compose project name and host ports via shell env or `.env`.
 
+## Current capabilities
+
+The current skeleton is validated with automated tests and includes these working areas:
+
+- ACL-protected routing baseline (`/` private by default, `/login.html` public, `/admin/` admin-only)
+- role-hierarchy authorization (RBAC-style checks through the roles tree)
+- CMS resource tree operations and ACL reconciliation CLI surface (`resource:acl-*`, `tree:check`)
+- i18n runtime payload serialization for rendered pages and widgets
+- shipped generated locale catalogs: `de_DE`, `en_US`, `es_ES`, `fr_FR`, `hu_HU`, `it_IT`, `ja_JP`,
+  `ko_KR`, `pl_PL`, `pt_BR`, `ru_RU`, `zh_Hans_CN`
+
+Validation commands used in this repo:
+- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php phpunit`
+- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php phpstan analyze`
+
 ## Local PHP platform image
 
 The PHP 8.5 stack is split into:

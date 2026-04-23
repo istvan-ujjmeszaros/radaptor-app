@@ -5,11 +5,3 @@ CREATE DATABASE IF NOT EXISTS `radaptor_app`
 CREATE DATABASE IF NOT EXISTS `radaptor_app_test`
 	CHARACTER SET utf8mb4
 	COLLATE utf8mb4_unicode_ci;
-
-CREATE DATABASE IF NOT EXISTS `radaptor_app_audit`
-	CHARACTER SET utf8mb4
-	COLLATE utf8mb4_unicode_ci;
-
-CREATE DATABASE IF NOT EXISTS `radaptor_app_test_audit`
-	CHARACTER SET utf8mb4
-	COLLATE utf8mb4_unicode_ci;

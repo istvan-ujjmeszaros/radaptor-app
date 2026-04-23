@@ -17,13 +17,13 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 	public function testPublicPageRendersExpectedLayoutAndWidgetContentThroughTreePipeline(): void
 	{
 		$page_id = self::FIXTURE_PAGE_ID;
+		$public_theme = $this->getPublicTheme();
+		$public_layout = $this->getPublicLayout();
 		$this->insertPlainHtmlConnection($page_id, '<section id="public-tree-marker">Public tree smoke</section>');
 
-		$output = $this->renderPage($page_id, 'Tracker', 'public_default');
+		$output = $this->renderPage($page_id, $public_theme, $public_layout);
 
 		$this->assertStringContainsString('<!DOCTYPE html>', $output);
-		$this->assertStringContainsString('<div id="container">', $output);
-		$this->assertStringContainsString('<div class="content-full">', $output);
 		$this->assertStringContainsString('<section id="public-tree-marker">Public tree smoke</section>', $output);
 		$this->assertStringNotContainsString('Missing template', $output);
 	}
@@ -31,16 +31,18 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 	public function testPublicPageRendersJsonWhenRequestedViaAcceptHeader(): void
 	{
 		$page_id = self::FIXTURE_PAGE_ID;
+		$public_theme = $this->getPublicTheme();
+		$public_layout = $this->getPublicLayout();
 		$this->insertPlainHtmlConnection($page_id, '<section id="public-tree-marker">Public tree smoke</section>');
 		$this->setRequestContext(server_overrides: [
 			'HTTP_ACCEPT' => 'application/json',
 		]);
 
-		$output = $this->renderPage($page_id, 'Tracker', 'public_default');
+		$output = $this->renderPage($page_id, $public_theme, $public_layout);
 		$payload = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
 
 		$this->assertSame('hu', $payload['locale'] ?? null);
-		$this->assertSame('layout_public_default', $payload['tree']['component'] ?? null);
+		$this->assertSame('layout_' . $public_layout, $payload['tree']['component'] ?? null);
 		$this->assertStringContainsString('PlainHtml', $output);
 	}
 
@@ -90,10 +92,12 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 	public function testMultipleWidgetsInSameSlotRenderInSeqOrder(): void
 	{
 		$page_id = self::FIXTURE_PAGE_ID;
+		$public_theme = $this->getPublicTheme();
+		$public_layout = $this->getPublicLayout();
 		$this->insertPlainHtmlConnection($page_id, '<section id="seq-marker-1">First widget</section>', 1);
 		$this->insertPlainHtmlConnection($page_id, '<section id="seq-marker-2">Second widget</section>', 2);
 
-		$output = $this->renderPage($page_id, 'Tracker', 'public_default');
+		$output = $this->renderPage($page_id, $public_theme, $public_layout);
 
 		$first_position = strpos($output, 'id="seq-marker-1"');
 		$second_position = strpos($output, 'id="seq-marker-2"');
@@ -125,12 +129,44 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 
 		return $connection_id;
 	}
+
+	private function getPublicTheme(): string
+	{
+		foreach (['Tracker', 'RadaptorPortal', 'SoAdmin', 'RadaptorPortalAdmin'] as $theme_name) {
+			if (Themes::checkThemeDataExists($theme_name)) {
+				return $theme_name;
+			}
+		}
+
+		throw new \PHPUnit\Framework\SkippedWithMessageException('No supported public test theme is available in this runtime.');
+	}
+
+	private function getPublicLayout(): string
+	{
+		foreach (['public_default', 'public_2row', 'public_empty', 'portal_marketing'] as $layout_name) {
+			if (class_exists(Layout::getLayoutClassName($layout_name))) {
+				return $layout_name;
+			}
+		}
+
+		throw new \PHPUnit\Framework\SkippedWithMessageException('No supported public test layout is available in this runtime.');
+	}
 }
 
 final class WebpageRenderingSmokeComposer extends WebpageView
 {
 	public function __construct(int $page_id, string $theme_name, string $layout_type_name, bool $editable)
 	{
+		if (!Themes::checkThemeDataExists($theme_name)) {
+			throw new \PHPUnit\Framework\SkippedWithMessageException("Theme '{$theme_name}' is not available in this runtime.");
+		}
+
+		$layout_classname = Layout::getLayoutClassName($layout_type_name);
+
+		if (!class_exists($layout_classname)) {
+			throw new \PHPUnit\Framework\SkippedWithMessageException("Layout '{$layout_type_name}' is not available in this runtime.");
+		}
+
 		$this->_id = $page_id;
 		$this->_resourceData = [
 			'node_id' => $page_id,

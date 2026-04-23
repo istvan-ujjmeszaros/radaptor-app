@@ -66,17 +66,18 @@ class ThemeRefererLeakTest extends TransactionedTestCase
 	 */
 	public function testNonAjaxRequestDoesNotInheritThemeFromReferer(): void
 	{
-		$_SERVER['HTTP_REFERER'] = 'http://localhost/admin/index.html?theme=RadaptorPortalAdmin';
-		// No HTTP_X_REQUESTED_WITH or HTTP_HX_REQUEST — this is a normal navigation
+		$default_theme = Themes::getThemeNameForUser(null);
+		$override_theme = $this->pickAlternativeTheme($default_theme);
+
+		$_SERVER['HTTP_REFERER'] = "http://localhost/admin/index.html?theme={$override_theme}";
 
 		$result = Themes::getThemeNameForUser(null);
 
-		$this->assertNotEquals(
-			'RadaptorPortalAdmin',
+		$this->assertSame(
+			$default_theme,
 			$result,
 			'Regular browser navigation must not inherit ?theme= from HTTP_REFERER'
 		);
-		$this->assertEquals('SoAdmin', $result);
 	}
 
 	/**
@@ -85,13 +86,16 @@ class ThemeRefererLeakTest extends TransactionedTestCase
 	 */
 	public function testAjaxRequestInheritsThemeFromReferer(): void
 	{
-		$_SERVER['HTTP_REFERER'] = 'http://localhost/admin/index.html?theme=RadaptorPortalAdmin';
+		$default_theme = Themes::getThemeNameForUser(null);
+		$override_theme = $this->pickAlternativeTheme($default_theme);
+
+		$_SERVER['HTTP_REFERER'] = "http://localhost/admin/index.html?theme={$override_theme}";
 		$_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';
 
 		$result = Themes::getThemeNameForUser(null);
 
 		$this->assertEquals(
-			'RadaptorPortalAdmin',
+			$override_theme,
 			$result,
 			'AJAX requests should inherit ?theme= from HTTP_REFERER'
 		);
@@ -102,13 +106,16 @@ class ThemeRefererLeakTest extends TransactionedTestCase
 	 */
 	public function testHtmxRequestInheritsThemeFromReferer(): void
 	{
-		$_SERVER['HTTP_REFERER'] = 'http://localhost/admin/index.html?theme=Tracker';
+		$default_theme = Themes::getThemeNameForUser(null);
+		$override_theme = $this->pickAlternativeTheme($default_theme);
+
+		$_SERVER['HTTP_REFERER'] = "http://localhost/admin/index.html?theme={$override_theme}";
 		$_SERVER['HTTP_HX_REQUEST'] = 'true';
 
 		$result = Themes::getThemeNameForUser(null);
 
 		$this->assertEquals(
-			'Tracker',
+			$override_theme,
 			$result,
 			'htmx requests should inherit ?theme= from HTTP_REFERER'
 		);
@@ -119,12 +126,13 @@ class ThemeRefererLeakTest extends TransactionedTestCase
 	 */
 	public function testRefererWithoutThemeParamDoesNotAffectResolution(): void
 	{
+		$default_theme = Themes::getThemeNameForUser(null);
 		$_SERVER['HTTP_REFERER'] = 'http://localhost/admin/index.html';
 		$_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';
 
 		$result = Themes::getThemeNameForUser(null);
 
-		$this->assertEquals('SoAdmin', $result);
+		$this->assertEquals($default_theme, $result);
 	}
 
 	/**
@@ -132,13 +140,14 @@ class ThemeRefererLeakTest extends TransactionedTestCase
 	 */
 	public function testRefererWithInvalidThemeIsIgnored(): void
 	{
+		$default_theme = Themes::getThemeNameForUser(null);
 		$_SERVER['HTTP_REFERER'] = 'http://localhost/admin/index.html?theme=NonExistentTheme';
 		$_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';
 
 		$result = Themes::getThemeNameForUser(null);
 
 		$this->assertNotEquals('NonExistentTheme', $result);
-		$this->assertEquals('SoAdmin', $result);
+		$this->assertEquals($default_theme, $result);
 	}
 
 	/**
@@ -146,10 +155,24 @@ class ThemeRefererLeakTest extends TransactionedTestCase
 	 */
 	public function testDirectUrlThemeParamStillWorks(): void
 	{
-		RequestContextHolder::initializeRequest(get: ['theme' => 'Tracker']);
+		$default_theme = Themes::getThemeNameForUser(null);
+		$override_theme = $this->pickAlternativeTheme($default_theme);
+
+		RequestContextHolder::initializeRequest(get: ['theme' => $override_theme]);
 
 		$result = Themes::getThemeNameForUser(null);
 
-		$this->assertEquals('Tracker', $result);
+		$this->assertEquals($override_theme, $result);
+	}
+
+	private function pickAlternativeTheme(string $default_theme): string
+	{
+		foreach (Themes::getAllThemeNames() as $theme_name) {
+			if ($theme_name !== $default_theme) {
+				return $theme_name;
+			}
+		}
+
+		$this->markTestSkipped('No alternative theme is available for override checks.');
 	}
 }

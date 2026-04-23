@@ -4,6 +4,20 @@ declare(strict_types=1);
 
 final class EmailOrchestratorTest extends TransactionedTestCase
 {
+	#[\Override]
+	protected function setUp(): void
+	{
+		parent::setUp();
+		TestHelperEnvironment::setEnvironmentVariable('APP_DOMAIN_CONTEXT', 'tracker.virtuosoft.hu');
+	}
+
+	#[\Override]
+	protected function tearDown(): void
+	{
+		TestHelperEnvironment::revertEnvironmentVariable('APP_DOMAIN_CONTEXT');
+		parent::tearDown();
+	}
+
 	public function testEnqueueTransactionalSnapshotCreatesOutboxRecipientsAndQueueRows(): void
 	{
 		$this->bootstrapAndImpersonateEmailAdmin();

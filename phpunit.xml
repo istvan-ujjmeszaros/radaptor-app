@@ -8,34 +8,7 @@
   </php>
   <testsuites>
     <testsuite name="Project Test Suite">
-      <file>tests/core/CLICommandWebRunnerAclTest.php</file>
-      <file>tests/core/CLICommandWebRunnerTest.php</file>
-      <file>tests/core/CLITrustPolicyTest.php</file>
-      <file>tests/core/CLIWebRunnerUserBridgeTest.php</file>
-      <file>tests/core/AutoloaderFailsafePluginPriorityTest.php</file>
-      <file>tests/core/BootstrapPackageLocatorTest.php</file>
-      <file>tests/core/DbSchemaDataRuntimeTest.php</file>
-      <file>tests/core/ConfigTest.php</file>
-      <file>tests/core/CmsResourceListServiceTest.php</file>
-      <file>tests/core/CmsResourceSpecServiceTest.php</file>
-      <file>tests/core/EmailOrchestratorTest.php</file>
-      <file>tests/core/EmailOutboxStatusResolverTest.php</file>
-      <file>tests/core/EmailQueueWorkerTest.php</file>
-      <file>tests/core/EmailSmtpTransportTest.php</file>
-      <file>tests/core/ImageManipulatorTest.php</file>
-      <file>tests/core/LocalPackageRegistryBuilderTest.php</file>
-      <file>tests/core/PackageConfigTest.php</file>
-      <file>tests/core/PackageInstallServiceStorageTest.php</file>
-      <file>tests/core/PackageStateInspectorTest.php</file>
-      <file>tests/core/PackageManifestRegistryOverrideTest.php</file>
-      <file>tests/core/PackageLockfileTest.php</file>
-      <file>tests/core/PackagePublishServiceTest.php</file>
-      <file>tests/core/PackageReleaseServiceTest.php</file>
-      <file>tests/core/PackageReleaseVersionHelperTest.php</file>
-      <file>tests/core/PluginVersionHelperTest.php</file>
-      <file>tests/core/ResourceTreeArchitectureTest.php</file>
-      <file>tests/core/ResourceTreeDeletionTest.php</file>
-      <file>tests/core/SkeletonBootstrapSeedTest.php</file>
+      <directory suffix="Test.php">tests/core</directory>
     </testsuite>
   </testsuites>
   <source>

@@ -13,6 +13,7 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', $password);
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
+		TestHelperEnvironment::setEnvironmentVariable('APP_DOMAIN_CONTEXT', 'tracker.virtuosoft.hu');
 
 		try {
 			$seed = new SeedSkeletonBootstrap();
@@ -127,6 +128,7 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 			$admin_index_settings = PlainHtml::getSettings($admin_index_connection_id);
 			$this->assertStringContainsString('Welcome to Radaptor App', (string) ($admin_index_settings['content'] ?? ''));
 		} finally {
+			TestHelperEnvironment::revertEnvironmentVariable('APP_DOMAIN_CONTEXT');
 			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE');
 			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE');
 			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD');

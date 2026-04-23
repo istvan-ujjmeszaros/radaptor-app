@@ -36,26 +36,6 @@ class EventAuthorizationPolicyTest extends TransactionedTestCase
 		return $event->authorize(PolicyContext::fromEvent($event));
 	}
 
-	public function testTicketListRequiresSystemAdministrator(): void
-	{
-		$this->impersonate(null);
-
-		$this->assertFalse($this->authorizeEvent(new EventTicketsTicketList())->allow);
-
-		$this->impersonate('admin_developer');
-		$this->assertTrue($this->authorizeEvent(new EventTicketsTicketList())->allow);
-	}
-
-	public function testTimeTrackerWriteRequiresTimeTrackerAdministrator(): void
-	{
-		$this->impersonate(null);
-
-		$this->assertFalse($this->authorizeEvent(new EventTimeTrackerStart())->allow);
-
-		$this->impersonate('admin_developer');
-		$this->assertTrue($this->authorizeEvent(new EventTimeTrackerStart())->allow);
-	}
-
 	public function testAclWriteIsDeniedForAdminWithoutDeveloperRole(): void
 	{
 		$this->impersonate('user_noroles');

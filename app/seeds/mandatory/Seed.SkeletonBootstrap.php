@@ -9,7 +9,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	public function getVersion(): string
 	{
-		return '1.10.0';
+		return '1.10.1';
 	}
 
 	public function getDescription(): string
@@ -164,11 +164,34 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 		$page_id = ResourceTreeHandler::createResourceTreeEntryFromPath($path, $resource_name, 'webpage', $layout);
 
-		if (!is_int($page_id) || $page_id <= 0) {
-			throw new RuntimeException("Unable to create webpage {$path}{$resource_name}");
+		if (is_int($page_id) && $page_id > 0) {
+			return $page_id;
 		}
 
-		return $page_id;
+		$existing_page_id = $this->findExistingWebpageByUniquePath($path, $resource_name);
+
+		if (is_int($existing_page_id) && $existing_page_id > 0) {
+			ResourceTreeHandler::updateResourceTreeEntry(['layout' => $layout], $existing_page_id);
+
+			return $existing_page_id;
+		}
+
+		throw new RuntimeException("Unable to create webpage {$path}{$resource_name}");
+	}
+
+	private function findExistingWebpageByUniquePath(string $path, string $resource_name): ?int
+	{
+		$row = DbHelper::selectOne('resource_tree', [
+			'node_type' => 'webpage',
+			'path' => $path,
+			'resource_name' => $resource_name,
+		], '', 'node_id');
+
+		if (!is_array($row) || !is_numeric($row['node_id'] ?? null)) {
+			return null;
+		}
+
+		return (int) $row['node_id'];
 	}
 
 	private function ensureWidget(int $page_id, string $widget_name, bool $multiple = true): int

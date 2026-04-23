@@ -41,11 +41,22 @@ final class AdminDropdownSmokeTest extends TransactionedTestCase
 	 */
 	public static function adminDropdownThemeProvider(): array
 	{
-		return [
+		$available_themes = array_flip(Themes::getAllThemeNames());
+		$configured = [
 			'RadaptorPortalAdmin' => ['RadaptorPortalAdmin', 'admin-dropdown-container'],
-			'SoAdmin'             => ['SoAdmin', 'admin_dropdown_icon'],
-			'Tracker'             => ['Tracker', 'admin_dropdown_icon'],
+			'SoAdmin' => ['SoAdmin', 'admin_dropdown_icon'],
+			'Tracker' => ['Tracker', 'admin_dropdown_icon'],
 		];
+
+		$return = [];
+
+		foreach ($configured as $key => $value) {
+			if (isset($available_themes[$value[0]])) {
+				$return[$key] = $value;
+			}
+		}
+
+		return $return;
 	}
 
 	// -------------------------------------------------------------------------
