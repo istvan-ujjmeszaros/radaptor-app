@@ -15,8 +15,6 @@ class RoleList
 	public const string ROLE_ROLES_VIEWER = 'roles_viewer';
 	public const string ROLE_SYSTEM_ADMINISTRATOR = 'system_administrator';
 	public const string ROLE_SYSTEM_DEVELOPER = 'system_developer';
-	public const string ROLE_TIMETRACKER_ADMINISTRATOR = 'timetracker_administrator';
-	public const string ROLE_TIMETRACKER_VIEWER = 'timetracker_viewer';
 	public const string ROLE_USERGROUPS_ADMIN = 'usergroups_admin';
 	public const string ROLE_USERGROUPS_ROLE_ADMIN = 'usergroups_role_admin';
 	public const string ROLE_USERS_ADMIN = 'users_admin';

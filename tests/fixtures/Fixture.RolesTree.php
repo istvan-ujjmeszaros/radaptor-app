@@ -54,9 +54,6 @@ class FixtureRolesTree extends AbstractFixture
 				]],
 				['title' => 'Fájl adminisztrátor', 'description' => 'File uploader', 'role' => 'files_admin'],
 				['title' => 'Tartalom szerkesztő', 'description' => 'Content editor', 'role' => 'content_admin'],
-				['title' => 'Idő bejegyzés adminisztrátor', 'description' => 'Timetracker admin', 'role' => 'timetracker_administrator', '_' => [
-					['title' => 'Idő bejegyzés lista megtekintő', 'description' => 'Timetracker spectator', 'role' => 'timetracker_viewer'],
-				]],
 			]],
 		];
 	}

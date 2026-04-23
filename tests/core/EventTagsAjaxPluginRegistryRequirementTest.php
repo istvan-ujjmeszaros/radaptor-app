@@ -60,7 +60,7 @@ final class EventTagsAjaxPluginRegistryRequirementTest extends TestCase
 
 		RequestContextHolder::initializeRequest([
 			'term' => 'bug',
-			'tag_context' => 'tracker_ticket',
+			'tag_context' => 'dummy_context',
 		]);
 
 		PluginRegistry::reset();

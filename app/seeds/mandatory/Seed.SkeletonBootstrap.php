@@ -282,9 +282,6 @@ class SeedSkeletonBootstrap extends AbstractSeed
 				]],
 				['title' => 'File administrator', 'description' => 'File uploader', 'role' => 'files_admin'],
 				['title' => 'Content editor', 'description' => 'Content editor', 'role' => 'content_admin'],
-				['title' => 'Timetracker administrator', 'description' => 'Timetracker admin', 'role' => 'timetracker_administrator', '_' => [
-					['title' => 'Timetracker viewer', 'description' => 'Timetracker viewer', 'role' => 'timetracker_viewer'],
-				]],
 			]],
 		];
 	}
