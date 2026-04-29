@@ -14,6 +14,7 @@ class WidgetList
 	public const string IMPORTEXPORT = 'ImportExport';
 	public const string JSTREE = 'JsTree';
 	public const string MAINMENU = 'MainMenu';
+	public const string MCPTOKENS = 'McpTokens';
 	public const string PLAINHTML = 'PlainHtml';
 	public const string RESOURCEACLSELECTOR = 'ResourceAclSelector';
 	public const string RESOURCETREE = 'ResourceTree';
@@ -41,6 +42,7 @@ class WidgetList
 		'ImportExport',
 		'JsTree',
 		'MainMenu',
+		'McpTokens',
 		'PlainHtml',
 		'ResourceAclSelector',
 		'ResourceTree',

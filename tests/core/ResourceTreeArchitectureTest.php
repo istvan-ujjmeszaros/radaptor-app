@@ -8,29 +8,40 @@ final class ResourceTreeArchitectureTest extends TestCase
 {
 	public function testResourceTreeNestedSetCallsStayInsideResourceTreeHandler(): void
 	{
-		$root = DEPLOY_ROOT . 'packages/registry/core';
 		$violations = [];
-		$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
+		$roots = PackagePathHelper::getActivePackageRoots(['core']);
 
-		foreach ($iterator as $file) {
-			if (!$file->isFile() || $file->getExtension() !== 'php') {
+		if ($roots === []) {
+			$roots = [DEPLOY_ROOT . 'packages/registry/core'];
+		}
+
+		foreach ($roots as $root) {
+			if (!is_dir($root)) {
 				continue;
 			}
 
-			$path = $file->getPathname();
+			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
 
-			if (str_ends_with((string) $path, 'modules-common/Cms/classes/class.ResourceTreeHandler.php')) {
-				continue;
-			}
+			foreach ($iterator as $file) {
+				if (!$file->isFile() || $file->getExtension() !== 'php') {
+					continue;
+				}
 
-			$contents = file_get_contents($path);
+				$path = $file->getPathname();
 
-			if (!is_string($contents)) {
-				continue;
-			}
+				if (str_ends_with((string) $path, 'modules-common/Cms/classes/class.ResourceTreeHandler.php')) {
+					continue;
+				}
 
-			if (preg_match('/NestedSet::[A-Za-z0-9_]+\(\s*[\'"]resource_tree[\'"]/', $contents) === 1) {
-				$violations[] = str_replace(DEPLOY_ROOT, '', $path);
+				$contents = file_get_contents($path);
+
+				if (!is_string($contents)) {
+					continue;
+				}
+
+				if (preg_match('/NestedSet::[A-Za-z0-9_]+\(\s*[\'"]resource_tree[\'"]/', $contents) === 1) {
+					$violations[] = str_replace(DEPLOY_ROOT, '', $path);
+				}
 			}
 		}
 

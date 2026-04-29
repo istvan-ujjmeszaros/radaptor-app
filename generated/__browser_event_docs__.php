@@ -720,6 +720,167 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'jstree_roles_ajax.load\')',
 			],
 		],
+		'mcp:token-create' => [
+			'event_name' => 'mcp.token-create',
+			'group' => 'MCP',
+			'name' => 'Create personal MCP token',
+			'summary' => 'Creates a personal MCP token for the current user.',
+			'description' => 'The token secret is returned once at creation time and only the hash is stored.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'name',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Human-facing token label.',
+					],
+					1 => [
+						'name' => 'days',
+						'source' => 'body',
+						'type' => 'int',
+						'required' => false,
+						'description' => 'Expiry in days. Use 0 for no expiry.',
+					],
+					2 => [
+						'name' => 'format',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Use json for JSON output; defaults to HTML panel.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json-or-html',
+				'content_type' => 'application/json or text/html',
+				'description' => 'Returns the created token once for JSON callers or the refreshed token panel for the GUI.',
+			],
+			'authorization' => [
+				'visibility' => 'current-user',
+				'description' => 'Any logged-in user can create their own MCP token.',
+			],
+			'side_effects' => [
+				0 => 'Inserts one mcp_tokens row.',
+			],
+			'class' => 'EventMcpTokenCreate',
+			'slug' => 'mcp:token-create',
+			'route' => [
+				'event_name' => 'mcp.token-create',
+				'context' => 'mcp',
+				'event' => 'token-create',
+				'query' => '?context=mcp&event=token-create',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'mcp.token-create\')',
+				'template_helper' => 'event_url(\'mcp.token-create\')',
+				'ajax_helper' => 'ajax_url(\'mcp.token-create\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'mcp.token-create\')',
+			],
+			'notes' => [
+			],
+		],
+		'mcp:token-list' => [
+			'event_name' => 'mcp.token-list',
+			'group' => 'MCP',
+			'name' => 'List personal MCP tokens',
+			'summary' => 'Returns the current user personal MCP tokens.',
+			'description' => 'Lists token metadata only. Full token secrets are never returned after creation.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'format',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Use json for JSON output; defaults to HTML panel.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json-or-html',
+				'content_type' => 'application/json or text/html',
+				'description' => 'Returns token metadata for JSON callers or the token panel partial for the GUI.',
+			],
+			'authorization' => [
+				'visibility' => 'current-user',
+				'description' => 'Any logged-in user can list their own MCP tokens.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventMcpTokenList',
+			'slug' => 'mcp:token-list',
+			'route' => [
+				'event_name' => 'mcp.token-list',
+				'context' => 'mcp',
+				'event' => 'token-list',
+				'query' => '?context=mcp&event=token-list',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'mcp.token-list\')',
+				'template_helper' => 'event_url(\'mcp.token-list\')',
+				'ajax_helper' => 'ajax_url(\'mcp.token-list\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'mcp.token-list\')',
+			],
+			'notes' => [
+			],
+		],
+		'mcp:token-revoke' => [
+			'event_name' => 'mcp.token-revoke',
+			'group' => 'MCP',
+			'name' => 'Revoke personal MCP token',
+			'summary' => 'Revokes one current-user MCP token.',
+			'description' => 'Marks a token revoked without deleting it. Users can revoke only their own tokens.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'token_id',
+						'source' => 'body',
+						'type' => 'int',
+						'required' => true,
+						'description' => 'MCP token row id.',
+					],
+					1 => [
+						'name' => 'format',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Use json for JSON output; defaults to HTML panel.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json-or-html',
+				'content_type' => 'application/json or text/html',
+				'description' => 'Returns revoke status for JSON callers or the refreshed token panel for the GUI.',
+			],
+			'authorization' => [
+				'visibility' => 'current-user',
+				'description' => 'Any logged-in user can revoke their own MCP token.',
+			],
+			'side_effects' => [
+				0 => 'Sets mcp_tokens.revoked_at.',
+			],
+			'class' => 'EventMcpTokenRevoke',
+			'slug' => 'mcp:token-revoke',
+			'route' => [
+				'event_name' => 'mcp.token-revoke',
+				'context' => 'mcp',
+				'event' => 'token-revoke',
+				'query' => '?context=mcp&event=token-revoke',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'mcp.token-revoke\')',
+				'template_helper' => 'event_url(\'mcp.token-revoke\')',
+				'ajax_helper' => 'ajax_url(\'mcp.token-revoke\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'mcp.token-revoke\')',
+			],
+			'notes' => [
+			],
+		],
 		'page_editmode:switch' => [
 			'event_name' => 'page_editmode.switch',
 			'group' => 'Editing',
@@ -774,6 +935,58 @@ return [
 				'template_helper' => 'event_url(\'page_editmode.switch\')',
 				'ajax_helper' => 'ajax_url(\'page_editmode.switch\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'page_editmode.switch\')',
+			],
+		],
+		'resource:create_folder' => [
+			'event_name' => 'resource.create_folder',
+			'group' => 'CMS Authoring',
+			'name' => 'Create resource folder',
+			'summary' => 'Creates or ensures a resource folder.',
+			'description' => 'Creates a folder path in the CMS resource tree if it does not already exist.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Folder path.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns folder id and resource spec.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires create permission on the parent folder.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.resource.create_folder',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Creates resource_tree folder rows as needed.',
+			],
+			'class' => 'EventResourceCreateFolder',
+			'slug' => 'resource:create_folder',
+			'route' => [
+				'event_name' => 'resource.create_folder',
+				'context' => 'resource',
+				'event' => 'create_folder',
+				'query' => '?context=resource&event=create_folder',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'resource.create_folder\')',
+				'template_helper' => 'event_url(\'resource.create_folder\')',
+				'ajax_helper' => 'ajax_url(\'resource.create_folder\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'resource.create_folder\')',
 			],
 		],
 		'resource:view' => [
@@ -1038,6 +1251,434 @@ return [
 				'template_helper' => 'event_url(\'users_user_list_ajax.load\')',
 				'ajax_helper' => 'ajax_url(\'users_user_list_ajax.load\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'users_user_list_ajax.load\')',
+			],
+		],
+		'webpage:create' => [
+			'event_name' => 'webpage.create',
+			'group' => 'CMS Authoring',
+			'name' => 'Create webpage',
+			'summary' => 'Creates a webpage resource.',
+			'description' => 'Creates a webpage with path, layout, metadata, catcher flag, and optional initial widget slots.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Webpage path.',
+					],
+					1 => [
+						'name' => 'layout',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Layout id.',
+					],
+					2 => [
+						'name' => 'title',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Page title.',
+					],
+					3 => [
+						'name' => 'description',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Meta description.',
+					],
+					4 => [
+						'name' => 'keywords',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Meta keywords.',
+					],
+					5 => [
+						'name' => 'catcher',
+						'source' => 'body',
+						'type' => 'bool',
+						'required' => false,
+						'description' => 'Whether the page is a catcher page.',
+					],
+					6 => [
+						'name' => 'attributes',
+						'source' => 'body',
+						'type' => 'json-object',
+						'required' => false,
+						'description' => 'Additional webpage attributes.',
+					],
+					7 => [
+						'name' => 'slots',
+						'source' => 'body',
+						'type' => 'json-object',
+						'required' => false,
+						'description' => 'Initial widget slots.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns created page id and webpage spec.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires create permission on the parent folder.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.webpage.create',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Creates resource_tree and related webpage metadata rows.',
+			],
+			'class' => 'EventWebpageCreate',
+			'slug' => 'webpage:create',
+			'route' => [
+				'event_name' => 'webpage.create',
+				'context' => 'webpage',
+				'event' => 'create',
+				'query' => '?context=webpage&event=create',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'webpage.create\')',
+				'template_helper' => 'event_url(\'webpage.create\')',
+				'ajax_helper' => 'ajax_url(\'webpage.create\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'webpage.create\')',
+			],
+		],
+		'webpage:info' => [
+			'event_name' => 'webpage.info',
+			'group' => 'CMS Authoring',
+			'name' => 'Show webpage details',
+			'summary' => 'Returns one webpage spec.',
+			'description' => 'Returns path, layout, attributes, ACL, catcher flag, and widget slots for a webpage.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Webpage path.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns the webpage spec.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires view permission on the webpage.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.webpage.info',
+				'risk' => 'read',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventWebpageInfo',
+			'slug' => 'webpage:info',
+			'route' => [
+				'event_name' => 'webpage.info',
+				'context' => 'webpage',
+				'event' => 'info',
+				'query' => '?context=webpage&event=info',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'webpage.info\')',
+				'template_helper' => 'event_url(\'webpage.info\')',
+				'ajax_helper' => 'ajax_url(\'webpage.info\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'webpage.info\')',
+			],
+		],
+		'webpage:list' => [
+			'event_name' => 'webpage.list',
+			'group' => 'CMS Authoring',
+			'name' => 'List webpages',
+			'summary' => 'Lists webpages under a resource path.',
+			'description' => 'Returns JSON-shaped webpage specs for the selected subtree.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Base resource path. Defaults to /.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns base path, count, and webpage specs visible to the current user.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires list permission on the base resource and filters results by view permission.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.webpage.list',
+				'risk' => 'read',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventWebpageList',
+			'slug' => 'webpage:list',
+			'route' => [
+				'event_name' => 'webpage.list',
+				'context' => 'webpage',
+				'event' => 'list',
+				'query' => '?context=webpage&event=list',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'webpage.list\')',
+				'template_helper' => 'event_url(\'webpage.list\')',
+				'ajax_helper' => 'ajax_url(\'webpage.list\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'webpage.list\')',
+			],
+		],
+		'webpage:update' => [
+			'event_name' => 'webpage.update',
+			'group' => 'CMS Authoring',
+			'name' => 'Update webpage',
+			'summary' => 'Updates a webpage resource.',
+			'description' => 'Updates layout, metadata, catcher flag, and optionally widget slots for an existing webpage.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Webpage path.',
+					],
+					1 => [
+						'name' => 'layout',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Layout id.',
+					],
+					2 => [
+						'name' => 'title',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Page title.',
+					],
+					3 => [
+						'name' => 'description',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Meta description.',
+					],
+					4 => [
+						'name' => 'keywords',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Meta keywords.',
+					],
+					5 => [
+						'name' => 'catcher',
+						'source' => 'body',
+						'type' => 'bool',
+						'required' => false,
+						'description' => 'Whether the page is a catcher page.',
+					],
+					6 => [
+						'name' => 'attributes',
+						'source' => 'body',
+						'type' => 'json-object',
+						'required' => false,
+						'description' => 'Additional webpage attributes.',
+					],
+					7 => [
+						'name' => 'slots',
+						'source' => 'body',
+						'type' => 'json-object',
+						'required' => false,
+						'description' => 'Widget slots to reconcile.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns updated page id and webpage spec.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires edit permission on the webpage.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.webpage.update',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Updates resource_tree, webpage metadata, and optionally widget slot assignments.',
+			],
+			'class' => 'EventWebpageUpdate',
+			'slug' => 'webpage:update',
+			'route' => [
+				'event_name' => 'webpage.update',
+				'context' => 'webpage',
+				'event' => 'update',
+				'query' => '?context=webpage&event=update',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'webpage.update\')',
+				'template_helper' => 'event_url(\'webpage.update\')',
+				'ajax_helper' => 'ajax_url(\'webpage.update\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'webpage.update\')',
+			],
+		],
+		'widget:sync' => [
+			'event_name' => 'widget.sync',
+			'group' => 'CMS Authoring',
+			'name' => 'Sync slot widgets',
+			'summary' => 'Reconciles one webpage slot.',
+			'description' => 'Replaces one slot with the provided ordered widget spec list.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Webpage path.',
+					],
+					1 => [
+						'name' => 'slot',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Slot name.',
+					],
+					2 => [
+						'name' => 'widgets',
+						'source' => 'body',
+						'type' => 'json-array',
+						'required' => true,
+						'description' => 'Ordered widget specs.',
+					],
+					3 => [
+						'name' => 'dry_run',
+						'source' => 'body',
+						'type' => 'bool',
+						'required' => false,
+						'description' => 'Validate without mutating.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns created connection snapshots.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires edit permission on the webpage.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.widget.sync',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Deletes and recreates widget connections for the selected slot.',
+			],
+			'class' => 'EventWidgetSync',
+			'slug' => 'widget:sync',
+			'route' => [
+				'event_name' => 'widget.sync',
+				'context' => 'widget',
+				'event' => 'sync',
+				'query' => '?context=widget&event=sync',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'widget.sync\')',
+				'template_helper' => 'event_url(\'widget.sync\')',
+				'ajax_helper' => 'ajax_url(\'widget.sync\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'widget.sync\')',
+			],
+		],
+		'widget:urls' => [
+			'event_name' => 'widget.urls',
+			'group' => 'CMS Authoring',
+			'name' => 'Find widget URLs',
+			'summary' => 'Finds pages where a widget is assigned.',
+			'description' => 'Returns widget placements visible to the current user.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'widget',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Widget class name.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns visible widget placements.',
+			],
+			'authorization' => [
+				'visibility' => 'logged-in users and resource ACL',
+				'description' => 'Requires a logged-in user and filters placements by view permission on each page.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.widget.urls',
+				'risk' => 'read',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventWidgetUrls',
+			'slug' => 'widget:urls',
+			'route' => [
+				'event_name' => 'widget.urls',
+				'context' => 'widget',
+				'event' => 'urls',
+				'query' => '?context=widget&event=urls',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'widget.urls\')',
+				'template_helper' => 'event_url(\'widget.urls\')',
+				'ajax_helper' => 'ajax_url(\'widget.urls\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'widget.urls\')',
 			],
 		],
 		'widget_connection:add' => [

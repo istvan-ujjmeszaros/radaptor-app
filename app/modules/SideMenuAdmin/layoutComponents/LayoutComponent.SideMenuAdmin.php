@@ -20,6 +20,7 @@ class LayoutComponentSideMenuAdmin extends AbstractLayoutComponent
 			'admin.menu.blog' => t('admin.menu.blog'),
 			'admin.menu.section.administration' => t('admin.menu.section.administration'),
 			'user.list.title' => t('user.list.title'),
+			'admin.menu.mcp_tokens' => self::translateWithFallback('admin.menu.mcp_tokens', 'MCP tokens'),
 			'admin.menu.usergroups' => t('admin.menu.usergroups'),
 			'admin.menu.roles' => t('admin.menu.roles'),
 			'admin.menu.section.configuration' => t('admin.menu.section.configuration'),
