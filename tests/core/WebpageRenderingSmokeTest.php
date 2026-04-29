@@ -23,7 +23,7 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 
 		$output = $this->renderPage($page_id, $public_theme, $public_layout);
 
-		$this->assertStringContainsString('<!DOCTYPE html>', $output);
+		$this->assertMatchesRegularExpression('/<!DOCTYPE html>/i', $output);
 		$this->assertStringContainsString('<section id="public-tree-marker">Public tree smoke</section>', $output);
 		$this->assertStringNotContainsString('Missing template', $output);
 	}
@@ -68,7 +68,7 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 
 		$output = $this->renderPage($page_id, 'RadaptorPortalAdmin', 'admin_default');
 
-		$this->assertStringContainsString('<!DOCTYPE html>', $output);
+		$this->assertMatchesRegularExpression('/<!DOCTYPE html>/i', $output);
 		$this->assertStringContainsString('<body class="admin-layout"', $output);
 		$this->assertStringContainsString('<div class="admin-content">', $output);
 		$this->assertStringContainsString('<section id="admin-tree-marker">Admin tree smoke</section>', $output);
