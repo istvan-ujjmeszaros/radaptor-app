@@ -77,6 +77,14 @@ $server->on('request', static function (Swoole\Http\Request $request, Swoole\Htt
 		if ($method !== 'POST') {
 			$response->status(405);
 			$response->header('Content-Type', 'application/json');
+			$response->header('Allow', 'POST, OPTIONS');
+
+			if (McpAuthenticator::validateOrigin($request->header ?? [])) {
+				foreach (buildMcpCorsHeaders($request->header ?? []) as $name => $value) {
+					$response->header($name, $value);
+				}
+			}
+
 			$response->end(json_encode(['error' => 'Method not allowed'], JSON_UNESCAPED_SLASHES));
 
 			return;
@@ -143,7 +151,7 @@ function buildMcpCorsHeaders(array $headers): array
 	return [
 		'Access-Control-Allow-Origin' => rtrim(trim($origin), '/'),
 		'Access-Control-Allow-Methods' => 'POST, OPTIONS',
-		'Access-Control-Allow-Headers' => 'Authorization, Content-Type, Accept, MCP-Protocol-Version',
+		'Access-Control-Allow-Headers' => 'Authorization, Content-Type, Accept, MCP-Protocol-Version, Mcp-Method, Mcp-Name, Mcp-Session-Id',
 		'Access-Control-Max-Age' => '600',
 		'Vary' => 'Origin',
 	];
