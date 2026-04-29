@@ -9,17 +9,21 @@ final class ResourceTreeArchitectureTest extends TestCase
 	public function testResourceTreeNestedSetCallsStayInsideResourceTreeHandler(): void
 	{
 		$violations = [];
-		$roots = PackagePathHelper::getActivePackageRoots(['core']);
+		$roots = array_values(array_filter(
+			PackagePathHelper::getActivePackageRoots(['core']),
+			static fn (string $root): bool => is_dir($root)
+		));
 
 		if ($roots === []) {
-			$roots = [DEPLOY_ROOT . 'packages/registry/core'];
+			$roots = array_values(array_filter(
+				[DEPLOY_ROOT . 'packages/registry/core'],
+				static fn (string $root): bool => is_dir($root)
+			));
 		}
 
-		foreach ($roots as $root) {
-			if (!is_dir($root)) {
-				continue;
-			}
+		$this->assertNotSame([], $roots, 'ResourceTree architecture test must inspect at least one installed or active core package root.');
 
+		foreach ($roots as $root) {
 			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
 
 			foreach ($iterator as $file) {
