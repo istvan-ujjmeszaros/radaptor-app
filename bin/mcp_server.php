@@ -55,6 +55,25 @@ $server->on('request', static function (Swoole\Http\Request $request, Swoole\Htt
 			return;
 		}
 
+		if ($method === 'OPTIONS') {
+			if (!McpAuthenticator::validateOrigin($request->header ?? [])) {
+				$response->status(403);
+				$response->header('Content-Type', 'application/json');
+				$response->end(json_encode(['error' => 'Invalid Origin'], JSON_UNESCAPED_SLASHES));
+
+				return;
+			}
+
+			foreach (buildMcpCorsHeaders($request->header ?? []) as $name => $value) {
+				$response->header($name, $value);
+			}
+
+			$response->status(204);
+			$response->end('');
+
+			return;
+		}
+
 		if ($method !== 'POST') {
 			$response->status(405);
 			$response->header('Content-Type', 'application/json');
@@ -66,6 +85,12 @@ $server->on('request', static function (Swoole\Http\Request $request, Swoole\Htt
 		$result = $router->handle((string) $request->rawContent(), $request->header ?? [], $request->server ?? []);
 
 		$response->status($result['status']);
+
+		if (McpAuthenticator::validateOrigin($request->header ?? [])) {
+			foreach (buildMcpCorsHeaders($request->header ?? []) as $name => $value) {
+				$response->header($name, $value);
+			}
+		}
 
 		foreach ($result['headers'] as $name => $value) {
 			$response->header($name, $value);
@@ -101,4 +126,39 @@ function buildMcpServerArray(Swoole\Http\Request $request): array
 	$server['HTTP_ACCEPT'] ??= $server['accept'] ?? 'application/json';
 
 	return $server;
+}
+
+/**
+ * @param array<string, mixed> $headers
+ * @return array<string, string>
+ */
+function buildMcpCorsHeaders(array $headers): array
+{
+	$origin = mcpHeader($headers, 'origin');
+
+	if ($origin === null || trim($origin) === '') {
+		return [];
+	}
+
+	return [
+		'Access-Control-Allow-Origin' => rtrim(trim($origin), '/'),
+		'Access-Control-Allow-Methods' => 'POST, OPTIONS',
+		'Access-Control-Allow-Headers' => 'Authorization, Content-Type, Accept, MCP-Protocol-Version',
+		'Access-Control-Max-Age' => '600',
+		'Vary' => 'Origin',
+	];
+}
+
+/**
+ * @param array<string, mixed> $headers
+ */
+function mcpHeader(array $headers, string $name): ?string
+{
+	foreach ($headers as $key => $value) {
+		if (strtolower((string) $key) === strtolower($name)) {
+			return is_array($value) ? (string) reset($value) : (string) $value;
+		}
+	}
+
+	return null;
 }
