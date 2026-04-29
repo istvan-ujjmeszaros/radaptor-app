@@ -154,6 +154,65 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'email.send\')',
 			],
 		],
+		'gitargabor_sliding_gallery:configure' => [
+			'event_name' => 'gitargabor_sliding_gallery.configure',
+			'group' => 'Gitargabor Migration',
+			'name' => 'Configure sliding gallery',
+			'summary' => 'Configures the Gitargabor public layout sliding gallery.',
+			'description' => 'Stores the target resource folder and shuffle flag used by the layout-level SlidingGallery component.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'folder_path',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Resource folder path with gallery images.',
+					],
+					1 => [
+						'name' => 'shuffle',
+						'source' => 'body',
+						'type' => 'bool',
+						'required' => false,
+						'description' => 'Whether the gallery order should be shuffled.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns saved gallery configuration.',
+			],
+			'authorization' => [
+				'visibility' => 'role',
+				'description' => 'Requires content admin or system developer role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.gitargabor.sliding_gallery.configure',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Updates global SlidingGallery attributes.',
+			],
+			'class' => 'EventSlidingGalleryConfigure',
+			'slug' => 'gitargabor_sliding_gallery:configure',
+			'route' => [
+				'event_name' => 'gitargabor_sliding_gallery.configure',
+				'context' => 'gitargabor_sliding_gallery',
+				'event' => 'configure',
+				'query' => '?context=gitargabor_sliding_gallery&event=configure',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'gitargabor_sliding_gallery.configure\')',
+				'template_helper' => 'event_url(\'gitargabor_sliding_gallery.configure\')',
+				'ajax_helper' => 'ajax_url(\'gitargabor_sliding_gallery.configure\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'gitargabor_sliding_gallery.configure\')',
+			],
+		],
 		'i18n_ajax:load' => [
 			'event_name' => 'i18n_ajax.load',
 			'group' => 'I18n',
@@ -881,6 +940,72 @@ return [
 			'notes' => [
 			],
 		],
+		'menu:sync' => [
+			'event_name' => 'menu.sync',
+			'group' => 'CMS Authoring',
+			'name' => 'Sync menu entries',
+			'summary' => 'Reconciles flat root-level main or admin menu entries.',
+			'description' => 'Creates or updates root-level menu entries by title and optionally prunes root-level entries not present in the payload.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'type',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Menu type: main or admin.',
+					],
+					1 => [
+						'name' => 'items',
+						'source' => 'body',
+						'type' => 'json-array',
+						'required' => true,
+						'description' => 'Ordered root-level menu items.',
+					],
+					2 => [
+						'name' => 'prune',
+						'source' => 'body',
+						'type' => 'bool',
+						'required' => false,
+						'description' => 'Delete root-level entries not present in the payload.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns created, updated, and pruned menu entries.',
+			],
+			'authorization' => [
+				'visibility' => 'role',
+				'description' => 'Requires system developer role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.menu.sync',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Creates, updates, moves, and optionally deletes root-level menu rows.',
+			],
+			'class' => 'EventMenuSync',
+			'slug' => 'menu:sync',
+			'route' => [
+				'event_name' => 'menu.sync',
+				'context' => 'menu',
+				'event' => 'sync',
+				'query' => '?context=menu&event=sync',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'menu.sync\')',
+				'template_helper' => 'event_url(\'menu.sync\')',
+				'ajax_helper' => 'ajax_url(\'menu.sync\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'menu.sync\')',
+			],
+		],
 		'page_editmode:switch' => [
 			'event_name' => 'page_editmode.switch',
 			'group' => 'Editing',
@@ -937,6 +1062,65 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'page_editmode.switch\')',
 			],
 		],
+		'resource:acl_sync' => [
+			'event_name' => 'resource.acl_sync',
+			'group' => 'CMS Authoring',
+			'name' => 'Sync resource ACL',
+			'summary' => 'Reconciles ACL settings for a resource.',
+			'description' => 'Updates the local resource ACL from a JSON-shaped ACL spec.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Resource path.',
+					],
+					1 => [
+						'name' => 'acl',
+						'source' => 'body',
+						'type' => 'json-object',
+						'required' => true,
+						'description' => 'ACL spec with inherit and usergroups keys.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns the reconciled local and resolved ACL state.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires edit permission on the resource.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.resource.acl_sync',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Updates resource_acl rows and the resource ACL inheritance flag.',
+			],
+			'class' => 'EventResourceAclSync',
+			'slug' => 'resource:acl_sync',
+			'route' => [
+				'event_name' => 'resource.acl_sync',
+				'context' => 'resource',
+				'event' => 'acl_sync',
+				'query' => '?context=resource&event=acl_sync',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'resource.acl_sync\')',
+				'template_helper' => 'event_url(\'resource.acl_sync\')',
+				'ajax_helper' => 'ajax_url(\'resource.acl_sync\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'resource.acl_sync\')',
+			],
+		],
 		'resource:create_folder' => [
 			'event_name' => 'resource.create_folder',
 			'group' => 'CMS Authoring',
@@ -989,6 +1173,79 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'resource.create_folder\')',
 			],
 		],
+		'resource:import_file' => [
+			'event_name' => 'resource.import_file',
+			'group' => 'CMS Authoring',
+			'name' => 'Import file into resource tree',
+			'summary' => 'Imports a readable migration-source file into a CMS resource folder.',
+			'description' => 'Copies a file from an explicitly mounted migration source into the media container and creates or replaces a file resource in the resource tree.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'source_path',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Absolute file path under APP_MIGRATION_SOURCE_ROOTS.',
+					],
+					1 => [
+						'name' => 'target_folder',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Target resource folder path.',
+					],
+					2 => [
+						'name' => 'resource_name',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Resource filename to create or replace.',
+					],
+					3 => [
+						'name' => 'title',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional file title.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns resource id, file id, path, mime type, and replacement flag.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires create permission on the target folder, or on its parent if the folder has to be created.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.resource.import_file',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Creates a media-container file row and creates or updates a resource_tree file entry.',
+			],
+			'class' => 'EventResourceImportFile',
+			'slug' => 'resource:import_file',
+			'route' => [
+				'event_name' => 'resource.import_file',
+				'context' => 'resource',
+				'event' => 'import_file',
+				'query' => '?context=resource&event=import_file',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'resource.import_file\')',
+				'template_helper' => 'event_url(\'resource.import_file\')',
+				'ajax_helper' => 'ajax_url(\'resource.import_file\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'resource.import_file\')',
+			],
+		],
 		'resource:view' => [
 			'event_name' => 'resource.view',
 			'group' => 'Runtime',
@@ -1029,6 +1286,79 @@ return [
 				'template_helper' => 'event_url(\'resource.view\')',
 				'ajax_helper' => 'ajax_url(\'resource.view\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'resource.view\')',
+			],
+		],
+		'richtext:upsert' => [
+			'event_name' => 'richtext.upsert',
+			'group' => 'CMS Authoring',
+			'name' => 'Upsert rich text content',
+			'summary' => 'Creates or updates a RichText content record by stable name.',
+			'description' => 'Creates or updates a RichText content record and returns the content id that can be assigned to WidgetRichText.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'name',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Stable RichText name.',
+					],
+					1 => [
+						'name' => 'title',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Human-readable RichText title.',
+					],
+					2 => [
+						'name' => 'content',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'HTML content.',
+					],
+					3 => [
+						'name' => 'content_type',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Content type, defaults to article.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns content id and whether a new record was created.',
+			],
+			'authorization' => [
+				'visibility' => 'role',
+				'description' => 'Requires richtext administrator role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.richtext.upsert',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Creates or updates a richtext row.',
+			],
+			'class' => 'EventRichTextUpsert',
+			'slug' => 'richtext:upsert',
+			'route' => [
+				'event_name' => 'richtext.upsert',
+				'context' => 'richtext',
+				'event' => 'upsert',
+				'query' => '?context=richtext&event=upsert',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'richtext.upsert\')',
+				'template_helper' => 'event_url(\'richtext.upsert\')',
+				'ajax_helper' => 'ajax_url(\'richtext.upsert\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'richtext.upsert\')',
 			],
 		],
 		'sitemap:xml' => [

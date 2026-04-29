@@ -59,6 +59,7 @@ blob-report/
 
 vendor/*
 /public/www/_da/
+public/_www_static/
 
 tmp
 .sessions/
@@ -67,6 +68,7 @@ tmp
 .env
 .env.*
 !.env.example
+docker-compose.migration-local.yml
 radaptor.local.json
 radaptor.local.lock.json
 generated/__autoload__.php

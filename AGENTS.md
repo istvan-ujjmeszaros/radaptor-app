@@ -70,6 +70,9 @@ Example:
 - Bootstrap proof and registry-first validation must run with `RADAPTOR_DISABLE_LOCAL_OVERRIDES=1`.
 - Host-side workflow is Git-only. Hooks and helper scripts must dispatch every non-Git check into the supported container; never require host PHP, Composer, Python, php-cs-fixer, or Radaptor CLI.
 - App-local transient QA outputs belong under `tmp/`. Do not leave `playwright-report/`, `test-results/`, proof clones, restore sandboxes, or scratch verification directories at repo root.
+- Agents must not run ad-hoc SQL against the application database. Do not use `mysql`/`mariadb` shell queries, `php -r` snippets that call `DbHelper`, generic SQL CLI tools such as `db:query`, or one-off SQL diagnostics/mutations. Use specific Radaptor CLI/API/MCP tools instead. If the needed tool does not exist, stop and report the missing tool.
+- Any table with both `lft` and `rgt` schema columns is a nested-set table and must not be structurally mutated outside the Radaptor tree services. Inserts/deletes or changes to `lft`, `rgt`, or `parent_id` must go through `NestedSet` via the owning service/CLI/API/MCP tool.
+- Do not run PHPUnit and PHPStan in parallel. Both bootstrap the Radaptor test environment and may sync/load the same test database fixtures; concurrent runs can race and produce false duplicate-key/fixture failures. Run them serially, even when parallelizing unrelated read-only commands.
 
 ## Worktree Isolation Rule
 
