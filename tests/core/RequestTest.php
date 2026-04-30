@@ -22,6 +22,38 @@ class RequestTest extends TestCase
 		RequestContextHolder::initializeRequest();
 	}
 
+	public function testGetMethodReadsRequestContextServer(): void
+	{
+		RequestContextHolder::initializeRequest(server: ['REQUEST_METHOD' => 'post']);
+
+		$this->assertSame('POST', Request::getMethod());
+	}
+
+	public function testGetMethodReadsSwooleLowercaseRequestContextServer(): void
+	{
+		RequestContextHolder::initializeRequest(server: ['request_method' => 'post']);
+
+		$this->assertSame('POST', Request::getMethod());
+	}
+
+	public function testGetMethodPrefersRequestContextOverSuperglobal(): void
+	{
+		$previous = $_SERVER['REQUEST_METHOD'] ?? null;
+		$_SERVER['REQUEST_METHOD'] = 'DELETE';
+
+		try {
+			RequestContextHolder::initializeRequest(server: ['REQUEST_METHOD' => 'post']);
+
+			$this->assertSame('POST', Request::getMethod());
+		} finally {
+			if ($previous === null) {
+				unset($_SERVER['REQUEST_METHOD']);
+			} else {
+				$_SERVER['REQUEST_METHOD'] = $previous;
+			}
+		}
+	}
+
 	// =========================================================================
 	// _GET() Tests
 	// =========================================================================
