@@ -64,9 +64,7 @@ $server->on('request', static function (Swoole\Http\Request $request, Swoole\Htt
 				return;
 			}
 
-			foreach (buildMcpCorsHeaders($request->header ?? []) as $name => $value) {
-				$response->header($name, $value);
-			}
+			applyMcpCorsHeaders($response, $request->header ?? []);
 
 			$response->status(204);
 			$response->end('');
@@ -79,11 +77,7 @@ $server->on('request', static function (Swoole\Http\Request $request, Swoole\Htt
 			$response->header('Content-Type', 'application/json');
 			$response->header('Allow', 'POST, OPTIONS');
 
-			if (McpAuthenticator::validateOrigin($request->header ?? [])) {
-				foreach (buildMcpCorsHeaders($request->header ?? []) as $name => $value) {
-					$response->header($name, $value);
-				}
-			}
+			applyMcpCorsHeaders($response, $request->header ?? []);
 
 			$response->end(json_encode(['error' => 'Method not allowed'], JSON_UNESCAPED_SLASHES));
 
@@ -93,12 +87,7 @@ $server->on('request', static function (Swoole\Http\Request $request, Swoole\Htt
 		$result = $router->handle((string) $request->rawContent(), $request->header ?? [], $request->server ?? []);
 
 		$response->status($result['status']);
-
-		if (McpAuthenticator::validateOrigin($request->header ?? [])) {
-			foreach (buildMcpCorsHeaders($request->header ?? []) as $name => $value) {
-				$response->header($name, $value);
-			}
-		}
+		applyMcpCorsHeaders($response, $request->header ?? []);
 
 		foreach ($result['headers'] as $name => $value) {
 			$response->header($name, $value);
@@ -108,6 +97,7 @@ $server->on('request', static function (Swoole\Http\Request $request, Swoole\Htt
 	} catch (Throwable $exception) {
 		$response->status(500);
 		$response->header('Content-Type', 'application/json');
+		applyMcpCorsHeaders($response, $request->header ?? []);
 		$response->end(json_encode([
 			'error' => 'Internal MCP server error',
 			'message' => Kernel::getEnvironment() === 'development' ? $exception->getMessage() : 'Internal error',
@@ -152,9 +142,24 @@ function buildMcpCorsHeaders(array $headers): array
 		'Access-Control-Allow-Origin' => rtrim(trim($origin), '/'),
 		'Access-Control-Allow-Methods' => 'POST, OPTIONS',
 		'Access-Control-Allow-Headers' => 'Authorization, Content-Type, Accept, MCP-Protocol-Version, Mcp-Method, Mcp-Name, Mcp-Session-Id',
+		'Access-Control-Expose-Headers' => 'MCP-Protocol-Version, Mcp-Session-Id, X-Radaptor-MCP-Request-Id',
 		'Access-Control-Max-Age' => '600',
 		'Vary' => 'Origin',
 	];
+}
+
+/**
+ * @param array<string, mixed> $headers
+ */
+function applyMcpCorsHeaders(Swoole\Http\Response $response, array $headers): void
+{
+	if (!McpAuthenticator::validateOrigin($headers)) {
+		return;
+	}
+
+	foreach (buildMcpCorsHeaders($headers) as $name => $value) {
+		$response->header($name, $value);
+	}
 }
 
 /**
