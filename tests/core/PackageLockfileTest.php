@@ -23,11 +23,9 @@ final class PackageLockfileTest extends TestCase
 
 	public function testLoadFromPathReflectsLatestWrittenState(): void
 	{
-		$this->lock_path = tempnam(sys_get_temp_dir(), 'package-lockfile-');
-
-		if ($this->lock_path === false) {
-			$this->fail('Unable to create temp package lockfile.');
-		}
+		$lock_path = tempnam(sys_get_temp_dir(), 'package-lockfile-');
+		$this->assertIsString($lock_path);
+		$this->lock_path = $lock_path;
 
 		PackageLockfile::write([
 			'lockfile_version' => 1,

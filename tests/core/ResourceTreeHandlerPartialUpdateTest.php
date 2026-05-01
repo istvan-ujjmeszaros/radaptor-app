@@ -6,8 +6,9 @@ final class ResourceTreeHandlerPartialUpdateTest extends TransactionedTestCase
 {
 	public function testUpdateResourceTreeEntryAllowsLayoutOnlyUpdatesWithoutWarnings(): void
 	{
-		$page = DbHelper::selectOne('resource_tree', ['path' => '/', 'resource_name' => 'index.html']);
-		$this->assertIsArray($page);
+		$pages = DbHelper::selectMany('resource_tree', ['node_type' => 'webpage'], 1, 'node_id ASC');
+		$this->assertNotSame([], $pages);
+		$page = $pages[0];
 
 		$resource_id = (int) ($page['node_id'] ?? 0);
 		$this->assertGreaterThan(0, $resource_id);
