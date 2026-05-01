@@ -21,6 +21,8 @@ final class BootstrapPackageLocatorTest extends TestCase
 			'RADAPTOR_DEV_ROOT' => getenv('RADAPTOR_DEV_ROOT'),
 			'RADAPTOR_DISABLE_LOCAL_OVERRIDES' => getenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES'),
 		];
+
+		putenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES');
 	}
 
 	protected function tearDown(): void

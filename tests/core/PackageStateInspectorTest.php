@@ -19,7 +19,10 @@ final class PackageStateInspectorTest extends TestCase
 			'RADAPTOR_PACKAGE_REGISTRY_ROOT' => getenv('RADAPTOR_PACKAGE_REGISTRY_ROOT'),
 			'RADAPTOR_WORKSPACE_DEV_MODE' => getenv('RADAPTOR_WORKSPACE_DEV_MODE'),
 			'RADAPTOR_DEV_ROOT' => getenv('RADAPTOR_DEV_ROOT'),
+			'RADAPTOR_DISABLE_LOCAL_OVERRIDES' => getenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES'),
 		];
+
+		putenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES');
 	}
 
 	protected function tearDown(): void
@@ -48,6 +51,7 @@ final class PackageStateInspectorTest extends TestCase
 	{
 		$appRoot = $this->makeScratchAppRoot();
 
+		putenv('RADAPTOR_DISABLE_LOCAL_OVERRIDES=1');
 		putenv('RADAPTOR_PACKAGE_REGISTRY_ROOT=' . $this->makeRegistryRoot([
 			'radaptor/core/framework' => '0.1.13',
 			'radaptor/core/cms' => '0.1.6',
