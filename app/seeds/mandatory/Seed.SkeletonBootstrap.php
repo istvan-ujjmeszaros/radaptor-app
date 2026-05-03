@@ -115,13 +115,18 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	private function ensureLoginPages(): void
 	{
-		$page_id = $this->ensureWebpage('/', 'login.html', 'admin_empty');
+		$page_id = $this->ensureWebpage('/', 'login.html', 'admin_login');
 		$this->ensureLoginAclBaseline($page_id);
 		$connection_id = $this->ensureWidget($page_id, WidgetList::FORM, false);
 
 		AttributeHandler::addAttribute(
 			new AttributeResourceIdentifier(ResourceNames::WIDGET_CONNECTION, (string) $connection_id),
-			['form_id' => FormList::USERLOGIN]
+			[
+				'form_id' => FormList::USERLOGIN,
+				'margin-left' => 'auto',
+				'margin-right' => 'auto',
+				'width' => 'min(100%, 28rem)',
+			]
 		);
 	}
 

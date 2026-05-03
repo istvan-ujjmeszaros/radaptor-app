@@ -21,6 +21,7 @@ class WidgetList
 	public const string RICHTEXT = 'RichText';
 	public const string ROLELIST = 'RoleList';
 	public const string ROLESELECTOR = 'RoleSelector';
+	public const string RUNTIMEDIAGNOSTICS = 'RuntimeDiagnostics';
 	public const string TAGLIST = 'TagList';
 	public const string USERDESCRIPTION = 'UserDescription';
 	public const string USERGROUPLIST = 'UsergroupList';
@@ -49,6 +50,7 @@ class WidgetList
 		'RichText',
 		'RoleList',
 		'RoleSelector',
+		'RuntimeDiagnostics',
 		'TagList',
 		'UserDescription',
 		'UsergroupList',

@@ -140,7 +140,7 @@ class FixtureAttributes extends AbstractFixture
 				'resource_name' => 'resource_data',
 				'resource_id' => 30,
 				'param_name' => 'layout',
-				'param_value' => 'admin_nomenu',
+				'param_value' => 'admin_login',
 			],
 			[
 				'id' => 19,
@@ -148,6 +148,27 @@ class FixtureAttributes extends AbstractFixture
 				'resource_id' => 14,
 				'param_name' => 'form_id',
 				'param_value' => 'UserLogin',
+			],
+			[
+				'id' => 186,
+				'resource_name' => 'widget_connection',
+				'resource_id' => 14,
+				'param_name' => 'margin-left',
+				'param_value' => 'auto',
+			],
+			[
+				'id' => 187,
+				'resource_name' => 'widget_connection',
+				'resource_id' => 14,
+				'param_name' => 'margin-right',
+				'param_value' => 'auto',
+			],
+			[
+				'id' => 188,
+				'resource_name' => 'widget_connection',
+				'resource_id' => 14,
+				'param_name' => 'width',
+				'param_value' => 'min(100%, 28rem)',
 			],
 			[
 				'id' => 20,
