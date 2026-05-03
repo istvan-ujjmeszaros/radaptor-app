@@ -16,6 +16,10 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 		TestHelperEnvironment::setEnvironmentVariable('APP_DOMAIN_CONTEXT', 'tracker.virtuosoft.hu');
 
 		try {
+			$existing_login_page = ResourceTreeHandler::getResourceTreeEntryData('/', 'login.html', Config::APP_DOMAIN_CONTEXT->value());
+			$this->assertIsArray($existing_login_page);
+			ResourceTreeHandler::updateResourceTreeEntry(['layout' => 'admin_empty'], (int) $existing_login_page['node_id']);
+
 			$seed = new SeedSkeletonBootstrap();
 			$seed->run(new SeedContext('app', 'mandatory', DEPLOY_ROOT . 'app', false));
 
@@ -66,6 +70,7 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 
 			$login_page = ResourceTreeHandler::getResourceTreeEntryData('/', 'login.html', Config::APP_DOMAIN_CONTEXT->value());
 			$this->assertIsArray($login_page);
+			$this->assertSame('admin_login', ResourceTypeWebpage::getResourceData((int) $login_page['node_id'])['layout'] ?? null);
 			$this->assertSame(0, (int) ($login_page['is_inheriting_acl'] ?? 1));
 			$login_acl = DbHelper::selectOne('resource_acl', [
 				'resource_id' => (int) $login_page['node_id'],

@@ -115,7 +115,10 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	private function ensureLoginPages(): void
 	{
-		$page_id = $this->ensureWebpage('/', 'login.html', 'admin_login');
+		$login_layout = 'admin_login';
+		$page_id = $this->ensureWebpage('/', 'login.html', $login_layout);
+		// Older installs may already have /login.html with the previous admin layout.
+		ResourceTreeHandler::updateResourceTreeEntry(['layout' => $login_layout], $page_id);
 		$this->ensureLoginAclBaseline($page_id);
 		$connection_id = $this->ensureWidget($page_id, WidgetList::FORM, false);
 
