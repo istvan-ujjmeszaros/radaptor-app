@@ -9,7 +9,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	public function getVersion(): string
 	{
-		return '1.10.1';
+		return '1.10.2';
 	}
 
 	public function getDescription(): string
