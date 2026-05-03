@@ -720,6 +720,57 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'jstree_roles_ajax.load\')',
 			],
 		],
+		'layout:usage' => [
+			'event_name' => 'layout.usage',
+			'group' => 'CMS Consistency',
+			'name' => 'Find layout usage',
+			'summary' => 'Finds webpages that use a layout.',
+			'description' => 'Returns pages using the requested layout, or layout usage counts when no layout is supplied.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'layout',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Layout id to inspect. Omit to return counts for all layouts.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns layout usage count and page references.',
+			],
+			'authorization' => [
+				'visibility' => 'system developers',
+				'description' => 'Requires the system_developer role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.layout.usage',
+				'risk' => 'read',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventLayoutUsage',
+			'slug' => 'layout:usage',
+			'route' => [
+				'event_name' => 'layout.usage',
+				'context' => 'layout',
+				'event' => 'usage',
+				'query' => '?context=layout&event=usage',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'layout.usage\')',
+				'template_helper' => 'event_url(\'layout.usage\')',
+				'ajax_helper' => 'ajax_url(\'layout.usage\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'layout.usage\')',
+			],
+		],
 		'mcp:token-create' => [
 			'event_name' => 'mcp.token-create',
 			'group' => 'MCP',
@@ -1114,6 +1165,65 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'resource.create_folder\')',
 			],
 		],
+		'resource:file_usage' => [
+			'event_name' => 'resource.file_usage',
+			'group' => 'CMS Consistency',
+			'name' => 'Find uploaded file usage',
+			'summary' => 'Finds virtual filesystem resources that reference an uploaded file.',
+			'description' => 'Accepts either a media container file_id or a virtual filesystem file path and returns every resource_tree file node that links to the same uploaded file.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'file_id',
+						'source' => 'query',
+						'type' => 'int',
+						'required' => false,
+						'description' => 'Media container file id. Required when path is omitted.',
+					],
+					1 => [
+						'name' => 'path',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Virtual filesystem file path. Required when file_id is omitted.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns uploaded file metadata and VFS resource references.',
+			],
+			'authorization' => [
+				'visibility' => 'system developers',
+				'description' => 'Requires the system_developer role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.resource.file_usage',
+				'risk' => 'read',
+			],
+			'notes' => [
+				0 => 'This checks VFS-to-media-container references, not free-text HTML links.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventResourceFileUsage',
+			'slug' => 'resource:file_usage',
+			'route' => [
+				'event_name' => 'resource.file_usage',
+				'context' => 'resource',
+				'event' => 'file_usage',
+				'query' => '?context=resource&event=file_usage',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'resource.file_usage\')',
+				'template_helper' => 'event_url(\'resource.file_usage\')',
+				'ajax_helper' => 'ajax_url(\'resource.file_usage\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'resource.file_usage\')',
+			],
+		],
 		'resource:import_file' => [
 			'event_name' => 'resource.import_file',
 			'group' => 'CMS Authoring',
@@ -1185,6 +1295,123 @@ return [
 				'template_helper' => 'event_url(\'resource.import_file\')',
 				'ajax_helper' => 'ajax_url(\'resource.import_file\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'resource.import_file\')',
+			],
+		],
+		'resource:import_files' => [
+			'event_name' => 'resource.import_files',
+			'group' => 'CMS Authoring',
+			'name' => 'Import files into resource tree',
+			'summary' => 'Imports multiple readable migration-source files into one CMS resource folder.',
+			'description' => 'Batch wrapper around resource.import_file. Each file is copied from an explicitly mounted migration source into the media container and created or replaced in the target resource folder.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'target_folder',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Target resource folder path.',
+					],
+					1 => [
+						'name' => 'files',
+						'source' => 'body',
+						'type' => 'json-array',
+						'required' => true,
+						'description' => 'List of file specs with source_path, resource_name, and optional title.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns one result entry per imported file.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires create permission for new files and edit permission when replacing existing files.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.resource.import_files',
+				'risk' => 'write',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+				0 => 'Creates media-container file rows and creates or updates resource_tree file entries.',
+			],
+			'class' => 'EventResourceImportFiles',
+			'slug' => 'resource:import_files',
+			'route' => [
+				'event_name' => 'resource.import_files',
+				'context' => 'resource',
+				'event' => 'import_files',
+				'query' => '?context=resource&event=import_files',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'resource.import_files\')',
+				'template_helper' => 'event_url(\'resource.import_files\')',
+				'ajax_helper' => 'ajax_url(\'resource.import_files\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'resource.import_files\')',
+			],
+		],
+		'resource:list' => [
+			'event_name' => 'resource.list',
+			'group' => 'CMS Authoring',
+			'name' => 'List resource tree entries',
+			'summary' => 'Lists direct or recursive CMS resource children below a path.',
+			'description' => 'Returns resource tree entries visible to the current user. Recursive mode walks folder descendants through ResourceTreeHandler, preserving resource ACL checks.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Resource path, defaults to /.',
+					],
+					1 => [
+						'name' => 'recursive',
+						'source' => 'query',
+						'type' => 'bool',
+						'required' => false,
+						'description' => 'Whether to include descendants recursively.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns visible resource entries.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires list permission on the requested resource.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.resource.list',
+				'risk' => 'read',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventResourceList',
+			'slug' => 'resource:list',
+			'route' => [
+				'event_name' => 'resource.list',
+				'context' => 'resource',
+				'event' => 'list',
+				'query' => '?context=resource&event=list',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'resource.list\')',
+				'template_helper' => 'event_url(\'resource.list\')',
+				'ajax_helper' => 'ajax_url(\'resource.list\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'resource.list\')',
 			],
 		],
 		'resource:view' => [
@@ -1300,6 +1527,54 @@ return [
 				'template_helper' => 'event_url(\'richtext.upsert\')',
 				'ajax_helper' => 'ajax_url(\'richtext.upsert\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'richtext.upsert\')',
+			],
+		],
+		'runtime:diagnostics' => [
+			'event_name' => 'runtime.diagnostics',
+			'group' => 'Runtime',
+			'name' => 'Show runtime diagnostics',
+			'summary' => 'Returns curated, redacted runtime diagnostics for developers.',
+			'description' => 'Exposes safe effective runtime state without dumping raw config or secrets.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns grouped environment, email, database, Redis, MCP, package, and warning data.',
+			],
+			'authorization' => [
+				'visibility' => 'role:system_developer',
+				'description' => 'Requires the system developer role.',
+			],
+			'notes' => [
+				0 => 'No raw full config dump is exposed.',
+				1 => 'Secret-like values and DSN credentials are redacted.',
+			],
+			'side_effects' => [
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.runtime.diagnostics',
+				'risk' => 'read',
+				'idempotent' => true,
+				'open_world' => false,
+			],
+			'class' => 'EventRuntimeDiagnostics',
+			'slug' => 'runtime:diagnostics',
+			'route' => [
+				'event_name' => 'runtime.diagnostics',
+				'context' => 'runtime',
+				'event' => 'diagnostics',
+				'query' => '?context=runtime&event=diagnostics',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'runtime.diagnostics\')',
+				'template_helper' => 'event_url(\'runtime.diagnostics\')',
+				'ajax_helper' => 'ajax_url(\'runtime.diagnostics\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'runtime.diagnostics\')',
 			],
 		],
 		'sitemap:xml' => [
@@ -1625,6 +1900,57 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'webpage.create\')',
 			],
 		],
+		'webpage:export_spec' => [
+			'event_name' => 'webpage.export_spec',
+			'group' => 'CMS Authoring',
+			'name' => 'Export webpage spec',
+			'summary' => 'Exports one webpage as an idempotent authoring spec.',
+			'description' => 'Returns the same structured webpage spec shape accepted by webpage.create/update so agents can verify migrated CMS state.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'path',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Webpage path.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns the webpage spec.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires view permission on the webpage.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.webpage.export_spec',
+				'risk' => 'read',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventWebpageExportSpec',
+			'slug' => 'webpage:export_spec',
+			'route' => [
+				'event_name' => 'webpage.export_spec',
+				'context' => 'webpage',
+				'event' => 'export_spec',
+				'query' => '?context=webpage&event=export_spec',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'webpage.export_spec\')',
+				'template_helper' => 'event_url(\'webpage.export_spec\')',
+				'ajax_helper' => 'ajax_url(\'webpage.export_spec\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'webpage.export_spec\')',
+			],
+		],
 		'webpage:info' => [
 			'event_name' => 'webpage.info',
 			'group' => 'CMS Authoring',
@@ -1899,6 +2225,88 @@ return [
 				'template_helper' => 'event_url(\'widget.sync\')',
 				'ajax_helper' => 'ajax_url(\'widget.sync\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'widget.sync\')',
+			],
+		],
+		'widget:update' => [
+			'event_name' => 'widget.update',
+			'group' => 'CMS Authoring',
+			'name' => 'Update widget connection',
+			'summary' => 'Updates one widget connection by id.',
+			'description' => 'Updates a widget connection slot, sequence, attributes, and settings. Attribute and setting objects replace the existing values when provided.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'connection_id',
+						'source' => 'body',
+						'type' => 'int',
+						'required' => true,
+						'description' => 'Widget connection id.',
+					],
+					1 => [
+						'name' => 'slot',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Target slot name. Omit to keep the current slot.',
+					],
+					2 => [
+						'name' => 'seq',
+						'source' => 'body',
+						'type' => 'int',
+						'required' => false,
+						'description' => 'Target sequence. Omit to keep the current sequence.',
+					],
+					3 => [
+						'name' => 'attributes',
+						'source' => 'body',
+						'type' => 'json-object',
+						'required' => false,
+						'description' => 'Connection attributes to replace. Omit to leave attributes unchanged.',
+					],
+					4 => [
+						'name' => 'settings',
+						'source' => 'body',
+						'type' => 'json-object',
+						'required' => false,
+						'description' => 'Connection settings to replace. Omit to leave settings unchanged.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns the updated widget connection snapshot in data.connection.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires edit permission on the webpage that owns the widget connection.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.widget.update',
+				'risk' => 'write',
+			],
+			'notes' => [
+				0 => 'Moving a widget to another slot or sequence recreates the widget connection and returns replaced_connection_id.',
+			],
+			'side_effects' => [
+				0 => 'Updates widget_connections placement when slot or sequence is provided.',
+				1 => 'Replaces widget connection attributes and settings when those objects are provided.',
+			],
+			'class' => 'EventWidgetUpdate',
+			'slug' => 'widget:update',
+			'route' => [
+				'event_name' => 'widget.update',
+				'context' => 'widget',
+				'event' => 'update',
+				'query' => '?context=widget&event=update',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'widget.update\')',
+				'template_helper' => 'event_url(\'widget.update\')',
+				'ajax_helper' => 'ajax_url(\'widget.update\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'widget.update\')',
 			],
 		],
 		'widget:urls' => [

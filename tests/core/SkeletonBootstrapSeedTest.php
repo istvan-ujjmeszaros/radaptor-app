@@ -88,6 +88,9 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 				new AttributeResourceIdentifier(ResourceNames::WIDGET_CONNECTION, (string) $form_connection_id)
 			);
 			$this->assertSame(FormList::USERLOGIN, $form_attributes['form_id'] ?? null);
+			$this->assertSame('auto', $form_attributes['margin-left'] ?? null);
+			$this->assertSame('auto', $form_attributes['margin-right'] ?? null);
+			$this->assertSame('min(100%, 28rem)', $form_attributes['width'] ?? null);
 			$this->assertStringNotContainsString('/login/', (string) ($homepage_settings['content'] ?? ''));
 
 			foreach ([

@@ -55,6 +55,26 @@ final class McpJsonRpcRouterTest extends TransactionedTestCase
 		];
 	}
 
+	private function bearerForUser(string $username, string $token_name): string
+	{
+		$user = User::getUserByName($username);
+		$this->assertNotNull($user, "{$username} fixture must be present");
+
+		return (string) McpTokenService::createToken((int) $user['user_id'], $token_name)['token'];
+	}
+
+	private function loginPageFixture(): array
+	{
+		$page = DbHelper::selectOne('resource_tree', [
+			'path' => '/',
+			'resource_name' => 'login.html',
+			'node_type' => 'webpage',
+		]);
+		$this->assertIsArray($page, 'login.html fixture page must be present');
+
+		return $page;
+	}
+
 	public function testParseErrorReturnsMinus32700(): void
 	{
 		$result = (new McpJsonRpcRouter())->handle('not-json', $this->defaultHeaders(), []);
@@ -229,6 +249,13 @@ final class McpJsonRpcRouterTest extends TransactionedTestCase
 			$this->assertTrue($webpage_info['annotations']['readOnlyHint']);
 			$this->assertFalse($webpage_info['annotations']['destructiveHint']);
 		}
+
+		$this->assertArrayHasKey('radaptor.layout.usage', $by_name);
+		$this->assertTrue($by_name['radaptor.layout.usage']['annotations']['readOnlyHint']);
+		$this->assertFalse($by_name['radaptor.layout.usage']['annotations']['destructiveHint']);
+		$this->assertArrayHasKey('radaptor.resource.file_usage', $by_name);
+		$this->assertTrue($by_name['radaptor.resource.file_usage']['annotations']['readOnlyHint']);
+		$this->assertFalse($by_name['radaptor.resource.file_usage']['annotations']['destructiveHint']);
 	}
 
 	public function testToolsCallMissingRequiredArgumentReturnsIsError(): void
@@ -263,9 +290,7 @@ final class McpJsonRpcRouterTest extends TransactionedTestCase
 	{
 		// Use the seeded admin user for a stable logged-in principal. widget.urls
 		// does not require a seeded resource path when the widget has no placements.
-		$admin = User::getUserByName('admin_developer');
-		$this->assertNotNull($admin, 'admin_developer fixture must be present');
-		$admin_token = (string) McpTokenService::createToken((int) $admin['user_id'], 'router-success')['token'];
+		$admin_token = $this->bearerForUser('admin_developer', 'router-success');
 
 		$body = json_encode([
 			'jsonrpc' => '2.0',
@@ -296,6 +321,140 @@ final class McpJsonRpcRouterTest extends TransactionedTestCase
 		$this->assertSame('text', $json_block['type']);
 		$decoded = json_decode($json_block['text'], true);
 		$this->assertSame($structured, $decoded);
+	}
+
+	public function testWidgetUpdateToolUpdatesConnectionAttributesThroughMcp(): void
+	{
+		$admin_token = $this->bearerForUser('admin_developer', 'router-widget-update');
+
+		$login_page = $this->loginPageFixture();
+		$connection_id = Widget::getWidgetConnectionId((int) $login_page['node_id'], 'content', WidgetList::FORM);
+		$this->assertIsInt($connection_id);
+
+		$body = json_encode([
+			'jsonrpc' => '2.0',
+			'id' => 1,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.widget.update',
+				'arguments' => [
+					'connection_id' => $connection_id,
+					'attributes' => [
+						'form_id' => FormList::USERLOGIN,
+						'width' => 'min(100%, 28rem)',
+						'margin-left' => 'auto',
+						'margin-right' => 'auto',
+					],
+				],
+			],
+		], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+		$headers = $this->defaultHeaders();
+		$headers['Authorization'] = 'Bearer ' . $admin_token;
+		$result = (new McpJsonRpcRouter())->handle($body, $headers, []);
+
+		$this->assertSame(200, $result['status']);
+		$response = json_decode($result['body'], true);
+		$this->assertIsArray($response);
+		$this->assertFalse($response['result']['isError'] ?? false, 'expected success, got: ' . $result['body']);
+
+		$connection = $response['result']['structuredContent']['data']['connection'] ?? null;
+		$this->assertIsArray($connection);
+		$this->assertSame($connection_id, $connection['connection_id']);
+		$this->assertSame(FormList::USERLOGIN, $connection['attributes']['form_id'] ?? null);
+		$this->assertSame('min(100%, 28rem)', $connection['attributes']['width'] ?? null);
+		$this->assertSame('auto', $connection['attributes']['margin-left'] ?? null);
+
+		$tools = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 2,
+			'method' => 'tools/list',
+		])['result']['tools'] ?? [];
+		$by_name = [];
+
+		foreach ($tools as $tool) {
+			$by_name[$tool['name']] = $tool;
+		}
+
+		$this->assertArrayHasKey('radaptor.widget.update', $by_name);
+		$this->assertFalse($by_name['radaptor.widget.update']['annotations']['readOnlyHint']);
+	}
+
+	public function testWidgetUpdateToolDeniesUserWithoutOwningPageEditAccess(): void
+	{
+		$login_page = $this->loginPageFixture();
+		$connection_id = Widget::getWidgetConnectionId((int) $login_page['node_id'], 'content', WidgetList::FORM);
+		$this->assertIsInt($connection_id);
+
+		$response = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 1,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.widget.update',
+				'arguments' => [
+					'connection_id' => $connection_id,
+					'attributes' => [
+						'form_id' => FormList::USERLOGIN,
+					],
+				],
+			],
+		]);
+
+		$this->assertTrue($response['result']['isError'] ?? false);
+		$this->assertSame('authorization_denied', $response['result']['structuredContent']['error_code'] ?? null);
+	}
+
+	public function testConsistencyToolsRequireDeveloperAndReturnUsageData(): void
+	{
+		$denied = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 1,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.layout.usage',
+				'arguments' => ['layout' => 'admin_login'],
+			],
+		]);
+		$this->assertTrue($denied['result']['isError'] ?? false);
+		$this->assertSame('authorization_denied', $denied['result']['structuredContent']['error_code'] ?? null);
+
+		$admin_token = $this->bearerForUser('admin_developer', 'router-consistency-usage');
+		$admin_headers = ['Authorization' => 'Bearer ' . $admin_token];
+
+		$layout = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 2,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.layout.usage',
+				'arguments' => ['layout' => 'admin_login'],
+			],
+		], $admin_headers);
+		$this->assertFalse($layout['result']['isError'] ?? false);
+		$layout_data = $layout['result']['structuredContent']['data'] ?? null;
+		$this->assertIsArray($layout_data);
+		$this->assertSame('admin_login', $layout_data['layout'] ?? null);
+		$this->assertTrue($layout_data['in_use'] ?? false);
+		$this->assertGreaterThanOrEqual(1, $layout_data['count'] ?? 0);
+		$login_page = $this->loginPageFixture();
+		$this->assertContains((int) $login_page['node_id'], array_column($layout_data['pages'], 'page_id'));
+
+		$file_usage = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 3,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.resource.file_usage',
+				'arguments' => ['file_id' => 987654321],
+			],
+		], $admin_headers);
+		$this->assertFalse($file_usage['result']['isError'] ?? false);
+		$file_data = $file_usage['result']['structuredContent']['data'] ?? null;
+		$this->assertIsArray($file_data);
+		$this->assertSame(987654321, $file_data['file_id'] ?? null);
+		$this->assertFalse($file_data['file_exists'] ?? true);
+		$this->assertFalse($file_data['referenced_by_vfs'] ?? true);
+		$this->assertSame([], $file_data['resources'] ?? null);
 	}
 
 	public function testToolsCallUnknownToolStaysProtocolErrorWithMinus32602(): void

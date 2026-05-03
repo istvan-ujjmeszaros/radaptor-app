@@ -104,3 +104,10 @@ Example:
 - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T php bash -lc 'cd /workspace/packages-dev/core/cms && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
 - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c /workspace/packages-dev/core/framework/phpstan.neon`
 - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c /workspace/packages-dev/core/cms/phpstan.neon`
+
+## Admin/Login Browser Checks
+
+- For admin or login visual bugs, open the exact reported URL in a clean logged-out Playwright session first. Do not replace it with `/admin/index.html`, `/login.html`, a different port, or the default app URL.
+- Confirm which compose project owns the port and whether `radaptor.local.json` package-dev overrides are active before editing framework/CMS/theme files.
+- ACL-protected admin URLs may render the configured login page at the same URL with HTTP 403 for anonymous users. That 403 is expected login fallback behavior unless it remains after logging in with an authorized user.
+- The fallback login output comes from the configured login webpage, usually `/login.html`, and that page's own layout/widgets. Use `./radaptor.sh webpage:info /login.html --json` before assuming the layout is `admin_empty`; it may be `admin_nomenu` or another configured layout.
