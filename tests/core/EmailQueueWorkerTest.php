@@ -8,7 +8,8 @@ final class EmailQueueWorkerTest extends TransactionedTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		TestHelperEnvironment::setEnvironmentVariable('APP_DOMAIN_CONTEXT', 'tracker.virtuosoft.hu');
+		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_SITE_CONTEXT', 'app');
+		TestHelperEnvironment::setEnvironmentVariable('APP_DOMAIN_CONTEXT', 'app');
 	}
 
 	#[\Override]
@@ -16,6 +17,7 @@ final class EmailQueueWorkerTest extends TransactionedTestCase
 	{
 		EmailSmtpTransport::setTestSender(null);
 		TestHelperEnvironment::revertEnvironmentVariable('APP_DOMAIN_CONTEXT');
+		TestHelperEnvironment::revertEnvironmentVariable('RADAPTOR_SITE_CONTEXT');
 		parent::tearDown();
 	}
 

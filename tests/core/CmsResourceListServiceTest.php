@@ -78,7 +78,7 @@ final class CmsResourceListServiceTest extends TestCase
 
 	private function ensureDomainRoot(): int
 	{
-		$domain = Config::APP_DOMAIN_CONTEXT->value();
+		$domain = ResourceTreeHandler::getActiveDomainContext();
 		$existing_root_id = ResourceTreeHandler::getDomainRoot($domain);
 
 		if ($existing_root_id !== null) {
