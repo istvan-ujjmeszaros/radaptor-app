@@ -263,4 +263,20 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$this->assertStringContainsString('bootstrap.bundle.min.js', $js);
 		$this->assertStringNotContainsString('/assets/packages/themes/so-admin/', $css . $js);
 	}
+
+	public function testSoAdminInlineFormDependenciesRenderInHead(): void
+	{
+		$renderer = new HtmlTreeRenderer(theme: ThemeBase::factory('SoAdmin'));
+		$renderer->registerLibrary('__ADMIN_SITE');
+		$renderer->registerLibrary('TIPPY');
+
+		$top_js = $renderer->getJsTop();
+		$bottom_js = $renderer->getJs();
+
+		$this->assertStringContainsString('jquery.min.js', $top_js);
+		$this->assertStringContainsString('jquery-ui.min.js', $top_js);
+		$this->assertStringContainsString('tippy-bundle.umd.min.js', $top_js);
+		$this->assertStringNotContainsString('jquery-ui.min.js', $bottom_js);
+		$this->assertStringNotContainsString('tippy-bundle.umd.min.js', $bottom_js);
+	}
 }
