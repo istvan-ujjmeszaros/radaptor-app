@@ -375,6 +375,32 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 		$this->assertIsArray(CmsPathHelper::resolveResource('/login.html'));
 	}
 
+	public function testResourceTreeSpecSyncCanManageProtectedSystemResources(): void
+	{
+		$this->runBootstrapSeedForSpecTests();
+
+		$spec = [
+			'version' => 1,
+			'root' => '/admin/',
+			'resources' => [
+				[
+					'type' => 'webpage',
+					'path' => '/admin/repo-spec-protected.html',
+					'layout' => 'admin_default',
+					'attributes' => [
+						'title' => 'Protected repo spec page',
+					],
+				],
+			],
+		];
+
+		$result = CmsResourceTreeSpecService::syncSpec($spec, false);
+		$this->assertSame('success', $result['status']);
+
+		$page = CmsResourceSpecService::exportWebpageSpec('/admin/repo-spec-protected.html');
+		$this->assertSame('Protected repo spec page', $page['attributes']['title'] ?? null);
+	}
+
 	public function testResourceTreeSpecDiffConflictsWhenManagedResourceChangedManually(): void
 	{
 		$this->runBootstrapSeedForSpecTests();

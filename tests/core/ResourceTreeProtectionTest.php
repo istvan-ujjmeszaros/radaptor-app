@@ -105,6 +105,25 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		ResourceTreeHandler::moveResourceEntryToPosition($temp_id, (int) $admin['node_id'], 0);
 	}
 
+	public function testGenericResourceCannotBeMovedToProtectedRootPath(): void
+	{
+		$root = CmsPathHelper::resolveFolder('/');
+		$this->assertIsArray($root);
+
+		$temp_id = ResourceTreeHandler::createResourceTreeEntryFromPath(
+			'/protected-move-container/',
+			'login.html',
+			'webpage',
+			'public_default'
+		);
+		$this->assertIsInt($temp_id);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('protected system resource path');
+
+		ResourceTreeHandler::moveResourceEntryToPosition($temp_id, (int) $root['node_id'], 0);
+	}
+
 	public function testProtectedMutationBypassAllowsSystemOwnedMaintenance(): void
 	{
 		$login = CmsPathHelper::resolveResource('/login.html');
