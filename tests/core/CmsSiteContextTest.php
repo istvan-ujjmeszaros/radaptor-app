@@ -131,6 +131,24 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		$this->assertIsArray($response['data'][0]['children'] ?? null);
 	}
 
+	public function testResourceTreeLoadReturnsStructuredErrorForAmbiguousSiteRoots(): void
+	{
+		TestHelperEnvironment::setEnvironmentVariable('APP_SITE_HOST_ALIASES', '');
+
+		$folder_id = ResourceTreeHandler::createFolderFromPath('/other-content/', 'other');
+		$this->assertIsInt($folder_id);
+
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxLoad(), [
+			'id' => '#',
+			'id_prefix' => 'jstree_resources_test',
+			'shape_template' => JsTreeApiService::TEMPLATE_JSTREE_3,
+		]);
+
+		$this->assertFalse($response['ok'] ?? true);
+		$this->assertSame('ROOT_RESOLUTION_FAILED', $response['error']['code'] ?? null);
+		$this->assertStringContainsString('Multiple populated CMS site roots', $response['error']['message'] ?? '');
+	}
+
 	/**
 	 * @return array<string, mixed>
 	 */
