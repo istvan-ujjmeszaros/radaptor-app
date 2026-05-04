@@ -1557,8 +1557,8 @@ return [
 						'name' => 'title',
 						'source' => 'body',
 						'type' => 'string',
-						'required' => true,
-						'description' => 'Human-readable RichText title.',
+						'required' => false,
+						'description' => 'Human-readable RichText title. Leave empty when the rendered widget should not show a heading.',
 					],
 					2 => [
 						'name' => 'content',

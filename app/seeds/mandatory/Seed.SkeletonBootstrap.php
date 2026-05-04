@@ -9,7 +9,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	public function getVersion(): string
 	{
-		return '1.10.2';
+		return '1.10.5';
 	}
 
 	public function getDescription(): string
@@ -19,15 +19,17 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	public function run(SeedContext $context): void
 	{
-		Cache::flush();
-		$this->_cms = new CmsSeedHelper($context);
+		ResourceTreeHandler::withProtectedResourceMutationBypass(function () use ($context): void {
+			Cache::flush();
+			$this->_cms = new CmsSeedHelper($context);
 
-		$this->ensureSecurityBaseline();
-		$this->ensureBootstrapAdmin();
-		$this->ensureHomepage();
-		$this->ensureAdminIndex();
-		$this->ensureLoginPages();
-		$this->ensureAdminPages();
+			$this->ensureSecurityBaseline();
+			$this->ensureBootstrapAdmin();
+			$this->ensureHomepage();
+			$this->ensureAdminIndex();
+			$this->ensureLoginPages();
+			$this->ensureAdminPages();
+		});
 	}
 
 	private function ensureBootstrapAdmin(): void
@@ -74,8 +76,14 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	private function ensureHomepage(): void
 	{
+		$existing_page = ResourceTreeHandler::getResourceTreeEntryData('/', 'index.html');
 		$page_id = $this->ensureWebpage('/', 'index.html', 'public_empty');
 		$this->ensureRootAclBaseline();
+
+		if ($existing_page !== null && WidgetConnection::getWidgetsForSlot($page_id, ResourceTypeWebpage::DEFAULT_SLOT_NAME) !== []) {
+			return;
+		}
+
 		$connection_id = $this->ensureWidget($page_id, WidgetList::PLAINHTML);
 
 		PlainHtml::saveSettings([
@@ -145,7 +153,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 			FormList::USER,
 			FormList::USERGROUP,
 		] as $form_id) {
-			ResourceTypeWebpage::getWebpageIdByFormType($form_id);
+			$this->ensureDefaultFormPage($form_id);
 		}
 
 		foreach ([
@@ -158,8 +166,46 @@ class SeedSkeletonBootstrap extends AbstractSeed
 			WidgetList::I18NWORKBENCH,
 			WidgetList::WIDGETPREVIEW,
 		] as $widget_name) {
-			ResourceTypeWebpage::findWebpageIdWithWidget($widget_name);
+			$this->ensureDefaultWidgetPage($widget_name);
 		}
+
+		foreach ([
+			'MCPTOKENS',
+			'PHPINFOFRAME',
+			'CLIRUNNER',
+			'RUNTIMEDIAGNOSTICS',
+			'TEMPLATEENGINEDEMOPHP',
+			'TEMPLATEENGINEDEMOBLADE',
+			'TEMPLATEENGINEDEMOTWIG',
+		] as $widget_constant) {
+			$constant_name = WidgetList::class . '::' . $widget_constant;
+
+			if (defined($constant_name)) {
+				$this->ensureDefaultWidgetPage((string) constant($constant_name));
+			}
+		}
+	}
+
+	private function ensureDefaultFormPage(string $form_id): int
+	{
+		$page_id = ResourceTypeWebpage::ensureDefaultWebpageWithFormType($form_id);
+
+		if ($page_id === false) {
+			throw new RuntimeException("Unable to ensure default webpage for form {$form_id}");
+		}
+
+		return $page_id;
+	}
+
+	private function ensureDefaultWidgetPage(string $widget_name): int
+	{
+		$page_id = ResourceTypeWebpage::ensureDefaultWebpageWithWidget($widget_name);
+
+		if ($page_id === false) {
+			throw new RuntimeException("Unable to ensure default webpage for widget {$widget_name}");
+		}
+
+		return $page_id;
 	}
 
 	private function ensureWebpage(string $path, string $resource_name, string $layout): int

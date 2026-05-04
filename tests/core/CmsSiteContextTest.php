@@ -179,6 +179,37 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		$this->assertStringContainsString('Multiple populated CMS site roots', $response['error']['message'] ?? '');
 	}
 
+	public function testResourceTreeInitialLoadReturnsSelectableRootNode(): void
+	{
+		$root_id = CmsSiteContext::getCurrentRootId();
+		$this->assertIsInt($root_id);
+
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxLoad(), [
+			'id' => '#',
+			'id_prefix' => 'jstree_resources_test',
+			'shape_template' => JsTreeApiService::TEMPLATE_JSTREE_3,
+		]);
+
+		$this->assertTrue($response['ok'] ?? false);
+		$this->assertSame((string) $root_id, $response['data'][0]['id'] ?? null);
+		$this->assertSame('root', $response['data'][0]['type'] ?? null);
+		$this->assertSame(true, $response['data'][0]['state']['opened'] ?? null);
+		$this->assertSame($root_id, $response['data'][0]['data']['node_id'] ?? null);
+
+		$branch_response = $this->runCapturedEvent(new EventJstreeResourcesAjaxLoad(), [
+			'id' => (string) $root_id,
+			'id_prefix' => 'jstree_resources_test',
+			'shape_template' => JsTreeApiService::TEMPLATE_JSTREE_3,
+		]);
+
+		$this->assertTrue($branch_response['ok'] ?? false);
+		$this->assertIsArray($branch_response['data']);
+
+		if ($branch_response['data'] !== []) {
+			$this->assertNotSame((string) $root_id, $branch_response['data'][0]['id'] ?? null);
+		}
+	}
+
 	/**
 	 * @return array<string, mixed>
 	 */
