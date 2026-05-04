@@ -154,6 +154,58 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'email.send\')',
 			],
 		],
+		'form:status' => [
+			'event_name' => 'form.status',
+			'group' => 'CMS Consistency',
+			'name' => 'Show form status',
+			'summary' => 'Lists registered forms and their URL placement status.',
+			'description' => 'Reports default path metadata, resolved pages, and Form widget placements for registered form types.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'form',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Form type to inspect. Omit to return all forms.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns registered form URL status.',
+			],
+			'authorization' => [
+				'visibility' => 'system developers',
+				'description' => 'Requires the system_developer role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.form.status',
+				'risk' => 'read',
+			],
+			'notes' => [
+				0 => 'This tool is read-only and does not auto-create missing form pages.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventFormStatus',
+			'slug' => 'form:status',
+			'route' => [
+				'event_name' => 'form.status',
+				'context' => 'form',
+				'event' => 'status',
+				'query' => '?context=form&event=status',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'form.status\')',
+				'template_helper' => 'event_url(\'form.status\')',
+				'ajax_helper' => 'ajax_url(\'form.status\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'form.status\')',
+			],
+		],
 		'i18n_ajax:load' => [
 			'event_name' => 'i18n_ajax.load',
 			'group' => 'I18n',
@@ -585,6 +637,51 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'import_export.import\')',
 			],
 		],
+		'integrity:summary' => [
+			'event_name' => 'integrity.summary',
+			'group' => 'CMS Consistency',
+			'name' => 'Show integrity summary',
+			'summary' => 'Summarizes registered layout, form, and widget integrity status.',
+			'description' => 'Returns a read-only CMS integrity summary without creating or repairing content.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns aggregate ok/warning/error counts for integrity checks.',
+			],
+			'authorization' => [
+				'visibility' => 'system developers',
+				'description' => 'Requires the system_developer role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.integrity.summary',
+				'risk' => 'read',
+			],
+			'notes' => [
+				0 => 'This tool is read-only and never repairs content.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventIntegritySummary',
+			'slug' => 'integrity:summary',
+			'route' => [
+				'event_name' => 'integrity.summary',
+				'context' => 'integrity',
+				'event' => 'summary',
+				'query' => '?context=integrity&event=summary',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'integrity.summary\')',
+				'template_helper' => 'event_url(\'integrity.summary\')',
+				'ajax_helper' => 'ajax_url(\'integrity.summary\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'integrity.summary\')',
+			],
+		],
 		'jstree_resources_ajax:load' => [
 			'event_name' => 'jstree_resources_ajax.load',
 			'group' => 'Admin AJAX',
@@ -799,6 +896,58 @@ return [
 				'template_helper' => 'event_url(\'jstree_usergroups_ajax.load\')',
 				'ajax_helper' => 'ajax_url(\'jstree_usergroups_ajax.load\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'jstree_usergroups_ajax.load\')',
+			],
+		],
+		'layout:status' => [
+			'event_name' => 'layout.status',
+			'group' => 'CMS Consistency',
+			'name' => 'Show layout status',
+			'summary' => 'Lists registered layout files and render contract status.',
+			'description' => 'Checks layout templates for required renderer calls and reports explicit contract skips.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'layout',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Layout id to inspect. Omit to return all layout files.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns layout contract status for registered layout files.',
+			],
+			'authorization' => [
+				'visibility' => 'system developers',
+				'description' => 'Requires the system_developer role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.layout.status',
+				'risk' => 'read',
+			],
+			'notes' => [
+				0 => 'This tool is read-only and never repairs layout files.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventLayoutStatus',
+			'slug' => 'layout:status',
+			'route' => [
+				'event_name' => 'layout.status',
+				'context' => 'layout',
+				'event' => 'status',
+				'query' => '?context=layout&event=status',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'layout.status\')',
+				'template_helper' => 'event_url(\'layout.status\')',
+				'ajax_helper' => 'ajax_url(\'layout.status\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'layout.status\')',
 			],
 		],
 		'layout:usage' => [
@@ -2233,6 +2382,58 @@ return [
 				'template_helper' => 'event_url(\'webpage.update\')',
 				'ajax_helper' => 'ajax_url(\'webpage.update\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'webpage.update\')',
+			],
+		],
+		'widget:status' => [
+			'event_name' => 'widget.status',
+			'group' => 'CMS Consistency',
+			'name' => 'Show widget status',
+			'summary' => 'Lists registered widgets and their URL placement status.',
+			'description' => 'Reports default path metadata, resolved pages, and current placements for registered widgets.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'widget',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Widget type to inspect. Omit to return all widgets.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns registered widget URL status.',
+			],
+			'authorization' => [
+				'visibility' => 'system developers',
+				'description' => 'Requires the system_developer role.',
+			],
+			'mcp' => [
+				'enabled' => true,
+				'tool_name' => 'radaptor.widget.status',
+				'risk' => 'read',
+			],
+			'notes' => [
+				0 => 'This tool is read-only and does not auto-create missing widget pages.',
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventWidgetStatus',
+			'slug' => 'widget:status',
+			'route' => [
+				'event_name' => 'widget.status',
+				'context' => 'widget',
+				'event' => 'status',
+				'query' => '?context=widget&event=status',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'widget.status\')',
+				'template_helper' => 'event_url(\'widget.status\')',
+				'ajax_helper' => 'ajax_url(\'widget.status\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'widget.status\')',
 			],
 		],
 		'widget:sync' => [

@@ -256,6 +256,17 @@ final class McpJsonRpcRouterTest extends TransactionedTestCase
 		$this->assertArrayHasKey('radaptor.resource.file_usage', $by_name);
 		$this->assertTrue($by_name['radaptor.resource.file_usage']['annotations']['readOnlyHint']);
 		$this->assertFalse($by_name['radaptor.resource.file_usage']['annotations']['destructiveHint']);
+
+		foreach ([
+			'radaptor.layout.status',
+			'radaptor.form.status',
+			'radaptor.widget.status',
+			'radaptor.integrity.summary',
+		] as $tool_name) {
+			$this->assertArrayHasKey($tool_name, $by_name);
+			$this->assertTrue($by_name[$tool_name]['annotations']['readOnlyHint']);
+			$this->assertFalse($by_name[$tool_name]['annotations']['destructiveHint']);
+		}
 	}
 
 	public function testToolsCallMissingRequiredArgumentReturnsIsError(): void
@@ -455,6 +466,84 @@ final class McpJsonRpcRouterTest extends TransactionedTestCase
 		$this->assertFalse($file_data['file_exists'] ?? true);
 		$this->assertFalse($file_data['referenced_by_vfs'] ?? true);
 		$this->assertSame([], $file_data['resources'] ?? null);
+	}
+
+	public function testIntegrityStatusToolsRequireDeveloperAndReturnReadOnlyData(): void
+	{
+		$denied = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 1,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.integrity.summary',
+				'arguments' => new stdClass(),
+			],
+		]);
+		$this->assertTrue($denied['result']['isError'] ?? false);
+		$this->assertSame('authorization_denied', $denied['result']['structuredContent']['error_code'] ?? null);
+
+		$admin_token = $this->bearerForUser('admin_developer', 'router-integrity-status');
+		$admin_headers = ['Authorization' => 'Bearer ' . $admin_token];
+
+		$layout = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 2,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.layout.status',
+				'arguments' => ['layout' => 'admin_login'],
+			],
+		], $admin_headers);
+		$this->assertFalse($layout['result']['isError'] ?? false);
+		$layout_data = $layout['result']['structuredContent']['data'] ?? null;
+		$this->assertIsArray($layout_data);
+		$this->assertSame('ok', $layout_data['status'] ?? null);
+		$this->assertSame('admin_login', $layout_data['layout'] ?? null);
+
+		$form = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 3,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.form.status',
+				'arguments' => ['form' => FormList::USERLOGIN],
+			],
+		], $admin_headers);
+		$this->assertFalse($form['result']['isError'] ?? false);
+		$form_data = $form['result']['structuredContent']['data'] ?? null;
+		$this->assertIsArray($form_data);
+		$this->assertSame('ok', $form_data['status'] ?? null);
+		$this->assertSame(FormList::USERLOGIN, $form_data['form'] ?? null);
+
+		$widget = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 4,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.widget.status',
+				'arguments' => ['widget' => WidgetList::USERLIST],
+			],
+		], $admin_headers);
+		$this->assertFalse($widget['result']['isError'] ?? false);
+		$widget_data = $widget['result']['structuredContent']['data'] ?? null;
+		$this->assertIsArray($widget_data);
+		$this->assertSame('ok', $widget_data['status'] ?? null);
+		$this->assertSame(WidgetList::USERLIST, $widget_data['widget'] ?? null);
+
+		$summary = $this->call([
+			'jsonrpc' => '2.0',
+			'id' => 5,
+			'method' => 'tools/call',
+			'params' => [
+				'name' => 'radaptor.integrity.summary',
+				'arguments' => new stdClass(),
+			],
+		], $admin_headers);
+		$this->assertFalse($summary['result']['isError'] ?? false);
+		$summary_data = $summary['result']['structuredContent']['data'] ?? null;
+		$this->assertIsArray($summary_data);
+		$this->assertContains($summary_data['status'] ?? null, ['ok', 'warning']);
+		$this->assertSame(['layouts', 'forms', 'widgets'], array_column($summary_data['checks'] ?? [], 'name'));
 	}
 
 	public function testToolsCallUnknownToolStaysProtocolErrorWithMinus32602(): void
