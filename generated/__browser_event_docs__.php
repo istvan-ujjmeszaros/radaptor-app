@@ -690,6 +690,13 @@ return [
 						'required' => false,
 						'description' => 'Optional response shape template override.',
 					],
+					4 => [
+						'name' => 'load_all',
+						'source' => 'query',
+						'type' => 'boolean',
+						'required' => false,
+						'description' => 'When true on the root request, returns the full roles tree with every branch opened unless the tree exceeds the server safety limit.',
+					],
 				],
 			],
 			'response' => [
@@ -718,6 +725,80 @@ return [
 				'template_helper' => 'event_url(\'jstree_roles_ajax.load\')',
 				'ajax_helper' => 'ajax_url(\'jstree_roles_ajax.load\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'jstree_roles_ajax.load\')',
+			],
+		],
+		'jstree_usergroups_ajax:load' => [
+			'event_name' => 'jstree_usergroups_ajax.load',
+			'group' => 'Admin AJAX',
+			'name' => 'Load user groups tree nodes',
+			'summary' => 'Returns jsTree payload for the user groups hierarchy.',
+			'description' => 'Loads one user-groups-tree branch, or the complete expanded tree when requested, for browser-side jsTree rendering.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'node_id',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Preferred node identifier for jsTree 3.x style calls.',
+					],
+					1 => [
+						'name' => 'id',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Fallback node identifier used by some jsTree flows.',
+					],
+					2 => [
+						'name' => 'id_prefix',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional DOM id prefix for generated node ids.',
+					],
+					3 => [
+						'name' => 'shape_template',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional response shape template override.',
+					],
+					4 => [
+						'name' => 'load_all',
+						'source' => 'query',
+						'type' => 'boolean',
+						'required' => false,
+						'description' => 'When true on the root request, returns the full user groups tree with every branch opened unless the tree exceeds the server safety limit.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'json',
+				'content_type' => 'application/json',
+				'description' => 'Returns jsTree node data for the requested user-groups-tree parent.',
+			],
+			'authorization' => [
+				'visibility' => 'role:usergroups_admin',
+				'description' => 'Requires the user groups admin role.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventJstreeUsergroupsAjaxLoad',
+			'slug' => 'jstree_usergroups_ajax:load',
+			'route' => [
+				'event_name' => 'jstree_usergroups_ajax.load',
+				'context' => 'jstree_usergroups_ajax',
+				'event' => 'load',
+				'query' => '?context=jstree_usergroups_ajax&event=load',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'jstree_usergroups_ajax.load\')',
+				'template_helper' => 'event_url(\'jstree_usergroups_ajax.load\')',
+				'ajax_helper' => 'ajax_url(\'jstree_usergroups_ajax.load\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'jstree_usergroups_ajax.load\')',
 			],
 		],
 		'layout:usage' => [

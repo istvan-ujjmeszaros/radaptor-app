@@ -22,7 +22,7 @@ class FixtureResourceTree extends AbstractFixture
 				'rgt' => 174,
 				'parent_id' => 0,
 				'node_type' => 'root',
-				'resource_name' => 'tracker.virtuosoft.hu',
+				'resource_name' => 'app',
 				'catcher_page' => null,
 				'is_inheriting_acl' => 1,
 				'path' => '/',

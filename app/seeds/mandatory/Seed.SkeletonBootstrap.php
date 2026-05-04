@@ -486,7 +486,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	private function ensureRootAclBaseline(): void
 	{
-		$root_id = ResourceTreeHandler::getDomainRoot(Config::APP_DOMAIN_CONTEXT->value());
+		$root_id = ResourceTreeHandler::getDomainRoot(ResourceTreeHandler::getActiveDomainContext());
 
 		if (!is_int($root_id) || $root_id <= 0) {
 			throw new RuntimeException('Domain root not found');
@@ -507,7 +507,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 
 	private function ensureAdminAclBaseline(): void
 	{
-		$admin_folder = ResourceTreeHandler::getResourceTreeEntryData('/', 'admin', Config::APP_DOMAIN_CONTEXT->value());
+		$admin_folder = ResourceTreeHandler::getResourceTreeEntryData('/', 'admin', ResourceTreeHandler::getActiveDomainContext());
 
 		if (!is_array($admin_folder) || ($admin_folder['node_type'] ?? null) !== 'folder') {
 			throw new RuntimeException('Admin folder not found');
