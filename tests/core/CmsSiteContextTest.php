@@ -72,6 +72,36 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		$this->assertStringContainsString('APP_SITE_HOST_ALIASES', $exception->getMessage());
 	}
 
+	public function testHostlessMultiSiteResolveUsesValidConfiguredSiteKey(): void
+	{
+		TestHelperEnvironment::setEnvironmentVariable('APP_SITE_CONTEXT', 'app');
+		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_SITE_CONTEXT', '');
+		TestHelperEnvironment::setEnvironmentVariable('APP_SITE_HOST_ALIASES', '{"app":{"primary":"localhost","aliases":[]},"other":{"primary":"other.local","aliases":[]}}');
+		$this->clearRequestHost();
+
+		$folder_id = ResourceTreeHandler::createFolderFromPath('/other-content/', 'other');
+		$this->assertIsInt($folder_id);
+
+		$this->assertSame('app', CmsSiteContext::resolve());
+	}
+
+	public function testHostlessMultiSiteResolveRejectsInvalidConfiguredSiteKey(): void
+	{
+		TestHelperEnvironment::setEnvironmentVariable('APP_SITE_CONTEXT', 'missing');
+		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_SITE_CONTEXT', '');
+		TestHelperEnvironment::setEnvironmentVariable('APP_SITE_HOST_ALIASES', '{"app":{"primary":"localhost","aliases":[]},"other":{"primary":"other.local","aliases":[]}}');
+		$this->clearRequestHost();
+
+		$folder_id = ResourceTreeHandler::createFolderFromPath('/other-content/', 'other');
+		$this->assertIsInt($folder_id);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('Hostless CMS site context');
+		$this->expectExceptionMessage('missing');
+
+		CmsSiteContext::resolve();
+	}
+
 	public function testSameSiteSeoUrlNeverGeneratesLogicalSiteHost(): void
 	{
 		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_SITE_CONTEXT', 'app');
@@ -181,6 +211,15 @@ final class CmsSiteContextTest extends TransactionedTestCase
 	{
 		$_SERVER['HTTP_HOST'] = $host;
 		RequestContextHolder::current()->SERVER['HTTP_HOST'] = $host;
+		Cache::flush();
+	}
+
+	private function clearRequestHost(): void
+	{
+		$_SERVER['HTTP_HOST'] = '';
+		$_SERVER['SERVER_NAME'] = '';
+		RequestContextHolder::current()->SERVER['HTTP_HOST'] = '';
+		RequestContextHolder::current()->SERVER['SERVER_NAME'] = '';
 		Cache::flush();
 	}
 }
