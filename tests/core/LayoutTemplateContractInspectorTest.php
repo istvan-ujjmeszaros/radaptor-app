@@ -133,6 +133,53 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 		$this->assertContains('getJsTop must be rendered before </head>.', $result['violations']);
 	}
 
+	public function testMissingHeadCloseFailsPlacementContract(): void
+	{
+		$result = LayoutTemplateContractInspector::inspectFile($this->writeLayoutFixture(<<<'PHP'
+			<?php
+			?>
+			<!doctype html>
+			<html>
+			<head>
+				<?= $this->getCss() ?>
+				<?= $this->getJsTop() ?>
+			<body>
+				<?= $this->fetchSlot('page_chrome') ?>
+				<?= $this->getJs() ?>
+				<script>renderSystemMessages();</script>
+				<?= $this->fetchClosingHtml() ?>
+			</body>
+			</html>
+			PHP));
+
+		$this->assertSame('error', $result['status']);
+		$this->assertContains('Layout is missing </head> close tag, cannot enforce script placement.', $result['violations']);
+	}
+
+	public function testRenderSystemMessagesInCommentDoesNotSatisfyContract(): void
+	{
+		$result = LayoutTemplateContractInspector::inspectFile($this->writeLayoutFixture(<<<'PHP'
+			<?php
+			?>
+			<!doctype html>
+			<html>
+			<head>
+				<?= $this->getCss() ?>
+				<?= $this->getJsTop() ?>
+			</head>
+			<body>
+				<?= $this->fetchSlot('page_chrome') ?>
+				<?= $this->getJs() ?>
+				<!-- renderSystemMessages(); -->
+				<?= $this->fetchClosingHtml() ?>
+			</body>
+			</html>
+			PHP));
+
+		$this->assertSame('error', $result['status']);
+		$this->assertContains('renderSystemMessages', $result['missing']);
+	}
+
 	private function writeLayoutFixture(string $source): string
 	{
 		$path = tempnam(sys_get_temp_dir(), 'radaptor_layout_contract_');

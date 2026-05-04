@@ -210,6 +210,38 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		}
 	}
 
+	public function testProtectedResourceMoveReturnsStructuredError(): void
+	{
+		$root_id = CmsSiteContext::getCurrentRootId();
+		$this->assertIsInt($root_id);
+		$login_page = ResourceTreeHandler::getResourceTreeEntryData('/', 'login.html', 'app');
+		$this->assertIsArray($login_page);
+
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxMove(), [
+			'id' => (string) $login_page['node_id'],
+			'ref' => (string) $root_id,
+			'position' => '0',
+		]);
+
+		$this->assertFalse($response['ok'] ?? true);
+		$this->assertSame('OPERATION_FAILED', $response['error']['code'] ?? null);
+		$this->assertStringContainsString('/login.html', $response['meta']['message'] ?? '');
+	}
+
+	public function testProtectedResourceDeleteReturnsStructuredError(): void
+	{
+		$login_page = ResourceTreeHandler::getResourceTreeEntryData('/', 'login.html', 'app');
+		$this->assertIsArray($login_page);
+
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxDeleteRecursive(), [
+			'id' => (string) $login_page['node_id'],
+		]);
+
+		$this->assertFalse($response['ok'] ?? true);
+		$this->assertSame('OPERATION_FAILED', $response['error']['code'] ?? null);
+		$this->assertStringContainsString('/login.html', implode(' ', $response['meta']['messages'] ?? []));
+	}
+
 	/**
 	 * @return array<string, mixed>
 	 */
