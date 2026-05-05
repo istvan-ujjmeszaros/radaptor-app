@@ -71,6 +71,15 @@ Example:
 - Host-side workflow is Git-only. Hooks and helper scripts must dispatch every non-Git check into the supported container; never require host PHP, Composer, Python, php-cs-fixer, or Radaptor CLI.
 - App-local transient QA outputs belong under `tmp/`. Do not leave `playwright-report/`, `test-results/`, proof clones, restore sandboxes, or scratch verification directories at repo root.
 
+## Runtime Response & Message Rules
+
+- New or touched runtime/user-facing messages must use i18n keys through `t()`. Do not hardcode visible message text in PHP, templates, JavaScript, CLI/API payloads, `SystemMessages`, or `ApiError` messages.
+- Service/model/form code must not write `SystemMessages` in new or touched code. API, JSON, HTMX, MCP, CLI-web, and other non-HTML flows must return structured response data or headers instead of session messages.
+- Full-page classic web events may temporarily map service Result values to `SystemMessages` at the call site only.
+- Use `Request::wantsNonHtmlResponse()` for response-family detection. Do not hand-read `HTTP_ACCEPT`, `HTTP_X_REQUESTED_WITH`, or `HTTP_HX_REQUEST`, and do not add query-parameter fallbacks such as `ajax=1`.
+- When touching framework/CMS PHP files that can inspect response-family headers, add them to the relevant `phpstan.neon` `paths` entry so the response-detection rule checks them.
+- `ApiError` may be used as a domain/service Result value object; `ApiResponse` remains the boundary renderer.
+
 ## Worktree Isolation Rule
 
 - Git worktrees must stay registry-first. Do not commit first-party `dev` sources in `radaptor.json`.
@@ -102,8 +111,8 @@ Example:
 - `docker compose -f docker-compose-dev.yml exec -T php bash -lc 'cd /app && ./php-cs-fixer.sh --config=.php-cs-fixer.php'`
 - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T php bash -lc 'cd /workspace/packages-dev/core/framework && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
 - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T php bash -lc 'cd /workspace/packages-dev/core/cms && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
-- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c /workspace/packages-dev/core/framework/phpstan.neon`
-- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c /workspace/packages-dev/core/cms/phpstan.neon`
+- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/framework/phpstan.neon`
+- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`
 
 ## Admin/Login Browser Checks
 

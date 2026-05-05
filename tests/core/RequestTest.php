@@ -54,6 +54,41 @@ class RequestTest extends TestCase
 		}
 	}
 
+	public function testWantsNonHtmlResponseDetectsJsonAcceptHeader(): void
+	{
+		RequestContextHolder::initializeRequest(server: ['HTTP_ACCEPT' => 'application/json']);
+
+		$this->assertTrue(Request::wantsNonHtmlResponse());
+	}
+
+	public function testWantsNonHtmlResponseDetectsAjaxHeader(): void
+	{
+		RequestContextHolder::initializeRequest(server: ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest']);
+
+		$this->assertTrue(Request::wantsNonHtmlResponse());
+	}
+
+	public function testWantsNonHtmlResponseDetectsHtmxHeader(): void
+	{
+		RequestContextHolder::initializeRequest(server: ['HTTP_HX_REQUEST' => 'true']);
+
+		$this->assertTrue(Request::wantsNonHtmlResponse());
+	}
+
+	public function testWantsNonHtmlResponseIsFalseForHtmlRequest(): void
+	{
+		RequestContextHolder::initializeRequest(server: ['HTTP_ACCEPT' => 'text/html']);
+
+		$this->assertFalse(Request::wantsNonHtmlResponse());
+	}
+
+	public function testWantsNonHtmlResponseIgnoresAjaxQueryParameter(): void
+	{
+		RequestContextHolder::initializeRequest(get: ['ajax' => '1']);
+
+		$this->assertFalse(Request::wantsNonHtmlResponse());
+	}
+
 	// =========================================================================
 	// _GET() Tests
 	// =========================================================================

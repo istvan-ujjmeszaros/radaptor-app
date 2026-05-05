@@ -27,8 +27,8 @@ final class MigrationContentGuardRuntimeTest extends TestCase
 				ResourceTreeHandler::deleteResourceEntry($this->resource_id);
 			}
 		} finally {
-			if (is_string($this->migration_path) && $this->migration_path !== '') {
-				@unlink($this->migration_path);
+			if (is_string($this->migration_path) && $this->migration_path !== '' && file_exists($this->migration_path)) {
+				unlink($this->migration_path);
 			}
 
 			User::logout();
@@ -68,5 +68,37 @@ final class MigrationContentGuardRuntimeTest extends TestCase
 
 		Cache::flush();
 		$this->assertIsArray(ResourceTreeHandler::getResourceTreeEntryDataById($this->resource_id));
+	}
+
+	public function testMigrationContentGuardScansBeforeEvaluatingMigrationSource(): void
+	{
+		$suffix = 'guard_pre_eval_' . bin2hex(random_bytes(4));
+		$filename = '20260505_000001_' . $suffix . '.php';
+		$class_name = 'Migration_20260505_000001_' . $suffix;
+		$marker_path = sys_get_temp_dir() . '/radaptor_migration_eval_marker_' . bin2hex(random_bytes(4));
+		$this->migration_path = sys_get_temp_dir() . '/' . $filename;
+		$marker_export = var_export($marker_path, true);
+		$source = "<?php\n"
+			. "file_put_contents({$marker_export}, 'evaluated');\n"
+			. "class {$class_name}\n"
+			. "{\n"
+			. "\tpublic function run(): void\n"
+			. "\t{\n"
+			. "\t\tDb::instance()->exec('DELETE FROM resource_tree WHERE node_id = -1');\n"
+			. "\t}\n"
+			. "}\n";
+		file_put_contents($this->migration_path, $source);
+
+		try {
+			$result = MigrationRunner::runMigration($this->migration_path, 'app');
+
+			$this->assertFalse($result['success']);
+			$this->assertStringContainsString('not allowed to delete CMS resources', $result['message']);
+			$this->assertFileDoesNotExist($marker_path);
+		} finally {
+			if (file_exists($marker_path)) {
+				unlink($marker_path);
+			}
+		}
 	}
 }

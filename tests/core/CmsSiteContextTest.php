@@ -224,7 +224,7 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		]);
 
 		$this->assertFalse($response['ok'] ?? true);
-		$this->assertSame('OPERATION_FAILED', $response['error']['code'] ?? null);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $response['error']['code'] ?? null);
 		$this->assertStringContainsString('/login.html', $response['meta']['message'] ?? '');
 	}
 
@@ -238,7 +238,7 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		]);
 
 		$this->assertFalse($response['ok'] ?? true);
-		$this->assertSame('OPERATION_FAILED', $response['error']['code'] ?? null);
+		$this->assertSame('RESOURCE_DELETE_FAILED', $response['error']['code'] ?? null);
 		$this->assertStringContainsString('/login.html', implode(' ', $response['meta']['messages'] ?? []));
 	}
 

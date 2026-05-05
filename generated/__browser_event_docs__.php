@@ -590,25 +590,18 @@ return [
 						'description' => 'When set to 1, perform a dry run.',
 					],
 					3 => [
-						'name' => 'ajax',
-						'source' => 'body',
-						'type' => 'string',
-						'required' => false,
-						'description' => 'When set to 1, force JSON output.',
-					],
-					4 => [
 						'name' => 'referer',
 						'source' => 'body',
 						'type' => 'string',
 						'required' => false,
-						'description' => 'Optional return URL for non-AJAX flows.',
+						'description' => 'Optional return URL for full-page flows.',
 					],
 				],
 			],
 			'response' => [
 				'kind' => 'json-or-redirect',
 				'content_type' => 'application/json or text/html',
-				'description' => 'Returns JSON for AJAX requests, otherwise redirects back with system messages.',
+				'description' => 'Returns JSON for non-HTML requests, otherwise redirects back with system messages.',
 			],
 			'authorization' => [
 				'visibility' => 'dataset-specific',
@@ -616,11 +609,11 @@ return [
 			],
 			'notes' => [
 				0 => 'Dataset-specific extra POST fields are forwarded as scalar options to the dataset importer.',
-				1 => 'The response shape changes depending on the AJAX detection rules or explicit ajax=1.',
+				1 => 'JSON output is selected by Request::wantsNonHtmlResponse() headers, not by request parameters.',
 			],
 			'side_effects' => [
 				0 => 'May insert, update, or delete data depending on the dataset and selected mode.',
-				1 => 'Queues system messages in non-AJAX flows.',
+				1 => 'Queues system messages in full-page flows.',
 			],
 			'class' => 'EventImportExportImport',
 			'slug' => 'import_export:import',

@@ -18,12 +18,11 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 				<?= $this->getJsTop() ?>
 			</head>
 			<body>
-				<?= $this->fetchSlot('content') ?>
-				<?= $this->fetchSlot('page_chrome') ?>
-				<?= $this->getJs() ?>
-				<script>renderSystemMessages();</script>
-				<?= $this->fetchClosingHtml() ?>
-			</body>
+					<?= $this->fetchSlot('content') ?>
+					<?= $this->fetchSlot('page_chrome') ?>
+					<?= $this->getJs() ?>
+					<?= $this->fetchClosingHtml() ?>
+				</body>
 			</html>
 			PHP));
 
@@ -43,11 +42,10 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 				<?= $this->getCss() ?>
 			</head>
 			<body>
-				<?= $this->fetchSlot('page_chrome') ?>
-				<?= $this->getJs() ?>
-				<script>renderSystemMessages();</script>
-				<?= $this->fetchClosingHtml() ?>
-			</body>
+					<?= $this->fetchSlot('page_chrome') ?>
+					<?= $this->getJs() ?>
+					<?= $this->fetchClosingHtml() ?>
+				</body>
 			</html>
 			PHP));
 
@@ -69,11 +67,10 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 				<?= $this->getCss() ?>
 			</head>
 			<body>
-				<?= $this->fetchSlot('page_chrome') ?>
-				<?= $this->getJs() ?>
-				<script>renderSystemMessages();</script>
-				<?= $this->fetchClosingHtml() ?>
-			</body>
+					<?= $this->fetchSlot('page_chrome') ?>
+					<?= $this->getJs() ?>
+					<?= $this->fetchClosingHtml() ?>
+				</body>
 			</html>
 			PHP));
 
@@ -96,11 +93,10 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 				<?= $this->getCss() ?>
 			</head>
 			<body>
-				<?= $this->fetchSlot('page_chrome') ?>
-				<?= $this->getJs() ?>
-				<script>renderSystemMessages();</script>
-				<?= $this->fetchClosingHtml() ?>
-			</body>
+					<?= $this->fetchSlot('page_chrome') ?>
+					<?= $this->getJs() ?>
+					<?= $this->fetchClosingHtml() ?>
+				</body>
 			</html>
 			PHP));
 
@@ -121,11 +117,10 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 			</head>
 			<body>
 				<?= $this->getJsTop() ?>
-				<?= $this->fetchSlot('page_chrome') ?>
-				<?= $this->getJs() ?>
-				<script>renderSystemMessages();</script>
-				<?= $this->fetchClosingHtml() ?>
-			</body>
+					<?= $this->fetchSlot('page_chrome') ?>
+					<?= $this->getJs() ?>
+					<?= $this->fetchClosingHtml() ?>
+				</body>
 			</html>
 			PHP));
 
@@ -144,11 +139,10 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 				<?= $this->getCss() ?>
 				<?= $this->getJsTop() ?>
 			<body>
-				<?= $this->fetchSlot('page_chrome') ?>
-				<?= $this->getJs() ?>
-				<script>renderSystemMessages();</script>
-				<?= $this->fetchClosingHtml() ?>
-			</body>
+					<?= $this->fetchSlot('page_chrome') ?>
+					<?= $this->getJs() ?>
+					<?= $this->fetchClosingHtml() ?>
+				</body>
 			</html>
 			PHP));
 
@@ -156,7 +150,7 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 		$this->assertContains('Layout is missing </head> close tag, cannot enforce script placement.', $result['violations']);
 	}
 
-	public function testRenderSystemMessagesInCommentDoesNotSatisfyContract(): void
+	public function testRenderSystemMessagesIsNotRequiredByLayoutContract(): void
 	{
 		$result = LayoutTemplateContractInspector::inspectFile($this->writeLayoutFixture(<<<'PHP'
 			<?php
@@ -167,17 +161,16 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 				<?= $this->getCss() ?>
 				<?= $this->getJsTop() ?>
 			</head>
-			<body>
-				<?= $this->fetchSlot('page_chrome') ?>
-				<?= $this->getJs() ?>
-				<!-- renderSystemMessages(); -->
-				<?= $this->fetchClosingHtml() ?>
-			</body>
+				<body>
+					<?= $this->fetchSlot('page_chrome') ?>
+					<?= $this->getJs() ?>
+					<?= $this->fetchClosingHtml() ?>
+				</body>
 			</html>
 			PHP));
 
-		$this->assertSame('error', $result['status']);
-		$this->assertContains('renderSystemMessages', $result['missing']);
+		$this->assertSame('ok', $result['status']);
+		$this->assertNotContains('renderSystemMessages', $result['missing']);
 	}
 
 	private function writeLayoutFixture(string $source): string

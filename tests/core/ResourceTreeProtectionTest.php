@@ -4,15 +4,24 @@ declare(strict_types=1);
 
 final class ResourceTreeProtectionTest extends TransactionedTestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		RequestContextHolder::initializeRequest();
+		SystemMessages::flushAllMessages();
+	}
+
 	public function testProtectedSystemResourceCannotBeUpdatedDirectly(): void
 	{
 		$login = CmsPathHelper::resolveResource('/login.html');
 		$this->assertIsArray($login);
 
-		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('protected system resource');
+		$result = ResourceTreeHandler::updateResourceTreeEntryResult(['layout' => 'public_default'], (int) $login['node_id']);
 
-		ResourceTreeHandler::updateResourceTreeEntry(['layout' => 'public_default'], (int) $login['node_id']);
+		$this->assertFalse($result->ok);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $result->error?->code);
+		$this->assertSame(0, ResourceTreeHandler::updateResourceTreeEntry(['layout' => 'public_default'], (int) $login['node_id']));
+		$this->assertSame(0, SystemMessages::countSystemMessages());
 	}
 
 	public function testProtectedSystemResourcePathRecognizesFolderAliases(): void
@@ -36,10 +45,10 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		], (int) $root['node_id']);
 		$this->assertIsInt($temp_id);
 
-		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('protected system resource path');
+		$result = ResourceTreeHandler::updateResourceTreeEntryResult(['resource_name' => 'admin'], $temp_id);
 
-		ResourceTreeHandler::updateResourceTreeEntry(['resource_name' => 'admin'], $temp_id);
+		$this->assertFalse($result->ok);
+		$this->assertSame('PROTECTED_RESOURCE_PATH_MUTATION', $result->error?->code);
 	}
 
 	public function testProtectedNamespaceCannotReceiveGenericCreates(): void
@@ -47,13 +56,18 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		$admin = CmsPathHelper::resolveFolder('/admin/');
 		$this->assertIsArray($admin);
 
-		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('protected system resource');
-
-		ResourceTreeHandler::addResourceEntry([
+		$result = ResourceTreeHandler::addResourceEntryResult([
 			'node_type' => 'folder',
 			'resource_name' => 'generic-admin-child',
 		], (int) $admin['node_id']);
+
+		$this->assertFalse($result->ok);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $result->error?->code);
+		$this->assertNull(ResourceTreeHandler::addResourceEntry([
+			'node_type' => 'folder',
+			'resource_name' => 'generic-admin-child',
+		], (int) $admin['node_id']));
+		$this->assertSame(0, SystemMessages::countSystemMessages());
 	}
 
 	public function testProtectedNamespaceCannotBeDeletedRecursively(): void
@@ -61,10 +75,18 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		$root = CmsPathHelper::resolveFolder('/');
 		$this->assertIsArray($root);
 
-		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('subtree containing protected system resource');
+		$result = ResourceTreeHandler::deleteResourceEntriesRecursiveResult((int) $root['node_id']);
 
-		ResourceTreeHandler::deleteResourceEntriesRecursive((int) $root['node_id']);
+		$this->assertFalse($result->ok);
+		$this->assertSame('PROTECTED_RESOURCE_SUBTREE_MUTATION', $result->error?->code);
+		$this->assertSame([
+			'success' => false,
+			'erroneous' => 1,
+			'folder' => 0,
+			'webpage' => 0,
+			'file' => 0,
+		], ResourceTreeHandler::deleteResourceEntriesRecursive((int) $root['node_id']));
+		$this->assertSame(0, SystemMessages::countSystemMessages());
 	}
 
 	public function testProtectedSystemResourceCannotBeMoved(): void
@@ -80,10 +102,30 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		], (int) $root['node_id']);
 		$this->assertIsInt($temp_parent_id);
 
-		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('protected system resource');
+		$result = ResourceTreeHandler::moveResourceEntryToPositionResult((int) $login['node_id'], $temp_parent_id, 0);
 
-		ResourceTreeHandler::moveResourceEntryToPosition((int) $login['node_id'], $temp_parent_id, 0);
+		$this->assertFalse($result->ok);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $result->error?->code);
+		$this->assertFalse(ResourceTreeHandler::moveResourceEntryToPosition((int) $login['node_id'], $temp_parent_id, 0));
+		$this->assertSame(0, SystemMessages::countSystemMessages());
+	}
+
+	public function testNonHtmlResourceMoveFailureDoesNotWriteSystemMessages(): void
+	{
+		$root = CmsPathHelper::resolveFolder('/');
+		$login = CmsPathHelper::resolveResource('/login.html');
+		$this->assertIsArray($root);
+		$this->assertIsArray($login);
+
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxMove(), [
+			'id' => (string) $login['node_id'],
+			'ref' => (string) $root['node_id'],
+			'position' => '0',
+		]);
+
+		$this->assertFalse($response['ok'] ?? true);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $response['error']['code'] ?? null);
+		$this->assertSame(0, SystemMessages::countSystemMessages());
 	}
 
 	public function testGenericResourceCannotBeMovedIntoProtectedNamespace(): void
@@ -99,10 +141,10 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		], (int) $root['node_id']);
 		$this->assertIsInt($temp_id);
 
-		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('protected system resource');
+		$result = ResourceTreeHandler::moveResourceEntryToPositionResult($temp_id, (int) $admin['node_id'], 0);
 
-		ResourceTreeHandler::moveResourceEntryToPosition($temp_id, (int) $admin['node_id'], 0);
+		$this->assertFalse($result->ok);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $result->error?->code);
 	}
 
 	public function testGenericResourceCannotBeMovedToProtectedRootPath(): void
@@ -118,10 +160,10 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		);
 		$this->assertIsInt($temp_id);
 
-		$this->expectException(RuntimeException::class);
-		$this->expectExceptionMessage('protected system resource path');
+		$result = ResourceTreeHandler::moveResourceEntryToPositionResult($temp_id, (int) $root['node_id'], 0);
 
-		ResourceTreeHandler::moveResourceEntryToPosition($temp_id, (int) $root['node_id'], 0);
+		$this->assertFalse($result->ok);
+		$this->assertSame('PROTECTED_RESOURCE_PATH_MUTATION', $result->error?->code);
 	}
 
 	public function testProtectedMutationBypassAllowsSystemOwnedMaintenance(): void
@@ -134,5 +176,36 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		);
 
 		$this->assertIsInt($changed);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function runCapturedEvent(AbstractEvent $event, array $get): array
+	{
+		RequestContextHolder::initializeRequest(
+			get: $get,
+			server: ['HTTP_ACCEPT' => 'application/json']
+		);
+		SystemMessages::flushAllMessages();
+
+		$ctx = RequestContextHolder::current();
+		$previous_capture = $ctx->apiResponseCaptureEnabled;
+		$previous_response = $ctx->capturedApiResponse;
+		$previous_http_code = $ctx->capturedApiResponseHttpCode;
+
+		try {
+			$ctx->apiResponseCaptureEnabled = true;
+			$ctx->capturedApiResponse = null;
+			$ctx->capturedApiResponseHttpCode = null;
+
+			$event->run();
+
+			return $ctx->capturedApiResponse ?? [];
+		} finally {
+			$ctx->apiResponseCaptureEnabled = $previous_capture;
+			$ctx->capturedApiResponse = $previous_response;
+			$ctx->capturedApiResponseHttpCode = $previous_http_code;
+		}
 	}
 }
