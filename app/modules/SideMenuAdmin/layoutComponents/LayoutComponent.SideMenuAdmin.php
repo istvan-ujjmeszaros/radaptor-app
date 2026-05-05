@@ -32,6 +32,7 @@ class LayoutComponentSideMenuAdmin extends AbstractLayoutComponent
 			'admin.menu.theme_selector' => t('admin.menu.theme_selector'),
 			'admin.menu.section.developer_tools' => t('admin.menu.section.developer_tools'),
 			'admin.menu.widget_preview' => t('admin.menu.widget_preview'),
+			'admin.menu.runtime_diagnostics' => self::translateWithFallback('admin.menu.runtime_diagnostics', 'Runtime diagnostics'),
 			'admin.menu.phpinfo' => t('admin.menu.phpinfo'),
 			'admin.menu.template_engines' => t('admin.menu.template_engines'),
 			'admin.menu.cli_runner' => t('admin.menu.cli_runner'),
