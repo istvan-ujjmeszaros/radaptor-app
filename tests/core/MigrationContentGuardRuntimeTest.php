@@ -1,0 +1,225 @@
+<?php
+
+declare(strict_types=1);
+
+use PHPUnit\Framework\TestCase;
+
+final class MigrationContentGuardRuntimeTest extends TestCase
+{
+	private const int TEST_USER_ID = 424243;
+
+	private ?int $resource_id = null;
+	private ?string $migration_path = null;
+
+	protected function setUp(): void
+	{
+		User::logout();
+		User::bootstrapTrustedCurrentUser([
+			'user_id' => self::TEST_USER_ID,
+			'username' => 'migration-content-guard-test',
+		]);
+	}
+
+	protected function tearDown(): void
+	{
+		try {
+			if (is_int($this->resource_id) && ResourceTreeHandler::getResourceTreeEntryDataById($this->resource_id) !== null) {
+				ResourceTreeHandler::deleteResourceEntry($this->resource_id);
+			}
+		} finally {
+			if (is_string($this->migration_path) && $this->migration_path !== '' && file_exists($this->migration_path)) {
+				unlink($this->migration_path);
+			}
+
+			User::logout();
+		}
+	}
+
+	public function testMigrationContentGuardRollsBackRejectedResourceTreeDeletion(): void
+	{
+		$root = CmsPathHelper::resolveFolder('/');
+		$this->assertIsArray($root);
+
+		$resource_name = 'migration-guard-rollback-' . bin2hex(random_bytes(4));
+		$this->resource_id = ResourceTreeHandler::addResourceEntry([
+			'node_type' => 'folder',
+			'resource_name' => $resource_name,
+		], (int) $root['node_id']);
+		$this->assertIsInt($this->resource_id);
+
+		$suffix = 'guard_rollback_' . bin2hex(random_bytes(4));
+		$filename = '20260504_235959_' . $suffix . '.php';
+		$class_name = 'Migration_20260504_235959_' . $suffix;
+		$this->migration_path = sys_get_temp_dir() . '/' . $filename;
+		$source = "<?php\n"
+			. "class {$class_name}\n"
+			. "{\n"
+			. "\tpublic function run(): void\n"
+			. "\t{\n"
+			. "\t\t\$table = 'resource_' . 'tree';\n"
+			. "\t\tDb::instance()->prepare(\"DELETE FROM {\$table} WHERE node_id = ?\")->execute([{$this->resource_id}]);\n"
+			. "\t}\n"
+			. "}\n";
+		file_put_contents($this->migration_path, $source);
+
+		$result = MigrationRunner::runMigration($this->migration_path, 'app');
+		$this->assertFalse($result['success']);
+		$this->assertStringContainsString('deleted CMS resource_tree rows', $result['message']);
+
+		Cache::flush();
+		$this->assertIsArray(ResourceTreeHandler::getResourceTreeEntryDataById($this->resource_id));
+	}
+
+	public function testMigrationContentGuardScansBeforeEvaluatingMigrationSource(): void
+	{
+		$suffix = 'guard_pre_eval_' . bin2hex(random_bytes(4));
+		$filename = '20260505_000001_' . $suffix . '.php';
+		$class_name = 'Migration_20260505_000001_' . $suffix;
+		$marker_path = sys_get_temp_dir() . '/radaptor_migration_eval_marker_' . bin2hex(random_bytes(4));
+		$this->migration_path = sys_get_temp_dir() . '/' . $filename;
+		$marker_export = var_export($marker_path, true);
+		$source = "<?php\n"
+			. "file_put_contents({$marker_export}, 'evaluated');\n"
+			. "class {$class_name}\n"
+			. "{\n"
+			. "\tpublic function run(): void\n"
+			. "\t{\n"
+			. "\t\tResourceTreeHandler::deleteResourceEntry(-1);\n"
+			. "\t}\n"
+			. "}\n";
+		file_put_contents($this->migration_path, $source);
+
+		try {
+			$result = MigrationRunner::runMigration($this->migration_path, 'app');
+
+			$this->assertFalse($result['success']);
+			$this->assertStringContainsString('not allowed to delete CMS resources', $result['message']);
+			$this->assertFileDoesNotExist($marker_path);
+		} finally {
+			if (file_exists($marker_path)) {
+				unlink($marker_path);
+			}
+		}
+	}
+
+	public function testMigrationContentGuardRejectsRawResourceTreeSqlBeforeEvaluatingMigrationSource(): void
+	{
+		$suffix = 'guard_raw_sql_' . bin2hex(random_bytes(4));
+		$filename = '20260505_000003_' . $suffix . '.php';
+		$class_name = 'Migration_20260505_000003_' . $suffix;
+		$marker_path = sys_get_temp_dir() . '/radaptor_migration_raw_sql_marker_' . bin2hex(random_bytes(4));
+		$this->migration_path = sys_get_temp_dir() . '/' . $filename;
+		$marker_export = var_export($marker_path, true);
+		$source = "<?php\n"
+			. "file_put_contents({$marker_export}, 'evaluated');\n"
+			. "class {$class_name}\n"
+			. "{\n"
+			. "\tpublic function run(): void\n"
+			. "\t{\n"
+			. "\t\tDb::instance()->exec('DELETE FROM resource_tree WHERE node_id = -1');\n"
+			. "\t}\n"
+			. "}\n";
+		file_put_contents($this->migration_path, $source);
+
+		try {
+			$result = MigrationRunner::runMigration($this->migration_path, 'app');
+
+			$this->assertFalse($result['success']);
+			$this->assertStringContainsString('not allowed to delete CMS resources', $result['message']);
+			$this->assertFileDoesNotExist($marker_path);
+		} finally {
+			if (file_exists($marker_path)) {
+				unlink($marker_path);
+			}
+		}
+	}
+
+	public function testMigrationContentGuardRejectsImplicitCommitWithDynamicDeleteBeforeEvaluatingMigrationSource(): void
+	{
+		$suffix = 'guard_implicit_commit_' . bin2hex(random_bytes(4));
+		$filename = '20260505_000004_' . $suffix . '.php';
+		$class_name = 'Migration_20260505_000004_' . $suffix;
+		$marker_path = sys_get_temp_dir() . '/radaptor_migration_implicit_commit_marker_' . bin2hex(random_bytes(4));
+		$this->migration_path = sys_get_temp_dir() . '/' . $filename;
+		$marker_export = var_export($marker_path, true);
+		$source = "<?php\n"
+			. "file_put_contents({$marker_export}, 'evaluated');\n"
+			. "class {$class_name}\n"
+			. "{\n"
+			. "\tpublic function run(): void\n"
+			. "\t{\n"
+			. "\t\t\$table = 'resource_' . 'tree';\n"
+			. "\t\tDb::instance()->exec('CREATE TABLE IF NOT EXISTS migration_guard_implicit_commit (id INT)');\n"
+			. "\t\tDb::instance()->prepare(\"DELETE FROM {\$table} WHERE node_id = ?\")->execute([-1]);\n"
+			. "\t}\n"
+			. "}\n";
+		file_put_contents($this->migration_path, $source);
+
+		try {
+			$result = MigrationRunner::runMigration($this->migration_path, 'app');
+
+			$this->assertFalse($result['success']);
+			$this->assertStringContainsString('implicit-commit DDL with dynamic raw DELETE SQL', $result['message']);
+			$this->assertFileDoesNotExist($marker_path);
+		} finally {
+			if (file_exists($marker_path)) {
+				unlink($marker_path);
+			}
+		}
+	}
+
+	public function testMigrationRunnerCatchesThrowableAndRollsBackStartedTransaction(): void
+	{
+		$root = CmsPathHelper::resolveFolder('/');
+		$this->assertIsArray($root);
+
+		$resource_name = 'migration-guard-throwable-' . bin2hex(random_bytes(4));
+		$suffix = 'guard_throwable_' . bin2hex(random_bytes(4));
+		$filename = '20260505_000005_' . $suffix . '.php';
+		$class_name = 'Migration_20260505_000005_' . $suffix;
+		$this->migration_path = sys_get_temp_dir() . '/' . $filename;
+		$resource_name_export = var_export($resource_name, true);
+		$root_id = (int) $root['node_id'];
+		$source = "<?php\n"
+			. "class {$class_name}\n"
+			. "{\n"
+			. "\tpublic function run(): void\n"
+			. "\t{\n"
+			. "\t\tResourceTreeHandler::addResourceEntry([\n"
+			. "\t\t\t'node_type' => 'folder',\n"
+			. "\t\t\t'resource_name' => {$resource_name_export},\n"
+			. "\t\t], {$root_id});\n"
+			. "\t\tthrow new TypeError('migration type error');\n"
+			. "\t}\n"
+			. "}\n";
+		file_put_contents($this->migration_path, $source);
+
+		$result = MigrationRunner::runMigration($this->migration_path, 'app');
+
+		$this->assertFalse($result['success']);
+		$this->assertStringContainsString('migration type error', $result['message']);
+		Cache::flush();
+		$this->assertNull(CmsPathHelper::resolveFolder('/' . $resource_name . '/'));
+	}
+
+	public function testMigrationContentGuardIgnoresForbiddenTextInCommentsAndStrings(): void
+	{
+		$suffix = 'guard_comment_string_' . bin2hex(random_bytes(4));
+		$filename = '20260505_000002_' . $suffix . '.php';
+		$class_name = 'Migration_20260505_000002_' . $suffix;
+		$this->migration_path = sys_get_temp_dir() . '/' . $filename;
+		$source = "<?php\n"
+			. "// ResourceTreeHandler::deleteResourceEntry(123);\n"
+			. "class {$class_name}\n"
+			. "{\n"
+			. "\tpublic function run(): void\n"
+			. "\t{\n"
+			. "\t\t\$documentation = 'ResourceTreeHandler::deleteResourceEntry(123);';\n"
+			. "\t}\n"
+			. "}\n";
+		file_put_contents($this->migration_path, $source);
+
+		MigrationContentGuard::assertMigrationSourceAllowed($this->migration_path);
+		$this->assertTrue(true);
+	}
+}

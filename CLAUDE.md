@@ -38,6 +38,10 @@ Do not treat stale app-local `packages/dev/...` content as source of truth.
   - `docker-compose.packages-dev.yml`
 - If `radaptor.local.json` exists but `RADAPTOR_DEV_ROOT` is not enabled, bootstrap/CLI should
   fail hard instead of guessing.
+- New or touched visible runtime messages must use i18n keys through `t()`; do not hardcode message text in PHP, templates, JavaScript, `SystemMessages`, or `ApiError`.
+- Non-HTML flows (API/JSON/HTMX/MCP/CLI-web) return structured responses or headers and must not write `SystemMessages`.
+- Use `Request::wantsNonHtmlResponse()` for response-family detection; do not add `ajax=1` or manual header parsing outside the helper.
+- When touching framework/CMS PHP files that can inspect response-family headers, add them to the relevant `phpstan.neon` `paths` entry so the response-detection rule checks them.
 
 ## Generated Files
 
@@ -59,6 +63,6 @@ The rest of `generated/` remains tracked, including `generated/__config__.php` a
 - PHPStan:
   - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 - Framework package PHPStan from the supported package-dev runtime:
-  - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c /workspace/packages-dev/core/framework/phpstan.neon`
+  - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/framework/phpstan.neon`
 - CMS package PHPStan from the supported package-dev runtime:
-  - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -c /workspace/packages-dev/core/cms/phpstan.neon`
+  - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`

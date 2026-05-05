@@ -36,6 +36,7 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$jsTop = $renderer->getJsTop();
 
 		$this->assertStringContainsString('/assets/test.js', $jsTop);
+		$this->assertStringNotContainsString('/assets/test.js', $renderer->getJs());
 	}
 
 	public function testAssetAccumulationJsBottom(): void
@@ -43,9 +44,34 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$renderer = new HtmlTreeRenderer();
 		$renderer->registerJs('/assets/bottom.js', false);
 
+		$this->assertStringContainsString('/assets/bottom.js', $renderer->getJs());
 		$this->assertStringContainsString('/assets/bottom.js', $renderer->getJsBottom());
 		// Not in top
 		$this->assertStringNotContainsString('/assets/bottom.js', $renderer->getJsTop());
+	}
+
+	public function testLibraryDependenciesDeduplicateAssetPaths(): void
+	{
+		$renderer = new HtmlTreeRenderer(theme: ThemeBase::factory('RadaptorPortalAdmin'));
+
+		$renderer->registerLibrary('__RADAPTOR_PORTAL_ADMIN_SITE');
+		$renderer->registerLibrary('__RADAPTOR_PORTAL_ADMIN_SITE');
+
+		$js = $renderer->getJs();
+
+		$this->assertSame(1, substr_count($js, 'bootstrap.bundle.min.js'));
+		$this->assertSame(1, substr_count($js, 'htmx.org@2.0.4'));
+	}
+
+	public function testTopLocalLibraryAssetKeepsAbsoluteAssetPath(): void
+	{
+		$renderer = new HtmlTreeRenderer();
+
+		$renderer->registerLibrary('js:^/assets/example/top-local.js');
+
+		$this->assertStringContainsString('/assets/example/top-local.js', $renderer->getJsTop());
+		$this->assertStringNotContainsString('/assets//assets/example/top-local.js', $renderer->getJsTop());
+		$this->assertStringNotContainsString('/assets/example/top-local.js', $renderer->getJs());
 	}
 
 	public function testFetchInnerHtml(): void
@@ -214,5 +240,40 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$template = new Template('sdui.form');
 
 		$this->assertStringContainsString('template.sdui.form.php', $template->getTemplatePath('sdui.form'));
+	}
+
+	public function testTemplateFallsBackToDefaultThemeBeforeBaseTemplate(): void
+	{
+		$renderer = new HtmlTreeRenderer(theme: ThemeBase::factory('_ThemeError'));
+		$template = new Template('widgetInsert', $renderer);
+
+		$this->assertStringContainsString('/themes/portal-admin/', $template->getTemplatePath('widgetInsert'));
+		$this->assertStringNotContainsString('/themes/so-admin/', $template->getTemplatePath('widgetInsert'));
+	}
+
+	public function testEditableRendererFallsBackToPortalAdminAssets(): void
+	{
+		$renderer = new HtmlTreeRenderer(is_editable: true, theme: ThemeBase::factory('_ThemeError'));
+
+		$css = $renderer->getCss();
+
+		$this->assertStringContainsString('/assets/packages/themes/radaptor-portal-admin/css/edit-mode.css', $css);
+		$this->assertStringNotContainsString('/assets/packages/themes/so-admin/', $css . $renderer->getJs());
+	}
+
+	public function testSoAdminInlineFormDependenciesRenderInHead(): void
+	{
+		$renderer = new HtmlTreeRenderer(theme: ThemeBase::factory('SoAdmin'));
+		$renderer->registerLibrary('__ADMIN_SITE');
+		$renderer->registerLibrary('TIPPY');
+
+		$top_js = $renderer->getJsTop();
+		$bottom_js = $renderer->getJs();
+
+		$this->assertStringContainsString('jquery.min.js', $top_js);
+		$this->assertStringContainsString('jquery-ui.min.js', $top_js);
+		$this->assertStringContainsString('tippy-bundle.umd.min.js', $top_js);
+		$this->assertStringNotContainsString('jquery-ui.min.js', $bottom_js);
+		$this->assertStringNotContainsString('tippy-bundle.umd.min.js', $bottom_js);
 	}
 }

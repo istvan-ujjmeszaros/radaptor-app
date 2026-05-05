@@ -20,6 +20,14 @@ class TestTemplateList{
 	}
 
 	/**
+	 * @return array<string, string>
+	 */
+	public static function getTemplates(): array
+	{
+		return self::$_templateList;
+	}
+
+	/**
 	 * Template name to renderer class mapping.
 	 * @var array<string, class-string<iTemplateRenderer>>
 	 */

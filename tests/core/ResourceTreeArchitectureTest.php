@@ -81,6 +81,59 @@ final class ResourceTreeArchitectureTest extends TestCase
 		$this->assertSame([], $violations, 'Nested-set structural SQL must stay inside NestedSet.');
 	}
 
+	public function testCorePackageMigrationsDoNotDeleteResourceTreeContent(): void
+	{
+		$violations = [];
+		$patterns = [
+			'/\bDELETE\s+FROM\s+`?resource_tree`?\b/i',
+			'/\bTRUNCATE\s+(?:TABLE\s+)?`?resource_tree`?\b/i',
+			'/\bDROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?`?resource_tree`?\b/i',
+			'/ResourceTreeHandler::deleteResourceEntr(?:y|ies)Recursive\s*\(/',
+			'/ResourceTreeHandler::deleteResourceEntry\s*\(/',
+			'/NestedSet::deleteNode\s*\(\s*[\'"]resource_tree[\'"]/',
+		];
+
+		foreach (self::getInspectableCoreRoots() as $root) {
+			$migration_files = [
+				...(glob($root . '/migrations/*.php') ?: []),
+				...(glob($root . '/framework/migrations/*.php') ?: []),
+			];
+
+			foreach ($migration_files as $path) {
+				$contents = file_get_contents($path);
+
+				if (!is_string($contents)) {
+					continue;
+				}
+
+				foreach ($patterns as $pattern) {
+					if (preg_match($pattern, $contents) === 1) {
+						$violations[] = str_replace(DEPLOY_ROOT, '', $path);
+
+						break;
+					}
+				}
+			}
+		}
+
+		$this->assertSame([], array_values(array_unique($violations)), 'Package migrations must never delete resource_tree content.');
+	}
+
+	public function testMigrationContentGuardRejectsResourceTreeDeletionSource(): void
+	{
+		$path = sys_get_temp_dir() . '/radaptor_bad_migration_' . bin2hex(random_bytes(4)) . '.php';
+		file_put_contents($path, "<?php\nResourceTreeHandler::deleteResourceEntry(123);\n");
+
+		try {
+			$this->expectException(RuntimeException::class);
+			$this->expectExceptionMessage('not allowed to delete CMS resources');
+
+			MigrationContentGuard::assertMigrationSourceAllowed($path);
+		} finally {
+			@unlink($path);
+		}
+	}
+
 	private static function getNestedSetTableRegex(): string
 	{
 		$tables = Db::getNestedSetTables();

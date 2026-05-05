@@ -179,6 +179,80 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		$this->assertStringContainsString('Multiple populated CMS site roots', $response['error']['message'] ?? '');
 	}
 
+	public function testResourceTreeInitialLoadReturnsSelectableRootNode(): void
+	{
+		$root_id = CmsSiteContext::getCurrentRootId();
+		$this->assertIsInt($root_id);
+
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxLoad(), [
+			'id' => '#',
+			'id_prefix' => 'jstree_resources_test',
+			'shape_template' => JsTreeApiService::TEMPLATE_JSTREE_3,
+		]);
+
+		$this->assertTrue($response['ok'] ?? false);
+		$this->assertSame(ResourceTreeHandler::JSTREE_SITE_ROOT_ID, $response['data'][0]['id'] ?? null);
+		$this->assertSame('root', $response['data'][0]['type'] ?? null);
+		$this->assertSame(true, $response['data'][0]['state']['opened'] ?? null);
+		$this->assertSame(0, $response['data'][0]['data']['node_id'] ?? null);
+
+		$branch_response = $this->runCapturedEvent(new EventJstreeResourcesAjaxLoad(), [
+			'id' => ResourceTreeHandler::JSTREE_SITE_ROOT_ID,
+			'id_prefix' => 'jstree_resources_test',
+			'shape_template' => JsTreeApiService::TEMPLATE_JSTREE_3,
+		]);
+
+		$this->assertTrue($branch_response['ok'] ?? false);
+		$this->assertIsArray($branch_response['data']);
+
+		if ($branch_response['data'] !== []) {
+			$this->assertNotSame((string) $root_id, $branch_response['data'][0]['id'] ?? null);
+		}
+	}
+
+	public function testProtectedResourceMoveReturnsStructuredError(): void
+	{
+		$root_id = CmsSiteContext::getCurrentRootId();
+		$this->assertIsInt($root_id);
+		$login_page = ResourceTreeHandler::getResourceTreeEntryData('/', 'login.html', 'app');
+		$this->assertIsArray($login_page);
+
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxMove(), [
+			'id' => (string) $login_page['node_id'],
+			'ref' => (string) $root_id,
+			'position' => '0',
+		]);
+
+		$this->assertFalse($response['ok'] ?? true);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $response['error']['code'] ?? null);
+		$this->assertStringContainsString('/login.html', $response['meta']['message'] ?? '');
+	}
+
+	public function testProtectedResourceDeleteReturnsStructuredError(): void
+	{
+		$login_page = ResourceTreeHandler::getResourceTreeEntryData('/', 'login.html', 'app');
+		$this->assertIsArray($login_page);
+
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxDeleteRecursive(), [
+			'id' => (string) $login_page['node_id'],
+		]);
+
+		$this->assertFalse($response['ok'] ?? true);
+		$this->assertSame('RESOURCE_DELETE_FAILED', $response['error']['code'] ?? null);
+		$this->assertStringContainsString('/login.html', implode(' ', $response['meta']['messages'] ?? []));
+	}
+
+	public function testVirtualResourceTreeRootCannotBeDeleted(): void
+	{
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxDeleteRecursive(), [
+			'id' => ResourceTreeHandler::JSTREE_SITE_ROOT_ID,
+		]);
+
+		$this->assertFalse($response['ok'] ?? true);
+		$this->assertSame('RESOURCE_DELETE_FAILED', $response['error']['code'] ?? null);
+		$this->assertStringContainsString('/', implode(' ', $response['meta']['messages'] ?? []));
+	}
+
 	/**
 	 * @return array<string, mixed>
 	 */
