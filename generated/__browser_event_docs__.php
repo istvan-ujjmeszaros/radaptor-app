@@ -522,6 +522,13 @@ return [
 						'description' => 'Dataset key to export.',
 					],
 					1 => [
+						'name' => 'referer',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Return URL for validation failures.',
+					],
+					2 => [
 						'name' => '*',
 						'source' => 'query',
 						'type' => 'string',
@@ -1935,6 +1942,64 @@ return [
 				'template_helper' => 'event_url(\'user.logout\')',
 				'ajax_helper' => 'ajax_url(\'user.logout\')',
 				'ajax_helper_raw' => 'ajax_url_raw(\'user.logout\')',
+			],
+		],
+		'user:set-locale' => [
+			'event_name' => 'user.set-locale',
+			'group' => 'Runtime',
+			'name' => 'Set current user locale',
+			'summary' => 'Updates the current user interface language and redirects back.',
+			'description' => 'Persists a selected available locale on the logged-in user and refreshes the current session data.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'locale',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Available locale code to store on the current user.',
+					],
+					1 => [
+						'name' => 'referer',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Optional sanitized return URL after saving the locale.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'redirect',
+				'content_type' => 'text/html',
+				'description' => 'Redirects back after updating the user locale.',
+			],
+			'authorization' => [
+				'visibility' => 'logged-in users',
+				'description' => 'Requires membership in the logged-in system usergroup.',
+			],
+			'notes' => [
+				0 => 'Locale values are limited to locales available through the runtime locale registry.',
+				1 => 'Referer is sanitized before redirect.',
+			],
+			'side_effects' => [
+				0 => 'Writes the users.locale field for the current user.',
+				1 => 'Refreshes the current user session.',
+				2 => 'Queues a success/error system message.',
+			],
+			'class' => 'EventUserSetLocale',
+			'slug' => 'user:set-locale',
+			'route' => [
+				'event_name' => 'user.set-locale',
+				'context' => 'user',
+				'event' => 'set-locale',
+				'query' => '?context=user&event=set-locale',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'user.set-locale\')',
+				'template_helper' => 'event_url(\'user.set-locale\')',
+				'ajax_helper' => 'ajax_url(\'user.set-locale\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'user.set-locale\')',
 			],
 		],
 		'users_ajax_user_list:autocomplete' => [
