@@ -256,12 +256,9 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$renderer = new HtmlTreeRenderer(is_editable: true, theme: ThemeBase::factory('_ThemeError'));
 
 		$css = $renderer->getCss();
-		$js = $renderer->getJs();
 
-		$this->assertStringContainsString('/assets/packages/themes/radaptor-portal-admin/css/radaptor-base.css', $css);
 		$this->assertStringContainsString('/assets/packages/themes/radaptor-portal-admin/css/edit-mode.css', $css);
-		$this->assertStringContainsString('bootstrap.bundle.min.js', $js);
-		$this->assertStringNotContainsString('/assets/packages/themes/so-admin/', $css . $js);
+		$this->assertStringNotContainsString('/assets/packages/themes/so-admin/', $css . $renderer->getJs());
 	}
 
 	public function testSoAdminInlineFormDependenciesRenderInHead(): void

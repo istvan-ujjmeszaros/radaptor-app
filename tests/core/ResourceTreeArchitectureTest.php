@@ -122,7 +122,7 @@ final class ResourceTreeArchitectureTest extends TestCase
 	public function testMigrationContentGuardRejectsResourceTreeDeletionSource(): void
 	{
 		$path = sys_get_temp_dir() . '/radaptor_bad_migration_' . bin2hex(random_bytes(4)) . '.php';
-		file_put_contents($path, "<?php\nDb::instance()->exec('DELETE FROM resource_tree');\n");
+		file_put_contents($path, "<?php\nResourceTreeHandler::deleteResourceEntry(123);\n");
 
 		try {
 			$this->expectException(RuntimeException::class);

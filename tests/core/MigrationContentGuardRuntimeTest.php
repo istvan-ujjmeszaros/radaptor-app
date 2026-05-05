@@ -84,7 +84,7 @@ final class MigrationContentGuardRuntimeTest extends TestCase
 			. "{\n"
 			. "\tpublic function run(): void\n"
 			. "\t{\n"
-			. "\t\tDb::instance()->exec('DELETE FROM resource_tree WHERE node_id = -1');\n"
+			. "\t\tResourceTreeHandler::deleteResourceEntry(-1);\n"
 			. "\t}\n"
 			. "}\n";
 		file_put_contents($this->migration_path, $source);
@@ -100,5 +100,26 @@ final class MigrationContentGuardRuntimeTest extends TestCase
 				unlink($marker_path);
 			}
 		}
+	}
+
+	public function testMigrationContentGuardIgnoresForbiddenTextInCommentsAndStrings(): void
+	{
+		$suffix = 'guard_comment_string_' . bin2hex(random_bytes(4));
+		$filename = '20260505_000002_' . $suffix . '.php';
+		$class_name = 'Migration_20260505_000002_' . $suffix;
+		$this->migration_path = sys_get_temp_dir() . '/' . $filename;
+		$source = "<?php\n"
+			. "// ResourceTreeHandler::deleteResourceEntry(123);\n"
+			. "class {$class_name}\n"
+			. "{\n"
+			. "\tpublic function run(): void\n"
+			. "\t{\n"
+			. "\t\t\$documentation = 'ResourceTreeHandler::deleteResourceEntry(123);';\n"
+			. "\t}\n"
+			. "}\n";
+		file_put_contents($this->migration_path, $source);
+
+		MigrationContentGuard::assertMigrationSourceAllowed($this->migration_path);
+		$this->assertTrue(true);
 	}
 }

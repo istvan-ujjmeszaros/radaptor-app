@@ -191,13 +191,13 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		]);
 
 		$this->assertTrue($response['ok'] ?? false);
-		$this->assertSame((string) $root_id, $response['data'][0]['id'] ?? null);
+		$this->assertSame(ResourceTreeHandler::JSTREE_SITE_ROOT_ID, $response['data'][0]['id'] ?? null);
 		$this->assertSame('root', $response['data'][0]['type'] ?? null);
 		$this->assertSame(true, $response['data'][0]['state']['opened'] ?? null);
-		$this->assertSame($root_id, $response['data'][0]['data']['node_id'] ?? null);
+		$this->assertSame(0, $response['data'][0]['data']['node_id'] ?? null);
 
 		$branch_response = $this->runCapturedEvent(new EventJstreeResourcesAjaxLoad(), [
-			'id' => (string) $root_id,
+			'id' => ResourceTreeHandler::JSTREE_SITE_ROOT_ID,
 			'id_prefix' => 'jstree_resources_test',
 			'shape_template' => JsTreeApiService::TEMPLATE_JSTREE_3,
 		]);
@@ -240,6 +240,17 @@ final class CmsSiteContextTest extends TransactionedTestCase
 		$this->assertFalse($response['ok'] ?? true);
 		$this->assertSame('RESOURCE_DELETE_FAILED', $response['error']['code'] ?? null);
 		$this->assertStringContainsString('/login.html', implode(' ', $response['meta']['messages'] ?? []));
+	}
+
+	public function testVirtualResourceTreeRootCannotBeDeleted(): void
+	{
+		$response = $this->runCapturedEvent(new EventJstreeResourcesAjaxDeleteRecursive(), [
+			'id' => ResourceTreeHandler::JSTREE_SITE_ROOT_ID,
+		]);
+
+		$this->assertFalse($response['ok'] ?? true);
+		$this->assertSame('RESOURCE_DELETE_FAILED', $response['error']['code'] ?? null);
+		$this->assertStringContainsString('/', implode(' ', $response['meta']['messages'] ?? []));
 	}
 
 	/**

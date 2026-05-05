@@ -70,7 +70,7 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		$this->assertSame(0, SystemMessages::countSystemMessages());
 	}
 
-	public function testProtectedNamespaceCannotBeDeletedRecursively(): void
+	public function testSiteRootCannotBeDeletedRecursively(): void
 	{
 		$root = CmsPathHelper::resolveFolder('/');
 		$this->assertIsArray($root);
@@ -78,7 +78,7 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 		$result = ResourceTreeHandler::deleteResourceEntriesRecursiveResult((int) $root['node_id']);
 
 		$this->assertFalse($result->ok);
-		$this->assertSame('PROTECTED_RESOURCE_SUBTREE_MUTATION', $result->error?->code);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $result->error?->code);
 		$this->assertSame([
 			'success' => false,
 			'erroneous' => 1,
@@ -86,6 +86,19 @@ final class ResourceTreeProtectionTest extends TransactionedTestCase
 			'webpage' => 0,
 			'file' => 0,
 		], ResourceTreeHandler::deleteResourceEntriesRecursive((int) $root['node_id']));
+		$this->assertSame(0, SystemMessages::countSystemMessages());
+	}
+
+	public function testSiteRootCannotBeDeletedDirectly(): void
+	{
+		$root = CmsPathHelper::resolveFolder('/');
+		$this->assertIsArray($root);
+
+		$result = ResourceTreeHandler::deleteResourceEntryResult((int) $root['node_id']);
+
+		$this->assertFalse($result->ok);
+		$this->assertSame('PROTECTED_RESOURCE_MUTATION', $result->error?->code);
+		$this->assertFalse(ResourceTreeHandler::deleteResourceEntry((int) $root['node_id']));
 		$this->assertSame(0, SystemMessages::countSystemMessages());
 	}
 

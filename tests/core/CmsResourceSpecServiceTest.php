@@ -375,6 +375,30 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 		$this->assertIsArray(CmsPathHelper::resolveResource('/login.html'));
 	}
 
+	public function testResourceTreeSpecFolderPathsAreCanonicalizedWithTrailingSlash(): void
+	{
+		$this->runBootstrapSeedForSpecTests();
+
+		$spec = [
+			'version' => 1,
+			'root' => '/',
+			'resources' => [
+				[
+					'type' => 'folder',
+					'path' => '/repo-spec-no-slash',
+				],
+			],
+		];
+
+		$result = CmsResourceTreeSpecService::syncSpec($spec, false);
+		$this->assertSame('success', $result['status']);
+
+		$after = CmsResourceTreeSpecService::diffSpec($spec);
+		$this->assertSame('success', $after['status'], json_encode($after, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+		$this->assertSame('unchanged', $after['resources'][0]['action'] ?? null);
+		$this->assertSame('/repo-spec-no-slash/', $after['resources'][0]['path'] ?? null);
+	}
+
 	public function testResourceTreeSpecSyncCanManageProtectedSystemResources(): void
 	{
 		$this->runBootstrapSeedForSpecTests();
