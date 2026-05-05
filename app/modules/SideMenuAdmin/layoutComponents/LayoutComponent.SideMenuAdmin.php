@@ -20,29 +20,23 @@ class LayoutComponentSideMenuAdmin extends AbstractLayoutComponent
 			'admin.menu.blog' => t('admin.menu.blog'),
 			'admin.menu.section.administration' => t('admin.menu.section.administration'),
 			'user.list.title' => t('user.list.title'),
-			'admin.menu.mcp_tokens' => self::translateWithFallback('admin.menu.mcp_tokens', 'MCP tokens'),
+			'admin.menu.mcp_tokens' => t('admin.menu.mcp_tokens'),
 			'admin.menu.usergroups' => t('admin.menu.usergroups'),
 			'admin.menu.roles' => t('admin.menu.roles'),
 			'admin.menu.section.configuration' => t('admin.menu.section.configuration'),
 			'admin.menu.resource_tree' => t('admin.menu.resource_tree'),
 			'admin.menu.translations' => t('admin.menu.translations'),
 			'admin.menu.import_export' => t('admin.menu.import_export'),
-			'admin.menu.email_outbox' => self::translateWithFallback('admin.menu.email_outbox', 'Email outbox'),
+			'admin.menu.email_outbox' => t('admin.menu.email_outbox'),
 			'admin.menu.admin_menu' => t('admin.menu.admin_menu'),
 			'admin.menu.theme_selector' => t('admin.menu.theme_selector'),
 			'admin.menu.section.developer_tools' => t('admin.menu.section.developer_tools'),
 			'admin.menu.widget_preview' => t('admin.menu.widget_preview'),
+			'admin.menu.runtime_diagnostics' => t('admin.menu.runtime_diagnostics'),
 			'admin.menu.phpinfo' => t('admin.menu.phpinfo'),
 			'admin.menu.template_engines' => t('admin.menu.template_engines'),
 			'admin.menu.cli_runner' => t('admin.menu.cli_runner'),
 		];
-	}
-
-	private static function translateWithFallback(string $key, string $fallback): string
-	{
-		$translated = t($key);
-
-		return $translated === $key ? $fallback : $translated;
 	}
 
 	public function buildTree(): array

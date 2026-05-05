@@ -88,6 +88,9 @@ Validation commands used in this repo:
 - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php phpunit`
 - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php phpstan analyze`
 
+Do not run PHPUnit, PHPStan, Composer, PHP-CS-Fixer, or Radaptor CLI through host PHP. Use the
+container wrappers or `docker compose ... exec php ...`.
+
 ## Local PHP platform image
 
 The PHP 8.5 stack is split into:
@@ -143,7 +146,7 @@ released as new immutable versions before the consumer app is updated:
 - `install` / `update` may only touch `packages/registry/...`; `packages-dev/...` is Git-owned
 - local dev mode does not need release/publish
 - registry-first validation does need an immutable package release after first-party package changes
-- the consumer app refresh stays the normal `./radaptor update --json`, but only after the
+- the consumer app refresh stays the registry-first `./radaptor update --ignore-local-overrides --json`, but only after the
   registry deploy completed
 - then run registry-first verification on the main app instance: no symlinks under
   `packages/registry/`, correct `radaptor.lock.json` `resolved.path` values, and a repeated
@@ -159,7 +162,7 @@ After that:
 - commit the bumped `.registry-package.json` in the package repo
 - commit + push the `radaptor_plugin_registry` repo
 - pushes to `radaptor_plugin_registry/main` auto-deploy to `https://packages.radaptor.com/`
-- only then run `./radaptor update --json` so `radaptor.lock.json` and `packages/registry/...`
+- only then run `./radaptor update --ignore-local-overrides --json` so `radaptor.lock.json` and `packages/registry/...`
   pick up the new version
 
 The low-level `package:publish` and `package:publish-all` commands remain available for internal or
@@ -221,6 +224,40 @@ Normal package PR and release work happens directly inside those repos. The lega
 `package-origins/` directory may still exist for local experiments, but it is not part of the
 standard workflow.
 
+### Maintainer note: PR, Codex review, and publish sequence
+
+For package work that must be published:
+
+1. Make and commit the change in the owning package repo under `packages-dev/...`.
+2. Push a package PR and comment exactly `@codex review`.
+3. Address actionable review threads with thread-aware review reads, then request a fresh
+   `@codex review`.
+4. Wait for repo checks and the latest Codex review to be clean.
+5. Squash-merge the package PR and fast-forward local package `main`.
+6. Release from the package-dev runtime, for example:
+
+   ```bash
+   cd /apps/_RADAPTOR
+   ./bin/docker-compose-packages-dev.sh radaptor-app exec -T php bash -lc \
+     'cd /app && php radaptor.php package:release core:cms --json'
+   ```
+
+7. Commit/push the package repo `.registry-package.json` bump.
+8. Commit/push `radaptor_plugin_registry`, then wait for the deploy workflow.
+9. Refresh this app in registry-first mode:
+
+   ```bash
+   ./radaptor update --ignore-local-overrides --json
+   ```
+
+10. If `radaptor.local.json` is active, refresh local dev state afterwards:
+
+    ```bash
+    ./radaptor local-lock:refresh --json
+    ```
+
+11. Run `./radaptor build:all` and smoke the affected browser/admin URLs.
+
 ## Docker CLI options
 
 Use one of these supported approaches:
@@ -265,6 +302,34 @@ If you add or change documented browser events, rebuild the generated registry i
 container:
 
 - `./radaptor build:event-docs`
+
+## Site Snapshot Export / Import
+
+The CMS package provides a full site-content snapshot workflow for disaster recovery when an SQL
+backup is unavailable. It exports database-backed content, metadata, widget assignments, resource
+trees, menus, ACLs, rich text, i18n rows, and an upload manifest. Physical uploaded files remain a
+separate backup step.
+
+Export:
+
+```bash
+./radaptor site:export --output tmp/site-snapshot.json --uploads-backed-up --json
+```
+
+The `--uploads-backed-up` flag is required; the exporter refuses to proceed without explicit
+confirmation and checks that physical uploaded files match the database manifest.
+
+Import:
+
+```bash
+./radaptor site:uploads-check --snapshot tmp/site-snapshot.json --json
+./radaptor site:import tmp/site-snapshot.json --dry-run --json
+./radaptor site:import tmp/site-snapshot.json --apply --replace --json
+```
+
+The real import is destructive and requires `--replace`. Copy uploaded files into the target upload
+directory before applying. After a successful import, Radaptor runs i18n tag sync, shipped i18n
+sync, translation-memory rebuild, `build:all` including `build:assets`, and cache flush.
 
 ## Notes
 

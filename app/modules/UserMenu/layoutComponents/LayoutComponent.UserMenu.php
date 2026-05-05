@@ -11,7 +11,17 @@ class LayoutComponentUserMenu extends AbstractLayoutComponent
 
 	public function buildTree(): array
 	{
-		return $this->createComponentTree('userMenu', [], strings: self::buildStrings());
+		$current_locale = Kernel::getLocale();
+		$available_locales = I18nRuntime::getAvailableLocales();
+
+		return $this->createComponentTree('userMenu', [
+			'current_locale' => $current_locale,
+			'current_locale_label' => LocaleRegistry::getDisplayLabel($current_locale),
+			'available_locales' => $available_locales,
+			'locale_update_url' => Url::getUrl('user.set-locale', [
+				'referer' => Url::getCurrentUrlForReferer(),
+			]),
+		], strings: self::buildStrings());
 	}
 
 	/**
@@ -21,6 +31,8 @@ class LayoutComponentUserMenu extends AbstractLayoutComponent
 	{
 		return [
 			'common.logout' => t('common.logout'),
+			'user.locale.current_label' => t('user.locale.current_label'),
+			'user.locale.menu_label' => t('user.locale.menu_label'),
 		];
 	}
 
