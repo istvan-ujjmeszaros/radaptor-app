@@ -74,9 +74,12 @@ Example:
 ## Runtime Response & Message Rules
 
 - New or touched runtime/user-facing messages must use i18n keys through `t()`. Do not hardcode visible message text in PHP, templates, JavaScript, CLI/API payloads, `SystemMessages`, or `ApiError` messages.
+- Use `./radaptor.sh i18n:scan-hardcoded --json` to find visible UI literals in supported templates (`.php`, `.blade.php`, `.twig`) that bypass i18n keys. These are warnings by default; `i18n:doctor` exposes them as `hardcoded_ui` and only fails on them with `--strict-hardcoded`.
 - Service/model/form code must not write `SystemMessages` in new or touched code. API, JSON, HTMX, MCP, CLI-web, and other non-HTML flows must return structured response data or headers instead of session messages.
 - Full-page classic web events may temporarily map service Result values to `SystemMessages` at the call site only.
 - Use `Request::wantsNonHtmlResponse()` for response-family detection. Do not hand-read `HTTP_ACCEPT`, `HTTP_X_REQUESTED_WITH`, or `HTTP_HX_REQUEST`, and do not add query-parameter fallbacks such as `ajax=1`.
+- For HTMX admin flows, use header-detected server-rendered fragments and stable swap targets rather than query-parameter pseudo-routing. If an OOB swap inserts new `hx-*` markup outside the original target, verify whether the current HTMX runtime processes it automatically; if not, explicitly process the inserted root and cover it with a browser smoke.
+- Namespace framework/editor DOM ids away from feature component ids (`edit-*` for editor wrappers is preferred) so HTMX targets, OOB swaps, labels, and custom selectors do not collide.
 - When touching framework/CMS PHP files that can inspect response-family headers, add them to the relevant `phpstan.neon` `paths` entry so the response-detection rule checks them.
 - `ApiError` may be used as a domain/service Result value object; `ApiResponse` remains the boundary renderer.
 
@@ -85,6 +88,7 @@ Example:
 - Git worktrees must stay registry-first. Do not commit first-party `dev` sources in `radaptor.json`.
 - First-party package modifications happen in `/apps/_RADAPTOR/packages-dev/...`, not inside a worktree copy of the app.
 - If a feature branch also needs framework/CMS/theme changes, make separate repo-local commits/PRs in the affected package repo.
+- After opening or updating a GitHub PR, request Codex review with a PR comment containing exactly `@codex review`. Do not use GitHub's normal reviewer API for `codex`; an `eyes` reaction means the bot accepted the request, not that review is complete.
 
 ## Destructive Operations Safety
 
