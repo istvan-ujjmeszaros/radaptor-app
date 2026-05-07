@@ -12,19 +12,20 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "fac8f6fe43698671c2df8c66933b0f5ccc2739ad4bae3222e0bac70e9f4d509e",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.19/plugin.zip",
+                "dist_sha256": "ef2abce6c58b29ca987012b65280b285d90a161031be982e32c9b36119199aaa",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.21/plugin.zip",
                 "path": "packages/registry/core/cms",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.19"
+                "version": "0.1.21"
             },
             "dependencies": {
                 "radaptor/core/framework": "^0.1.25"
             },
             "composer": {
                 "require": {
+                    "ext-curl": "*",
                     "php": "^8.5"
                 }
             }

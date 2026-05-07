@@ -13,6 +13,7 @@ class WidgetList
 	public const string I18NWORKBENCH = 'I18nWorkbench';
 	public const string IMPORTEXPORT = 'ImportExport';
 	public const string JSTREE = 'JsTree';
+	public const string MAILPIT = 'Mailpit';
 	public const string MAINMENU = 'MainMenu';
 	public const string MCPTOKENS = 'McpTokens';
 	public const string PHPINFOFRAME = 'PhpInfoFrame';
@@ -46,6 +47,7 @@ class WidgetList
 		'I18nWorkbench',
 		'ImportExport',
 		'JsTree',
+		'Mailpit',
 		'MainMenu',
 		'McpTokens',
 		'PhpInfoFrame',
