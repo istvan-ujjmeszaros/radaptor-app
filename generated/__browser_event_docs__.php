@@ -206,6 +206,52 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'form.status\')',
 			],
 		],
+		'fragment:render' => [
+			'event_name' => 'fragment.render',
+			'group' => 'Runtime',
+			'name' => 'Render CMS fragment targets',
+			'summary' => 'Renders typed component, slot, and widget targets for partial page navigation.',
+			'description' => 'Uses the canonical page URL as page context and returns HTML suitable for htmx swaps.',
+			'request' => [
+				'method' => 'GET',
+				'params' => [
+					0 => [
+						'name' => 'targets',
+						'source' => 'query',
+						'type' => 'array',
+						'required' => false,
+						'description' => 'Target list, e.g. slot:content.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'html-fragment',
+				'content_type' => 'text/html',
+				'description' => 'Returns a page fragment or OOB target fragments.',
+			],
+			'authorization' => [
+				'visibility' => 'resource ACL',
+				'description' => 'Requires view permission on the resolved canonical webpage.',
+			],
+			'notes' => [
+			],
+			'side_effects' => [
+			],
+			'class' => 'EventFragmentRender',
+			'slug' => 'fragment:render',
+			'route' => [
+				'event_name' => 'fragment.render',
+				'context' => 'fragment',
+				'event' => 'render',
+				'query' => '?context=fragment&event=render',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'fragment.render\')',
+				'template_helper' => 'event_url(\'fragment.render\')',
+				'ajax_helper' => 'ajax_url(\'fragment.render\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'fragment.render\')',
+			],
+		],
 		'i18n_ajax:load' => [
 			'event_name' => 'i18n_ajax.load',
 			'group' => 'I18n',
