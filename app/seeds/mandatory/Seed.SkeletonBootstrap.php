@@ -41,6 +41,8 @@ class SeedSkeletonBootstrap extends AbstractSeed
 		$timezone = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 		$existing = User::getUserByName($username);
 
+		LocaleAdminService::ensureLocale($locale, true);
+
 		if ($existing === null) {
 			$user = EntityUser::saveFromArray([
 				'username' => $username,

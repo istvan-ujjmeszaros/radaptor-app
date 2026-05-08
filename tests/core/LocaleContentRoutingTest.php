@@ -394,6 +394,59 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 		));
 	}
 
+	public function testRichTextFormRejectsLocaleOnlyMoveIntoDuplicateName(): void
+	{
+		$name = 'test-richtext-locale-only-duplicate-name';
+		$english_id = EntityRichtext::createFromArray([
+			'content_type' => 'info',
+			'locale' => 'en-US',
+			'name' => $name,
+			'title' => 'English form content',
+			'content' => '<p>English form content</p>',
+		])->pkey();
+		EntityRichtext::createFromArray([
+			'content_type' => 'info',
+			'locale' => 'hu-HU',
+			'name' => $name,
+			'title' => 'Hungarian form content',
+			'content' => '<p>Hungarian form content</p>',
+		]);
+		$original_get = $_GET;
+		$original_post = $_POST;
+
+		try {
+			$_GET = ['item_id' => (string) $english_id, 'referer' => '/admin/'];
+			$_POST = [];
+			RequestContextHolder::initializeRequest(get: $_GET, post: $_POST);
+			$draft_form = new FormTypeRichText('rich_text', 'locale_only_duplicate_test', $this->treeContext(), '/admin/');
+			$name_input = $draft_form->getInput('name');
+			$title_input = $draft_form->getInput('title');
+			$locale_input = $draft_form->getInput('locale');
+			$content_input = $draft_form->getInput('__content');
+			$this->assertNotNull($name_input);
+			$this->assertNotNull($title_input);
+			$this->assertNotNull($locale_input);
+			$this->assertNotNull($content_input);
+
+			$_POST = [
+				'submit_button' => AbstractForm::_SUBMIT_VALUE_SAVE,
+				(string) $name_input->id => $name,
+				(string) $title_input->id => 'English form content',
+				(string) $locale_input->id => 'hu-HU',
+				(string) $content_input->id => '<p>English form content</p>',
+			];
+			RequestContextHolder::initializeRequest(get: $_GET, post: $_POST);
+			$submitted_form = new FormTypeRichText('rich_text', 'locale_only_duplicate_test', $this->treeContext(), '/admin/');
+
+			$this->assertContains(t('cms.richtext.field.name.unique_error'), $submitted_form->getInput('name')?->getErrors() ?? []);
+			$this->assertSame('en-US', EntityRichtext::findById((int) $english_id)?->dto()['locale'] ?? null);
+		} finally {
+			$_GET = $original_get;
+			$_POST = $original_post;
+			RequestContextHolder::initializeRequest(get: $_GET, post: $_POST);
+		}
+	}
+
 	public function testLocaleSwitcherUsesHomeForFixedLocaleContentAndSanitizesExternalReturnUrl(): void
 	{
 		$english_folder_id = CmsResourceSpecService::upsertFolder(['path' => '/en/']);

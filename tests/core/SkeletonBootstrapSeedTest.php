@@ -170,6 +170,47 @@ final class SkeletonBootstrapSeedTest extends TransactionedTestCase
 		}
 	}
 
+	public function testBootstrapSeedRegistersConfiguredAdminLocale(): void
+	{
+		$username = 'skeleton_seed_ga_admin';
+		$locale = 'ga-IE';
+
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', $username);
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'skeleton_seed_password');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', $locale);
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
+		TestHelperEnvironment::setEnvironmentVariable('RADAPTOR_SITE_CONTEXT', 'app');
+		TestHelperEnvironment::setEnvironmentVariable('APP_DOMAIN_CONTEXT', 'app');
+		TestHelperEnvironment::setEnvironmentVariable('DEV_WEBPAGE_AUTOGENERATION_ON_WIDGET_REQUEST', '0');
+
+		try {
+			$this->assertSame(0, (int) DbHelper::selectOneColumnFromQuery(
+				'SELECT COUNT(*) FROM `locales` WHERE `locale` = ?',
+				[$locale]
+			));
+
+			$seed = new SeedSkeletonBootstrap();
+			$seed->run(new SeedContext('app', 'mandatory', DEPLOY_ROOT . 'app', false));
+
+			$user = User::getUserByName($username);
+			$this->assertIsArray($user);
+			$this->assertSame($locale, $user['locale'] ?? null);
+
+			$this->assertSame(1, (int) DbHelper::selectOneColumnFromQuery(
+				'SELECT `is_enabled` FROM `locales` WHERE `locale` = ?',
+				[$locale]
+			));
+		} finally {
+			TestHelperEnvironment::revertEnvironmentVariable('DEV_WEBPAGE_AUTOGENERATION_ON_WIDGET_REQUEST');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_DOMAIN_CONTEXT');
+			TestHelperEnvironment::revertEnvironmentVariable('RADAPTOR_SITE_CONTEXT');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD');
+			TestHelperEnvironment::revertEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME');
+		}
+	}
+
 	/**
 	 * @return array{0: string, 1: string}
 	 */
