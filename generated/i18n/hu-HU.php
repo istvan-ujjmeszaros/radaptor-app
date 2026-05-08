@@ -749,6 +749,7 @@ return array (
   'locale_admin.message.enabled' => 'A(z) {locale} locale bekapcsolva.',
   'locale_admin.message.error' => 'A(z) {locale} locale nem módosítható.',
   'locale_admin.message.invalid_locale' => 'Érvénytelen locale.',
+  'locale_admin.message.service_unavailable' => 'A nyelvkezelés nem érhető el, amíg a locale infrastruktúra nincs telepítve.',
   'locale_admin.placeholder.locale' => 'en-US',
   'locale_admin.status.default' => 'Alapértelmezett',
   'locale_admin.status.disabled' => 'Kikapcsolva',

@@ -749,6 +749,7 @@ return array (
   'locale_admin.message.enabled' => 'Locale {locale} enabled.',
   'locale_admin.message.error' => 'Locale {locale} could not be updated.',
   'locale_admin.message.invalid_locale' => 'Invalid locale.',
+  'locale_admin.message.service_unavailable' => '在安装 locale 基础设施之前，locale 管理不可用。',
   'locale_admin.placeholder.locale' => 'en-US',
   'locale_admin.status.default' => 'Default',
   'locale_admin.status.disabled' => 'Disabled',
