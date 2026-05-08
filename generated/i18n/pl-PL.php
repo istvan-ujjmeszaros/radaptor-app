@@ -1132,6 +1132,7 @@ return array (
   'user.list.new' => 'Nowy użytkownik',
   'user.list.title' => 'Użytkownicy',
   'user.locale.current_label' => 'Aktualny język',
+  'user.locale.home_missing' => 'Dla wybranego języka nie skonfigurowano strony głównej; pozostajesz na bieżącej stronie.',
   'user.locale.invalid' => 'Wybrany język jest niedostępny',
   'user.locale.menu_label' => 'Język',
   'user.locale.updated' => 'Język zaktualizowany',

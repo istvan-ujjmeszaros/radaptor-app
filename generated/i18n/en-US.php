@@ -1132,6 +1132,7 @@ return array (
   'user.list.new' => 'New user',
   'user.list.title' => 'Users',
   'user.locale.current_label' => 'Current language',
+  'user.locale.home_missing' => 'No home page is configured for the selected language; staying on the current page.',
   'user.locale.invalid' => 'Selected language is not available',
   'user.locale.menu_label' => 'Language',
   'user.locale.updated' => 'Language updated',

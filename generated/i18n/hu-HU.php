@@ -1132,6 +1132,7 @@ return array (
   'user.list.new' => 'Új felhasználó',
   'user.list.title' => 'Felhasználók',
   'user.locale.current_label' => 'Jelenlegi nyelv',
+  'user.locale.home_missing' => 'A kiválasztott nyelvhez nincs kezdőoldal beállítva; az aktuális oldalon maradunk.',
   'user.locale.invalid' => 'A kiválasztott nyelv nem érhető el',
   'user.locale.menu_label' => 'Nyelv',
   'user.locale.updated' => 'Nyelv frissítve',

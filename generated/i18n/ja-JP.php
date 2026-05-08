@@ -1132,6 +1132,7 @@ return array (
   'user.list.new' => '新しいユーザー',
   'user.list.title' => 'ユーザー',
   'user.locale.current_label' => '現在の言語',
+  'user.locale.home_missing' => '選択した言語のホームページが設定されていないため、現在のページに留まります。',
   'user.locale.invalid' => '選択した言語は利用できません',
   'user.locale.menu_label' => '言語',
   'user.locale.updated' => '言語を更新しました',

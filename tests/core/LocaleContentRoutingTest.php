@@ -62,6 +62,107 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 		$this->assertSame('HTTP/1.1 302 Found', Url::redirectStatusHeader(EventUserSetLocale::getRedirectStatusForMethod('GET')));
 	}
 
+	public function testLocaleSwitchSameOriginGateRejectsUnsafeOriginsWithoutPersisting(): void
+	{
+		RequestContextHolder::initializeRequest(
+			post: ['locale' => 'hu-HU'],
+			server: [
+				'REQUEST_METHOD' => 'POST',
+				'REQUEST_URI' => '/admin/',
+				'HTTP_HOST' => 'localhost',
+				'SERVER_PORT' => '80',
+				'SERVER_PROTOCOL' => 'HTTP/1.1',
+				'HTTP_ORIGIN' => 'https://example.invalid',
+				'HTTPS' => '',
+			]
+		);
+		http_response_code(200);
+
+		(new EventUserSetLocale())->run();
+
+		$this->assertSame(403, http_response_code());
+		$this->assertNull(LocaleSwitchService::getStoredRequestLocale());
+
+		RequestContextHolder::initializeRequest(
+			post: ['locale' => 'hu-HU'],
+			server: [
+				'REQUEST_METHOD' => 'POST',
+				'REQUEST_URI' => '/admin/',
+				'HTTP_HOST' => 'localhost',
+				'SERVER_PORT' => '80',
+				'SERVER_PROTOCOL' => 'HTTP/1.1',
+				'HTTP_ORIGIN' => 'null',
+				'HTTPS' => '',
+			]
+		);
+		http_response_code(200);
+		$this->assertFalse(LocaleSwitchService::isSameOriginPostRequest());
+		(new EventUserSetLocale())->run();
+		$this->assertSame(403, http_response_code());
+		$this->assertNull(LocaleSwitchService::getStoredRequestLocale());
+
+		RequestContextHolder::initializeRequest(
+			post: ['locale' => 'hu-HU'],
+			server: [
+				'REQUEST_METHOD' => 'POST',
+				'REQUEST_URI' => '/admin/',
+				'HTTP_HOST' => 'localhost',
+				'SERVER_PORT' => '80',
+				'SERVER_PROTOCOL' => 'HTTP/1.1',
+				'HTTPS' => '',
+			]
+		);
+		http_response_code(200);
+		$this->assertFalse(LocaleSwitchService::isSameOriginPostRequest());
+		(new EventUserSetLocale())->run();
+		$this->assertSame(403, http_response_code());
+		$this->assertNull(LocaleSwitchService::getStoredRequestLocale());
+
+		RequestContextHolder::initializeRequest(server: [
+			'REQUEST_METHOD' => 'POST',
+			'REQUEST_URI' => '/admin/',
+			'HTTP_HOST' => 'localhost',
+			'SERVER_PORT' => '80',
+			'SERVER_PROTOCOL' => 'HTTP/1.1',
+			'HTTP_REFERER' => 'http://localhost/admin/',
+			'HTTPS' => '',
+		]);
+		$this->assertTrue(LocaleSwitchService::isSameOriginPostRequest());
+
+		http_response_code(200);
+	}
+
+	public function testAnonymousLocaleCookieOptionsAreHttpOnlyAndSecureAware(): void
+	{
+		RequestContextHolder::initializeRequest(server: [
+			'REQUEST_METHOD' => 'POST',
+			'REQUEST_URI' => '/admin/',
+			'HTTP_HOST' => 'localhost',
+			'SERVER_PORT' => '443',
+			'SERVER_PROTOCOL' => 'HTTP/1.1',
+			'HTTPS' => 'on',
+		]);
+
+		$options = LocaleSwitchService::getAnonymousLocaleCookieOptions(1000);
+
+		$this->assertSame(31537000, $options['expires']);
+		$this->assertSame('/', $options['path']);
+		$this->assertTrue($options['secure']);
+		$this->assertTrue($options['httponly']);
+		$this->assertSame('Lax', $options['samesite']);
+
+		RequestContextHolder::initializeRequest(server: [
+			'REQUEST_METHOD' => 'POST',
+			'REQUEST_URI' => '/admin/',
+			'HTTP_HOST' => 'localhost',
+			'SERVER_PORT' => '80',
+			'SERVER_PROTOCOL' => 'HTTP/1.1',
+			'HTTPS' => '',
+		]);
+
+		$this->assertFalse(LocaleSwitchService::getAnonymousLocaleCookieOptions(1000)['secure']);
+	}
+
 	public function testComputedHomeUsesIndexUnderExplicitLocaleFolderAndKeepsManualOverride(): void
 	{
 		$folder_id = CmsResourceSpecService::upsertFolder(['path' => '/hu/']);
@@ -292,10 +393,11 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 		);
 		$this->assertSame(1, $assigned_count);
 		$this->assertInstanceOf(
-			RichTextWidgetContentLocaleStrategy::class,
-			Widget::getContentLocaleStrategy(WidgetList::RICHTEXT)
+			WidgetRichText::class,
+			Widget::factory(WidgetList::RICHTEXT)
 		);
 		$this->assertDiagnosticsIssueMissing('richtext_widget_locale_mismatch');
+		$this->assertDiagnosticsIssueMissing('richtext_widget_locale_strategy_missing');
 	}
 
 	public function testWidgetSlotSyncAllowsRichTextAcrossPageLocales(): void
@@ -349,6 +451,30 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 
 		$this->assertContains('test-richtext-all-locales-en (en-US)', $labels);
 		$this->assertContains('test-richtext-all-locales-hu (hu-HU)', $labels);
+	}
+
+	public function testRichTextSelectListKeepsCurrentSelectionOutsideLocaleFilter(): void
+	{
+		$current_id = EntityRichtext::createFromArray([
+			'content_type' => 'info',
+			'locale' => 'en-US',
+			'name' => 'test-richtext-current-outside-filter',
+			'title' => 'English current selector content',
+			'content' => '<p>English current selector content</p>',
+		])->pkey();
+		EntityRichtext::createFromArray([
+			'content_type' => 'info',
+			'locale' => 'hu-HU',
+			'name' => 'test-richtext-current-filter-hu',
+			'title' => 'Hungarian selector content',
+			'content' => '<p>Hungarian selector content</p>',
+		]);
+
+		$options = EntityRichtext::getListForSelect('hu-HU', (int) $current_id, true);
+		$labels = array_column($options, 'label');
+
+		$this->assertContains('test-richtext-current-outside-filter (en-US)', $labels);
+		$this->assertContains('test-richtext-current-filter-hu (hu-HU)', $labels);
 	}
 
 	public function testRichTextSelectorLocaleFilterRendersNavigableLocaleLinks(): void
@@ -486,6 +612,113 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 			Url::getSeoUrl($english_index_id) ?? Url::getCurrentHost(),
 			LocaleSwitchService::resolveRedirectUrlForLocale('/hu/about.html', 'en-US')
 		);
+	}
+
+	public function testLocaleSwitcherStaysOnSourceWhenTargetLocaleHomeIsMissing(): void
+	{
+		$hungarian_folder_id = CmsResourceSpecService::upsertFolder(['path' => '/hu-missing-home/']);
+		$this->setResourceLocale($hungarian_folder_id, 'hu-HU');
+		CmsResourceSpecService::upsertWebpage([
+			'path' => '/hu-missing-home/about.html',
+			'layout' => 'public_default',
+		]);
+		LocaleHomeResourceService::refreshAll();
+
+		$decision = LocaleSwitchService::resolveRedirectDecisionForLocale('/hu-missing-home/about.html', 'en-US');
+
+		$this->assertSame('/hu-missing-home/about.html', $decision['url']);
+		$this->assertSame(LocaleSwitchService::REDIRECT_REASON_MISSING_LOCALE_HOME, $decision['reason']);
+	}
+
+	public function testMovingLocaleHomeSubtreeRefreshesOldAndNewSiteContexts(): void
+	{
+		User::bootstrapTrustedCurrentUser([
+			'user_id' => 424243,
+			'username' => 'locale-content-routing-move-test',
+		]);
+
+		try {
+			$hungarian_folder_id = CmsResourceSpecService::upsertFolder(['path' => '/hu-move-home/']);
+			$this->setResourceLocale($hungarian_folder_id, 'hu-HU');
+			$hungarian_index_id = CmsResourceSpecService::upsertWebpage([
+				'path' => '/hu-move-home/index.html',
+				'layout' => 'public_default',
+			]);
+			$other_root_result = ResourceTreeHandler::addResourceEntryResult([
+				'node_type' => 'root',
+				'resource_name' => 'move-target-site',
+			]);
+			$this->assertTrue($other_root_result->ok, $other_root_result->error?->message ?? 'Other site root creation failed.');
+			$other_root_id = (int) $other_root_result->data;
+			DbHelper::insertHelper('resource_acl', [
+				'resource_id' => $hungarian_folder_id,
+				'subject_type' => 'user',
+				'subject_id' => 424243,
+				'allow_edit' => 1,
+			]);
+			DbHelper::insertHelper('resource_acl', [
+				'resource_id' => $other_root_id,
+				'subject_type' => 'user',
+				'subject_id' => 424243,
+				'allow_create' => 1,
+			]);
+
+			LocaleHomeResourceService::refreshAll();
+			$this->assertSame($hungarian_index_id, LocaleHomeResourceService::getEffectiveHomeResourceId('app', 'hu-HU'));
+			$this->assertNull(LocaleHomeResourceService::getEffectiveHomeResourceId('move-target-site', 'hu-HU'));
+
+			$move = ResourceTreeHandler::moveResourceEntryToPositionResult($hungarian_folder_id, $other_root_id, 0);
+			$this->assertTrue($move->ok, $move->error?->message ?? 'Resource move failed.');
+
+			$this->assertNull(LocaleHomeResourceService::getEffectiveHomeResourceId('app', 'hu-HU'));
+			$this->assertSame($hungarian_index_id, LocaleHomeResourceService::getEffectiveHomeResourceId('move-target-site', 'hu-HU'));
+		} finally {
+			User::logout();
+		}
+	}
+
+	public function testI18nCatalogBuilderCanonicalLocaleWinsOverLegacyAlias(): void
+	{
+		$pdo = Db::instance();
+		$domain = 'test_catalog_builder';
+		$key = 'canonical_wins';
+		$output_dir = sys_get_temp_dir() . '/radaptor-i18n-catalog-' . bin2hex(random_bytes(4)) . '/';
+		mkdir($output_dir);
+
+		$pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+
+		try {
+			$pdo->prepare(
+				"INSERT INTO `i18n_messages` (`domain`, `key`, `context`, `source_text`, `source_hash`)
+				VALUES (?, ?, '', 'Source text', ?)
+				ON DUPLICATE KEY UPDATE `source_text` = VALUES(`source_text`), `source_hash` = VALUES(`source_hash`)"
+			)->execute([$domain, $key, md5('Source text')]);
+			$pdo->prepare(
+				"DELETE FROM `i18n_translations`
+				WHERE `domain` = ? AND `key` = ? AND `context` = '' AND `locale` IN ('en-US', 'en_US')"
+			)->execute([$domain, $key]);
+			$insert = $pdo->prepare(
+				"INSERT INTO `i18n_translations` (`domain`, `key`, `context`, `locale`, `text`, `human_reviewed`, `source_hash_snapshot`)
+				VALUES (?, ?, '', ?, ?, 1, ?)"
+			);
+			$insert->execute([$domain, $key, 'en_US', 'Legacy text', md5('Source text')]);
+			$insert->execute([$domain, $key, 'en-US', 'Canonical text', md5('Source text')]);
+
+			$method = new ReflectionMethod(I18nCatalogBuilder::class, '_buildLocale');
+			$method->invoke(null, 'en-US', $output_dir);
+
+			$catalog = require $output_dir . 'en-US.php';
+
+			$this->assertSame('Canonical text', $catalog[$domain . '.' . $key] ?? null);
+		} finally {
+			$pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+
+			foreach (glob($output_dir . '*') ?: [] as $file) {
+				unlink($file);
+			}
+
+			rmdir($output_dir);
+		}
 	}
 
 	private function setResourceLocale(int $resource_id, string $locale): void

@@ -1132,6 +1132,7 @@ return array (
   'user.list.new' => '새 사용자',
   'user.list.title' => '사용자',
   'user.locale.current_label' => '현재 언어',
+  'user.locale.home_missing' => '선택한 언어에 설정된 홈 페이지가 없어 현재 페이지에 머무릅니다.',
   'user.locale.invalid' => '선택한 언어를 사용할 수 없습니다',
   'user.locale.menu_label' => '언어',
   'user.locale.updated' => '언어가 업데이트되었습니다',

@@ -1132,6 +1132,7 @@ return array (
   'user.list.new' => '新用户',
   'user.list.title' => '用户',
   'user.locale.current_label' => '当前语言',
+  'user.locale.home_missing' => '所选语言未配置主页；将停留在当前页面。',
   'user.locale.invalid' => '所选语言不可用',
   'user.locale.menu_label' => '语言',
   'user.locale.updated' => '语言已更新',
