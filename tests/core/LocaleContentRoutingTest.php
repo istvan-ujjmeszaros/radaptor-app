@@ -255,7 +255,7 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 		]);
 	}
 
-	public function testDoctorReportsRichTextWidgetLocaleMismatch(): void
+	public function testDoctorAllowsRichTextWidgetAcrossPageLocales(): void
 	{
 		$hungarian_folder_id = CmsResourceSpecService::upsertFolder(['path' => '/hu/']);
 		$this->setResourceLocale($hungarian_folder_id, 'hu-HU');
@@ -280,7 +280,7 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 
 		$this->assertSame('hu-HU', ResourceLocaleService::getInheritedContentLocale($page_id));
 		$this->assertSame('en-US', EntityRichtext::findById((int) $content_id)?->dto()['locale'] ?? null);
-		$this->assertSame(1, (int) DbHelper::selectOneColumnFromQuery(
+		$assigned_count = (int) DbHelper::selectOneColumnFromQuery(
 			"SELECT COUNT(*)
 			FROM `widget_connections` wc
 			INNER JOIN `attributes` a
@@ -289,19 +289,16 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 				AND a.`param_name` = 'content_id'
 			WHERE wc.`connection_id` = ?",
 			[$connection_id]
-		));
+		);
+		$this->assertSame(1, $assigned_count);
 		$this->assertInstanceOf(
 			RichTextWidgetContentLocaleStrategy::class,
 			Widget::getContentLocaleStrategy(WidgetList::RICHTEXT)
 		);
-		$this->assertDiagnosticsIssue('richtext_widget_locale_mismatch', [
-			'connection_id' => $connection_id,
-			'page_locale' => 'hu-HU',
-			'content_locale' => 'en-US',
-		]);
+		$this->assertDiagnosticsIssueMissing('richtext_widget_locale_mismatch');
 	}
 
-	public function testWidgetSlotSyncRejectsRichTextLocaleMismatch(): void
+	public function testWidgetSlotSyncAllowsRichTextAcrossPageLocales(): void
 	{
 		$hungarian_folder_id = CmsResourceSpecService::upsertFolder(['path' => '/hu-sync/']);
 		$this->setResourceLocale($hungarian_folder_id, 'hu-HU');
@@ -317,20 +314,17 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 			'content' => '<p>English sync content</p>',
 		])->pkey();
 
-		try {
-			CmsResourceSpecService::syncWidgetSlot('/hu-sync/rich.html', 'content', [
-				[
-					'widget' => WidgetList::RICHTEXT,
-					'attributes' => ['content_id' => (int) $content_id],
-				],
-			]);
+		CmsResourceSpecService::syncWidgetSlot('/hu-sync/rich.html', 'content', [
+			[
+				'widget' => WidgetList::RICHTEXT,
+				'attributes' => ['content_id' => (int) $content_id],
+			],
+		]);
 
-			$this->fail('Expected widget slot sync to reject mismatched RichText locale.');
-		} catch (RuntimeException $exception) {
-			$this->assertSame(t('cms.richtext.locale_mismatch'), $exception->getMessage());
-		}
-
-		$this->assertSame([], WidgetConnection::getWidgetsForSlot($page_id, 'content'));
+		$connections = WidgetConnection::getWidgetsForSlot($page_id, 'content');
+		$this->assertCount(1, $connections);
+		$this->assertSame(WidgetList::RICHTEXT, $connections[0]->getWidgetName());
+		$this->assertSame((string) $content_id, (string) $connections[0]->getExtraparam('content_id'));
 	}
 
 	public function testRichTextSelectListCanExposeAllLocaleContentWithLocaleLabels(): void
@@ -591,5 +585,16 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 		));
 
 		$this->assertNotSame([], $matches, json_encode($diagnostics['issues'] ?? [], JSON_PRETTY_PRINT) ?: 'Expected diagnostics issue missing.');
+	}
+
+	private function assertDiagnosticsIssueMissing(string $code): void
+	{
+		$diagnostics = LocaleDiagnosticsService::diagnose();
+		$matches = array_values(array_filter(
+			$diagnostics['issues'] ?? [],
+			static fn (array $issue): bool => ($issue['code'] ?? null) === $code
+		));
+
+		$this->assertSame([], $matches, json_encode($matches, JSON_PRETTY_PRINT) ?: 'Unexpected diagnostics issue found.');
 	}
 }
