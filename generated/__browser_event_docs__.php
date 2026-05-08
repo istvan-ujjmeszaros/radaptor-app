@@ -2098,6 +2098,7 @@ return [
 			'notes' => [
 				0 => 'Locale values are limited to enabled locales.',
 				1 => 'Referer is sanitized to a same-site URL before redirect.',
+				2 => 'POST requests must pass same-origin Origin/Referer validation.',
 			],
 			'side_effects' => [
 				0 => 'Writes users.locale for logged-in users.',
