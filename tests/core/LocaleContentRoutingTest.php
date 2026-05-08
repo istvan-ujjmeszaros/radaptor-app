@@ -301,6 +301,38 @@ final class LocaleContentRoutingTest extends TransactionedTestCase
 		]);
 	}
 
+	public function testWidgetSlotSyncRejectsRichTextLocaleMismatch(): void
+	{
+		$hungarian_folder_id = CmsResourceSpecService::upsertFolder(['path' => '/hu-sync/']);
+		$this->setResourceLocale($hungarian_folder_id, 'hu-HU');
+		$page_id = CmsResourceSpecService::upsertWebpage([
+			'path' => '/hu-sync/rich.html',
+			'layout' => 'public_default',
+		]);
+		$content_id = EntityRichtext::createFromArray([
+			'content_type' => 'info',
+			'locale' => 'en-US',
+			'name' => 'test-sync-mismatched-richtext-widget',
+			'title' => 'English sync content',
+			'content' => '<p>English sync content</p>',
+		])->pkey();
+
+		try {
+			CmsResourceSpecService::syncWidgetSlot('/hu-sync/rich.html', 'content', [
+				[
+					'widget' => WidgetList::RICHTEXT,
+					'attributes' => ['content_id' => (int) $content_id],
+				],
+			]);
+
+			$this->fail('Expected widget slot sync to reject mismatched RichText locale.');
+		} catch (RuntimeException $exception) {
+			$this->assertSame(t('cms.richtext.locale_mismatch'), $exception->getMessage());
+		}
+
+		$this->assertSame([], WidgetConnection::getWidgetsForSlot($page_id, 'content'));
+	}
+
 	public function testRichTextSelectListCanExposeAllLocaleContentWithLocaleLabels(): void
 	{
 		EntityRichtext::createFromArray([

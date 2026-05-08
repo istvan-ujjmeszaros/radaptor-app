@@ -199,11 +199,25 @@ CREATE TABLE `email_queue_transactional` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `locales` (
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `label` varchar(255) NOT NULL DEFAULT '',
+  `native_label` varchar(255) NOT NULL DEFAULT '',
+  `is_enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(11) NOT NULL DEFAULT 100,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`locale`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `i18n_build_state` (
-  `locale` varchar(10) NOT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `catalog_hash` char(32) NOT NULL,
   `built_at` datetime NOT NULL,
-  PRIMARY KEY (`locale`)
+  PRIMARY KEY (`locale`),
+  CONSTRAINT `fk_i18n_build_state_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -222,8 +236,8 @@ CREATE TABLE `i18n_messages` (
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `i18n_tm_entries` (
   `tm_id` int(11) NOT NULL AUTO_INCREMENT,
-  `source_locale` varchar(10) NOT NULL,
-  `target_locale` varchar(10) NOT NULL,
+  `source_locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `target_locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `source_text_normalized` text NOT NULL,
   `source_text_raw` text NOT NULL,
   `target_text` text NOT NULL,
@@ -239,7 +253,10 @@ CREATE TABLE `i18n_tm_entries` (
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`tm_id`),
   KEY `idx_tm_lookup` (`source_locale`,`target_locale`,`source_hash`),
-  KEY `idx_tm_signature` (`source_locale`,`target_locale`,`source_hash`,`domain`,`source_key`,`context`)
+  KEY `idx_tm_signature` (`source_locale`,`target_locale`,`source_hash`,`domain`,`source_key`,`context`),
+  KEY `fk_i18n_tm_entries_target_locale` (`target_locale`),
+  CONSTRAINT `fk_i18n_tm_entries_source_locale` FOREIGN KEY (`source_locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_i18n_tm_entries_target_locale` FOREIGN KEY (`target_locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -248,11 +265,13 @@ CREATE TABLE `i18n_translations` (
   `domain` varchar(100) NOT NULL,
   `key` varchar(255) NOT NULL,
   `context` varchar(100) NOT NULL DEFAULT '',
-  `locale` varchar(10) NOT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `text` text NOT NULL DEFAULT '',
   `human_reviewed` tinyint(1) NOT NULL DEFAULT 0,
   `source_hash_snapshot` char(32) NOT NULL DEFAULT '',
   PRIMARY KEY (`domain`,`key`,`context`,`locale`),
+  KEY `fk_i18n_translations_locale` (`locale`),
+  CONSTRAINT `fk_i18n_translations_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE,
   CONSTRAINT `fk_i18n_translations_messages` FOREIGN KEY (`domain`, `key`, `context`) REFERENCES `i18n_messages` (`domain`, `key`, `context`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -332,6 +351,7 @@ CREATE TABLE `resource_tree` (
   `rgt` int(10) unsigned NOT NULL COMMENT '__noaudit',
   `parent_id` int(10) unsigned NOT NULL,
   `node_type` enum('webpage','folder','file','domain','root') CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `resource_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   `catcher_page` int(10) unsigned DEFAULT NULL,
   `is_inheriting_acl` tinyint(1) NOT NULL DEFAULT 1,
@@ -341,8 +361,28 @@ CREATE TABLE `resource_tree` (
   UNIQUE KEY `pathIndex` (`resource_name`,`path`),
   KEY `lft` (`lft`),
   KEY `node_type` (`node_type`),
-  KEY `rgt` (`rgt`)
+  KEY `rgt` (`rgt`),
+  KEY `fk_resource_tree_locale` (`locale`),
+  CONSTRAINT `fk_resource_tree_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `locale_home_resources` (
+  `site_context` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `computed_resource_id` int(10) unsigned DEFAULT NULL,
+  `manual_resource_id` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`site_context`,`locale`),
+  KEY `idx_locale_home_computed_resource` (`computed_resource_id`),
+  KEY `idx_locale_home_manual_resource` (`manual_resource_id`),
+  KEY `fk_locale_home_resources_locale` (`locale`),
+  CONSTRAINT `fk_locale_home_resources_computed_resource` FOREIGN KEY (`computed_resource_id`) REFERENCES `resource_tree` (`node_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_locale_home_resources_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_locale_home_resources_manual_resource` FOREIGN KEY (`manual_resource_id`) REFERENCES `resource_tree` (`node_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -356,7 +396,8 @@ CREATE TABLE `richtext` (
   `__content` text CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_richtext_locale_name` (`locale`,`name`),
-  KEY `content_type` (`content_type`)
+  KEY `content_type` (`content_type`),
+  CONSTRAINT `fk_richtext_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -517,7 +558,9 @@ CREATE TABLE `users` (
   `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'en-US' COMMENT 'Preferred BCP 47 locale for UI (e.g. en-US, hu-HU)',
   `password` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`user_id`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`username`),
+  KEY `fk_users_locale` (`locale`),
+  CONSTRAINT `fk_users_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -791,11 +834,25 @@ CREATE TABLE `email_queue_transactional` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `locales` (
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `label` varchar(255) NOT NULL DEFAULT '',
+  `native_label` varchar(255) NOT NULL DEFAULT '',
+  `is_enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(11) NOT NULL DEFAULT 100,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`locale`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `i18n_build_state` (
-  `locale` varchar(10) NOT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `catalog_hash` char(32) NOT NULL,
   `built_at` datetime NOT NULL,
-  PRIMARY KEY (`locale`)
+  PRIMARY KEY (`locale`),
+  CONSTRAINT `fk_i18n_build_state_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -814,8 +871,8 @@ CREATE TABLE `i18n_messages` (
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `i18n_tm_entries` (
   `tm_id` int(11) NOT NULL AUTO_INCREMENT,
-  `source_locale` varchar(10) NOT NULL,
-  `target_locale` varchar(10) NOT NULL,
+  `source_locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `target_locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `source_text_normalized` text NOT NULL,
   `source_text_raw` text NOT NULL,
   `target_text` text NOT NULL,
@@ -831,7 +888,10 @@ CREATE TABLE `i18n_tm_entries` (
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`tm_id`),
   KEY `idx_tm_lookup` (`source_locale`,`target_locale`,`source_hash`),
-  KEY `idx_tm_signature` (`source_locale`,`target_locale`,`source_hash`,`domain`,`source_key`,`context`)
+  KEY `idx_tm_signature` (`source_locale`,`target_locale`,`source_hash`,`domain`,`source_key`,`context`),
+  KEY `fk_i18n_tm_entries_target_locale` (`target_locale`),
+  CONSTRAINT `fk_i18n_tm_entries_source_locale` FOREIGN KEY (`source_locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_i18n_tm_entries_target_locale` FOREIGN KEY (`target_locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -840,11 +900,13 @@ CREATE TABLE `i18n_translations` (
   `domain` varchar(100) NOT NULL,
   `key` varchar(255) NOT NULL,
   `context` varchar(100) NOT NULL DEFAULT '',
-  `locale` varchar(10) NOT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `text` text NOT NULL DEFAULT '',
   `human_reviewed` tinyint(1) NOT NULL DEFAULT 0,
   `source_hash_snapshot` char(32) NOT NULL DEFAULT '',
   PRIMARY KEY (`domain`,`key`,`context`,`locale`),
+  KEY `fk_i18n_translations_locale` (`locale`),
+  CONSTRAINT `fk_i18n_translations_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE,
   CONSTRAINT `fk_i18n_translations_messages` FOREIGN KEY (`domain`, `key`, `context`) REFERENCES `i18n_messages` (`domain`, `key`, `context`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -924,6 +986,7 @@ CREATE TABLE `resource_tree` (
   `rgt` int(10) unsigned NOT NULL COMMENT '__noaudit',
   `parent_id` int(10) unsigned NOT NULL,
   `node_type` enum('webpage','folder','file','domain','root') CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `resource_name` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   `catcher_page` int(10) unsigned DEFAULT NULL,
   `is_inheriting_acl` tinyint(1) NOT NULL DEFAULT 1,
@@ -933,8 +996,28 @@ CREATE TABLE `resource_tree` (
   UNIQUE KEY `pathIndex` (`resource_name`,`path`),
   KEY `lft` (`lft`),
   KEY `node_type` (`node_type`),
-  KEY `rgt` (`rgt`)
+  KEY `rgt` (`rgt`),
+  KEY `fk_resource_tree_locale` (`locale`),
+  CONSTRAINT `fk_resource_tree_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `locale_home_resources` (
+  `site_context` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `computed_resource_id` int(10) unsigned DEFAULT NULL,
+  `manual_resource_id` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`site_context`,`locale`),
+  KEY `idx_locale_home_computed_resource` (`computed_resource_id`),
+  KEY `idx_locale_home_manual_resource` (`manual_resource_id`),
+  KEY `fk_locale_home_resources_locale` (`locale`),
+  CONSTRAINT `fk_locale_home_resources_computed_resource` FOREIGN KEY (`computed_resource_id`) REFERENCES `resource_tree` (`node_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_locale_home_resources_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_locale_home_resources_manual_resource` FOREIGN KEY (`manual_resource_id`) REFERENCES `resource_tree` (`node_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='__noaudit';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -948,7 +1031,8 @@ CREATE TABLE `richtext` (
   `__content` text CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_richtext_locale_name` (`locale`,`name`),
-  KEY `content_type` (`content_type`)
+  KEY `content_type` (`content_type`),
+  CONSTRAINT `fk_richtext_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1109,7 +1193,9 @@ CREATE TABLE `users` (
   `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'en-US' COMMENT 'Preferred BCP 47 locale for UI (e.g. en-US, hu-HU)',
   `password` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`user_id`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`username`),
+  KEY `fk_users_locale` (`locale`),
+  CONSTRAINT `fk_users_locale` FOREIGN KEY (`locale`) REFERENCES `locales` (`locale`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
