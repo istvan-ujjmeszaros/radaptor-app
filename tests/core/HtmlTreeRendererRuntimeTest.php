@@ -60,7 +60,7 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$js = $renderer->getJs();
 
 		$this->assertSame(1, substr_count($js, 'bootstrap.bundle.min.js'));
-		$this->assertSame(1, substr_count($js, 'htmx.org@2.0.4'));
+		$this->assertSame(1, substr_count($js, 'htmx.org@2.0.10'));
 	}
 
 	public function testTopLocalLibraryAssetKeepsAbsoluteAssetPath(): void
@@ -108,7 +108,7 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$theme = ThemeBase::factory('RadaptorPortalAdmin');
 		$renderer = new HtmlTreeRenderer(
 			theme: $theme,
-			lang_id: 'en_US',
+			lang_id: 'en-US',
 			page_id: 42,
 			title: 'Test Page',
 			description: 'A test description',
@@ -117,7 +117,7 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		);
 
 		$this->assertSame($theme, $renderer->getTheme());
-		$this->assertSame('en_US', $renderer->getLangId());
+		$this->assertSame('en-US', $renderer->getLangId());
 		$this->assertSame(42, $renderer->getPageId());
 		$this->assertSame('Test Page', $renderer->getTitle());
 		$this->assertSame('A test description', $renderer->getDescription());
@@ -195,12 +195,12 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$renderer = new SduiJsonTreeRenderer();
 
 		$node = SduiNode::create('statusMessage', ['severity' => 'info', 'message' => 'test']);
-		$json = $renderer->render($node, ['lang_id' => 'hu_HU']);
+		$json = $renderer->render($node, ['lang_id' => 'hu-HU']);
 		$decoded = json_decode($json, true);
 
 		$this->assertIsArray($decoded);
 		// Verify lang_id was passed through to serializer (stored as 'locale' in document)
-		$this->assertSame('hu_HU', $decoded['locale'] ?? null);
+		$this->assertSame('hu-HU', $decoded['locale'] ?? null);
 	}
 
 	public function testRendererAccumulatesAssetsDuringRender(): void

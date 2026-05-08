@@ -218,7 +218,7 @@ final class TreeRenderingContractTest extends TestCase
 				'html' => '<div>legacy</div>',
 			],
 			'slots' => [],
-		], 'en_US');
+		], 'en-US');
 	}
 
 	public function testAbstractFormBuildTreeReturnsStructuredFormNodesWithResolvedStrings(): void

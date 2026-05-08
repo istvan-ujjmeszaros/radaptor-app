@@ -349,12 +349,13 @@ CREATE TABLE `resource_tree` (
 CREATE TABLE `richtext` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `content_type` enum('article','blog','info') CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci NOT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   `title` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   `content` text CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   `__content` text CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `uq_richtext_locale_name` (`locale`,`name`),
   KEY `content_type` (`content_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -513,7 +514,7 @@ CREATE TABLE `users` (
   `is_active` tinyint(1) NOT NULL DEFAULT 0,
   `last_seen` timestamp NOT NULL DEFAULT current_timestamp() COMMENT '__noaudit',
   `timezone` varchar(64) DEFAULT NULL COMMENT 'IANA timezone identifier (for example Europe/Budapest, America/New_York)',
-  `locale` varchar(10) NOT NULL DEFAULT 'en_US' COMMENT 'Preferred locale for UI (e.g. en_US, hu_HU)',
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'en-US' COMMENT 'Preferred BCP 47 locale for UI (e.g. en-US, hu-HU)',
   `password` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)
@@ -940,12 +941,13 @@ CREATE TABLE `resource_tree` (
 CREATE TABLE `richtext` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `content_type` enum('article','blog','info') CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci NOT NULL,
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   `title` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   `content` text CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   `__content` text CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `uq_richtext_locale_name` (`locale`,`name`),
   KEY `content_type` (`content_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1104,7 +1106,7 @@ CREATE TABLE `users` (
   `is_active` tinyint(1) NOT NULL DEFAULT 0,
   `last_seen` timestamp NOT NULL DEFAULT current_timestamp() COMMENT '__noaudit',
   `timezone` varchar(64) DEFAULT NULL COMMENT 'IANA timezone identifier (for example Europe/Budapest, America/New_York)',
-  `locale` varchar(10) NOT NULL DEFAULT 'en_US' COMMENT 'Preferred locale for UI (e.g. en_US, hu_HU)',
+  `locale` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'en-US' COMMENT 'Preferred BCP 47 locale for UI (e.g. en-US, hu-HU)',
   `password` varchar(128) CHARACTER SET utf8mb3 COLLATE utf8mb3_hungarian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`)

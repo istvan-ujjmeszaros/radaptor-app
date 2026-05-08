@@ -81,8 +81,8 @@ The current skeleton is validated with automated tests and includes these workin
 - role-hierarchy authorization (RBAC-style checks through the roles tree)
 - CMS resource tree operations and ACL reconciliation CLI surface (`resource:acl-*`, `tree:check`)
 - i18n runtime payload serialization for rendered pages and widgets
-- shipped generated locale catalogs: `de_DE`, `en_US`, `es_ES`, `fr_FR`, `hu_HU`, `it_IT`, `ja_JP`,
-  `ko_KR`, `pl_PL`, `pt_BR`, `ru_RU`, `zh_Hans_CN`
+- shipped generated locale catalogs: `de-DE`, `en-US`, `es-ES`, `fr-FR`, `hu-HU`, `it-IT`, `ja-JP`,
+  `ko-KR`, `pl-PL`, `pt-BR`, `ru-RU`, `zh-Hans-CN`
 
 Validation commands used in this repo:
 - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php phpunit`

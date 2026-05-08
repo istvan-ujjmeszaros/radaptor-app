@@ -41,7 +41,7 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 		$output = $this->renderPage($page_id, $public_theme, $public_layout);
 		$payload = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
 
-		$this->assertSame('hu', $payload['locale'] ?? null);
+		$this->assertSame('en-US', $payload['locale'] ?? null);
 		$this->assertSame('layout_' . $public_layout, $payload['tree']['component'] ?? null);
 		$this->assertStringContainsString('PlainHtml', $output);
 	}
@@ -83,7 +83,7 @@ final class WebpageRenderingSmokeTest extends TransactionedTestCase
 		$output = $this->renderPage($page_id, 'RadaptorPortalAdmin', 'admin_default', true);
 
 		$this->assertStringContainsString('<section id="edit-tree-marker">Edit tree smoke</section>', $output);
-		$this->assertStringContainsString('id="widget-' . $connection_id . '"', $output);
+		$this->assertStringContainsString('id="fragment-widget-' . $connection_id . '"', $output);
 		$this->assertStringContainsString('class="widget-edit"', $output);
 		$this->assertStringContainsString('class="widget-insert', $output);
 		$this->assertGreaterThanOrEqual(2, substr_count($output, 'class="widget-insert'));

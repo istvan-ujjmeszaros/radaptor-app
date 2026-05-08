@@ -22,6 +22,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 		ResourceTreeHandler::withProtectedResourceMutationBypass(function () use ($context): void {
 			Cache::flush();
 			$this->_cms = new CmsSeedHelper($context);
+			LocaleAdminService::ensureDefaultLocaleRegistered();
 
 			$this->ensureSecurityBaseline();
 			$this->ensureBootstrapAdmin();
@@ -36,7 +37,7 @@ class SeedSkeletonBootstrap extends AbstractSeed
 	{
 		$username = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_USERNAME', 'admin');
 		$password = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_PASSWORD', 'admin123456');
-		$locale = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		$locale = LocaleService::canonicalize($this->getStringSetting('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US'));
 		$timezone = $this->getStringSetting('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 		$existing = User::getUserByName($username);
 
