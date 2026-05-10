@@ -11,7 +11,7 @@ app-specific version for future sessions.
 - Maintainer-local first-party package development uses:
   - `radaptor.local.json`
   - `radaptor.local.lock.json`
-  - `./bin/docker-compose-packages-dev.sh radaptor-app ...`
+  - `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton ...`
 
 ## Editable Package Repos
 
@@ -63,6 +63,6 @@ The rest of `generated/` remains tracked, including `generated/__config__.php` a
 - PHPStan:
   - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 - Framework package PHPStan from the supported package-dev runtime:
-  - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/framework/phpstan.neon`
+  - `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/framework/phpstan.neon`
 - CMS package PHPStan from the supported package-dev runtime:
-  - `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`
+  - `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`

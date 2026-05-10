@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCKERFILE="${SCRIPT_DIR}/php8.5/Dockerfile-platform"
-IMAGE_PREFIX="${RADAPTOR_PHP_PLATFORM_IMAGE_PREFIX:-radaptor-app-php-platform}"
+IMAGE_PREFIX="${RADAPTOR_PHP_PLATFORM_IMAGE_PREFIX:-radaptor-app-skeleton-php-platform}"
 PHP_VERSION="${RADAPTOR_PHP_PLATFORM_PHP_VERSION:-8.5}"
 
 usage() {
