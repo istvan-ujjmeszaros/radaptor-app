@@ -266,7 +266,7 @@ return [
 						'source' => 'query',
 						'type' => 'string',
 						'required' => false,
-						'description' => 'Locale code to load, defaults to en_US.',
+						'description' => 'Locale code to load, defaults to en-US.',
 					],
 					1 => [
 						'name' => 'start',
@@ -1047,6 +1047,70 @@ return [
 				'ajax_helper_raw' => 'ajax_url_raw(\'layout.usage\')',
 			],
 		],
+		'locale:set-enabled' => [
+			'event_name' => 'locale.set-enabled',
+			'group' => 'I18n',
+			'name' => 'Set locale enabled state',
+			'summary' => 'Enables or disables a registered application locale.',
+			'description' => 'Updates locales.is_enabled without deleting any content or translation data.',
+			'request' => [
+				'method' => 'POST',
+				'params' => [
+					0 => [
+						'name' => 'locale',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'BCP 47 locale code.',
+					],
+					1 => [
+						'name' => 'enabled',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => true,
+						'description' => 'Truth-y value to enable, false-y value to disable.',
+					],
+					2 => [
+						'name' => 'referer',
+						'source' => 'query',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Same-site return URL.',
+					],
+				],
+			],
+			'response' => [
+				'kind' => 'redirect',
+				'content_type' => 'text/html',
+				'description' => 'Redirects back to the locale admin page.',
+			],
+			'authorization' => [
+				'visibility' => 'role:system_developer',
+				'description' => 'Requires the system developer role.',
+			],
+			'notes' => [
+				0 => 'APP_DEFAULT_LOCALE cannot be disabled.',
+				1 => 'Disabling a locale does not delete rows that already use it.',
+			],
+			'side_effects' => [
+				0 => 'Updates locales.is_enabled.',
+				1 => 'Ensures the configured default locale exists and remains enabled.',
+			],
+			'class' => 'EventLocaleSetEnabled',
+			'slug' => 'locale:set-enabled',
+			'route' => [
+				'event_name' => 'locale.set-enabled',
+				'context' => 'locale',
+				'event' => 'set-enabled',
+				'query' => '?context=locale&event=set-enabled',
+			],
+			'invocation' => [
+				'url_php' => 'Url::getUrl(\'locale.set-enabled\')',
+				'template_helper' => 'event_url(\'locale.set-enabled\')',
+				'ajax_helper' => 'ajax_url(\'locale.set-enabled\')',
+				'ajax_helper_raw' => 'ajax_url_raw(\'locale.set-enabled\')',
+			],
+		],
 		'mcp:token-create' => [
 			'event_name' => 'mcp.token-create',
 			'group' => 'MCP',
@@ -1749,20 +1813,27 @@ return [
 						'description' => 'Stable RichText name.',
 					],
 					1 => [
+						'name' => 'locale',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'BCP 47 content locale. Defaults to the current request locale.',
+					],
+					2 => [
 						'name' => 'title',
 						'source' => 'body',
 						'type' => 'string',
 						'required' => false,
 						'description' => 'Human-readable RichText title. Leave empty when the rendered widget should not show a heading.',
 					],
-					2 => [
+					3 => [
 						'name' => 'content',
 						'source' => 'body',
 						'type' => 'string',
 						'required' => true,
 						'description' => 'HTML content.',
 					],
-					3 => [
+					4 => [
 						'name' => 'content_type',
 						'source' => 'body',
 						'type' => 'string',
@@ -1994,8 +2065,8 @@ return [
 			'event_name' => 'user.set-locale',
 			'group' => 'Runtime',
 			'name' => 'Set current user locale',
-			'summary' => 'Updates the current user interface language and redirects back.',
-			'description' => 'Persists a selected available locale on the logged-in user and refreshes the current session data.',
+			'summary' => 'Updates the current request language and redirects back.',
+			'description' => 'Persists a selected enabled locale on the logged-in user or anonymous session, then redirects to the same dynamic page or the selected locale home resource for fixed-locale content.',
 			'request' => [
 				'method' => 'POST',
 				'params' => [
@@ -2004,14 +2075,14 @@ return [
 						'source' => 'body',
 						'type' => 'string',
 						'required' => true,
-						'description' => 'Available locale code to store on the current user.',
+						'description' => 'Enabled BCP 47 locale code.',
 					],
 					1 => [
 						'name' => 'referer',
 						'source' => 'query',
 						'type' => 'string',
 						'required' => false,
-						'description' => 'Optional sanitized return URL after saving the locale.',
+						'description' => 'Optional same-site return URL after saving the locale.',
 					],
 				],
 			],
@@ -2021,16 +2092,17 @@ return [
 				'description' => 'Redirects back after updating the user locale.',
 			],
 			'authorization' => [
-				'visibility' => 'logged-in users',
-				'description' => 'Requires membership in the logged-in system usergroup.',
+				'visibility' => 'public',
+				'description' => 'Public locale switcher endpoint. Logged-in users also get users.locale updated.',
 			],
 			'notes' => [
-				0 => 'Locale values are limited to locales available through the runtime locale registry.',
-				1 => 'Referer is sanitized before redirect.',
+				0 => 'Locale values are limited to enabled locales.',
+				1 => 'Referer is sanitized to a same-site URL before redirect.',
+				2 => 'POST requests must pass same-origin Origin/Referer validation.',
 			],
 			'side_effects' => [
-				0 => 'Writes the users.locale field for the current user.',
-				1 => 'Refreshes the current user session.',
+				0 => 'Writes users.locale for logged-in users.',
+				1 => 'Stores anonymous locale in session and cookie.',
 				2 => 'Queues a success/error system message.',
 			],
 			'class' => 'EventUserSetLocale',

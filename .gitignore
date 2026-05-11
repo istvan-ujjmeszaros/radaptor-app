@@ -73,6 +73,7 @@ generated/__autoload__.php
 generated/__package_assets__.json
 generated/__templates__.php
 generated/__themed_templates__.php
+generated/i18n-source-scan-cache.json
 config/packages/*.local.php
 config/packages/*.php.example
 public/www/assets/packages/

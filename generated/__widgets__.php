@@ -13,6 +13,7 @@ class WidgetList
 	public const string I18NWORKBENCH = 'I18nWorkbench';
 	public const string IMPORTEXPORT = 'ImportExport';
 	public const string JSTREE = 'JsTree';
+	public const string LOCALEADMIN = 'LocaleAdmin';
 	public const string MAILPIT = 'Mailpit';
 	public const string MAINMENU = 'MainMenu';
 	public const string MCPTOKENS = 'McpTokens';
@@ -47,6 +48,7 @@ class WidgetList
 		'I18nWorkbench',
 		'ImportExport',
 		'JsTree',
+		'LocaleAdmin',
 		'Mailpit',
 		'MainMenu',
 		'McpTokens',

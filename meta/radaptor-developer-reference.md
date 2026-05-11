@@ -8,7 +8,7 @@ Standalone reference for the maintainer. Printable, no external dependencies.
 
 | Fogalom | Jelentes | Pelda path |
 |---|---|---|
-| **consumer app** | Alkalmazas, ami a framework/CMS csomagokat hasznalja. Ez a repo is az. | `radaptor-app/` |
+| **consumer app** | Alkalmazas, ami a framework/CMS csomagokat hasznalja. Ez a repo is az. | `radaptor-app-skeleton/` |
 | **first-party package** | A sajat framework, CMS es theme csomagok (4 db). Sajat GitHub repo-juk van, a fejlesztes a workspace-szintu `packages-dev/...` alatt tortenik. | framework, cms, portal-admin, so-admin |
 | **packages-dev** | Workspace-szintu editable first-party package checkout-ok gyujtohelye. Minden csomagnak sajat nested Git repo-ja van itt. | `/apps/_RADAPTOR/packages-dev/core/framework/` |
 | **registry mod** | Csomag a `packages/registry/...` alatti, verzio szerint letoltott, read-only masolatbol fut. Ez az alapertelmezett, committed allapot mind a 4 first-party csomagra. | `packages/registry/core/framework/` |
@@ -40,7 +40,7 @@ Maintainer-local dev mod aktivalasa a consumer app-on beluli gitignored
 workspace package-dev compose override szukseges:
 
 ```
-./bin/docker-compose-packages-dev.sh radaptor-app up -d --build
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton up -d --build
 ```
 
 Worktree-eknek is registry-first kell maradniuk. Ha egy feature branch modul-valtozast

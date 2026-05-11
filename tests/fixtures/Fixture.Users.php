@@ -22,20 +22,31 @@ class FixtureUsers extends AbstractFixture
 	}
 
 	/**
+	 * @return list<class-string<AbstractFixture>>
+	 */
+	public function getDependencies(): array
+	{
+		return [
+			FixtureLocales::class,
+		];
+	}
+
+	/**
 	 * @return list<array{
 	 *     username: string,
 	 *     password: string,
-	 *     is_active: int
+	 *     is_active: int,
+	 *     locale: string
 	 * }>
 	 */
 	public function getData(): array
 	{
 		return [
-			['username' => 'admin_developer', 'password' => self::PASSWORD_HASH, 'is_active' => 1],
-			['username' => 'user_noroles', 'password' => self::PASSWORD_HASH, 'is_active' => 1],
-			['username' => 'admin_inactive', 'password' => self::PASSWORD_HASH, 'is_active' => 0],
-			['username' => 'developer_user_new_theme', 'password' => self::PASSWORD_HASH, 'is_active' => 1],
-			['username' => 'developer_user_old_theme', 'password' => self::PASSWORD_HASH, 'is_active' => 1],
+			['username' => 'admin_developer', 'password' => self::PASSWORD_HASH, 'is_active' => 1, 'locale' => 'en-US'],
+			['username' => 'user_noroles', 'password' => self::PASSWORD_HASH, 'is_active' => 1, 'locale' => 'en-US'],
+			['username' => 'admin_inactive', 'password' => self::PASSWORD_HASH, 'is_active' => 0, 'locale' => 'en-US'],
+			['username' => 'developer_user_new_theme', 'password' => self::PASSWORD_HASH, 'is_active' => 1, 'locale' => 'en-US'],
+			['username' => 'developer_user_old_theme', 'password' => self::PASSWORD_HASH, 'is_active' => 1, 'locale' => 'en-US'],
 		];
 	}
 }

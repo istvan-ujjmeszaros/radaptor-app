@@ -43,7 +43,7 @@ final class AdminDropdownSmokeTest extends TransactionedTestCase
 	{
 		$available_themes = array_flip(Themes::getAllThemeNames());
 		$configured = [
-			'RadaptorPortalAdmin' => ['RadaptorPortalAdmin', 'admin-dropdown-container'],
+			'RadaptorPortalAdmin' => ['RadaptorPortalAdmin', 'sidebar-user-dropdown'],
 			'SoAdmin' => ['SoAdmin', 'admin_dropdown_icon'],
 			'Tracker' => ['Tracker', 'admin_dropdown_icon'],
 		];
@@ -117,7 +117,7 @@ final class AdminDropdownSmokeTest extends TransactionedTestCase
 			"Widget content not found for theme {$theme_name}",
 		);
 		$this->assertStringContainsString(
-			'id="widget-' . $connection_id . '"',
+			'id="fragment-widget-' . $connection_id . '"',
 			$output,
 			"Widget connection wrapper not found for theme {$theme_name}",
 		);

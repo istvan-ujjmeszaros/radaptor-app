@@ -28,7 +28,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -60,7 +60,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -98,7 +98,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -128,7 +128,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -149,7 +149,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -177,7 +177,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -201,7 +201,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -231,7 +231,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -253,7 +253,7 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -284,11 +284,202 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 		}
 	}
 
+	public function testSyncWidgetSlotDeletesRemovedWidgetSpecificSettings(): void
+	{
+		$this->runBootstrapSeedForSpecTests();
+
+		CmsResourceSpecService::upsertFolder(['path' => '/widget-cleanup/']);
+		CmsResourceSpecService::upsertWebpage([
+			'path' => '/widget-cleanup/index.html',
+			'layout' => 'public_default',
+			'slots' => [
+				'content' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'settings' => [
+							'content' => '<p>Old content</p>',
+						],
+					],
+				],
+			],
+		]);
+
+		$page = CmsPathHelper::resolveWebpage('/widget-cleanup/index.html');
+		$old_connection_id = is_array($page)
+			? (int) Widget::getWidgetConnectionId((int) $page['node_id'], 'content', WidgetList::PLAINHTML)
+			: 0;
+
+		$this->assertGreaterThan(0, $old_connection_id);
+		$this->assertSame(['content' => '<p>Old content</p>'], PlainHtml::getSettings($old_connection_id));
+
+		CmsResourceSpecService::syncWidgetSlot('/widget-cleanup/index.html', 'content', [
+			[
+				'widget' => WidgetList::PLAINHTML,
+				'settings' => [
+					'content' => '<p>New content</p>',
+				],
+			],
+		]);
+
+		$page = CmsPathHelper::resolveWebpage('/widget-cleanup/index.html');
+		$new_connection_id = is_array($page)
+			? (int) Widget::getWidgetConnectionId((int) $page['node_id'], 'content', WidgetList::PLAINHTML)
+			: 0;
+
+		$this->assertGreaterThan(0, $new_connection_id);
+		$this->assertNotSame($old_connection_id, $new_connection_id);
+		$this->assertSame([], PlainHtml::getSettings($old_connection_id));
+		$this->assertSame(['content' => '<p>New content</p>'], PlainHtml::getSettings($new_connection_id));
+	}
+
+	public function testPartialWebpageSlotSpecPreservesOmittedSlotsAndWidgetSettings(): void
+	{
+		$this->runBootstrapSeedForSpecTests();
+
+		CmsResourceSpecService::upsertFolder(['path' => '/widget-partial/']);
+		CmsResourceSpecService::upsertWebpage([
+			'path' => '/widget-partial/index.html',
+			'layout' => 'public_default',
+			'slots' => [
+				'content' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'settings' => [
+							'content' => '<p>Keep this content setting</p>',
+						],
+					],
+				],
+				'side' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'settings' => [
+							'content' => '<p>Keep this side slot</p>',
+						],
+					],
+				],
+			],
+		]);
+
+		CmsResourceSpecService::upsertWebpage([
+			'path' => '/widget-partial/index.html',
+			'slots' => [
+				'content' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+					],
+				],
+			],
+		]);
+
+		$spec = CmsResourceSpecService::exportWebpageSpec('/widget-partial/index.html');
+
+		$this->assertSame('<p>Keep this content setting</p>', $spec['slots']['content'][0]['settings']['content'] ?? null);
+		$this->assertSame('<p>Keep this side slot</p>', $spec['slots']['side'][0]['settings']['content'] ?? null);
+	}
+
+	public function testExplicitEmptySlotSpecEmptiesOnlyThatSlot(): void
+	{
+		$this->runBootstrapSeedForSpecTests();
+		$this->createTwoSlotSpecPage('/widget-empty-slot/');
+
+		CmsResourceSpecService::upsertWebpage([
+			'path' => '/widget-empty-slot/index.html',
+			'slots' => [
+				'content' => [],
+			],
+		]);
+
+		$spec = CmsResourceSpecService::exportWebpageSpec('/widget-empty-slot/index.html');
+
+		$this->assertSame([], $spec['slots']['content'] ?? []);
+		$this->assertSame('<p>Keep this side slot</p>', $spec['slots']['side'][0]['settings']['content'] ?? null);
+	}
+
+	public function testReplaceSlotsTrueWipesOmittedSlots(): void
+	{
+		$this->runBootstrapSeedForSpecTests();
+		$this->createTwoSlotSpecPage('/widget-replace-slots/');
+
+		CmsResourceSpecService::upsertWebpage([
+			'path' => '/widget-replace-slots/index.html',
+			'replace_slots' => true,
+			'slots' => [
+				'content' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'settings' => [
+							'content' => '<p>Replacement content</p>',
+						],
+					],
+				],
+			],
+		]);
+
+		$spec = CmsResourceSpecService::exportWebpageSpec('/widget-replace-slots/index.html');
+
+		$this->assertSame('<p>Replacement content</p>', $spec['slots']['content'][0]['settings']['content'] ?? null);
+		$this->assertArrayNotHasKey('side', $spec['slots']);
+	}
+
+	public function testExplicitEmptySettingsAndAttributesClearExistingWidgetState(): void
+	{
+		$this->runBootstrapSeedForSpecTests();
+
+		CmsResourceSpecService::upsertFolder(['path' => '/widget-clear-state/']);
+		CmsResourceSpecService::upsertWebpage([
+			'path' => '/widget-clear-state/index.html',
+			'layout' => 'public_default',
+			'slots' => [
+				'content' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'attributes' => [
+							'custom_marker' => 'keep-until-cleared',
+						],
+						'settings' => [
+							'content' => '<p>Keep until cleared</p>',
+						],
+					],
+				],
+			],
+		]);
+
+		CmsResourceSpecService::upsertWebpage([
+			'path' => '/widget-clear-state/index.html',
+			'slots' => [
+				'content' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'attributes' => [],
+						'settings' => [],
+					],
+				],
+			],
+		]);
+
+		$spec = CmsResourceSpecService::exportWebpageSpec('/widget-clear-state/index.html');
+
+		$this->assertSame([], $spec['slots']['content'][0]['attributes'] ?? null);
+		$this->assertSame([], $spec['slots']['content'][0]['settings'] ?? null);
+	}
+
+	public function testExportedWebpageSpecRoundTripsWithoutChangingState(): void
+	{
+		$this->runBootstrapSeedForSpecTests();
+		$this->createTwoSlotSpecPage('/widget-roundtrip/');
+
+		$before = CmsResourceSpecService::exportWebpageSpec('/widget-roundtrip/index.html');
+		CmsResourceSpecService::upsertWebpage($before);
+		$after = CmsResourceSpecService::exportWebpageSpec('/widget-roundtrip/index.html');
+
+		$this->assertSame($this->canonicalizeSpec($before), $this->canonicalizeSpec($after));
+	}
+
 	public function testRemoveWidgetRejectsConnectionIdsOutsideRequestedPageAndSlot(): void
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		try {
@@ -463,10 +654,64 @@ final class CmsResourceSpecServiceTest extends TransactionedTestCase
 	{
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_USERNAME', 'cms_spec_admin');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_PASSWORD', 'cms_spec_password');
-		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en_US');
+		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_LOCALE', 'en-US');
 		TestHelperEnvironment::setEnvironmentVariable('APP_BOOTSTRAP_ADMIN_TIMEZONE', 'UTC');
 
 		$seed = new SeedSkeletonBootstrap();
 		$seed->run(new SeedContext('app', 'mandatory', DEPLOY_ROOT . 'app', false));
+	}
+
+	private function createTwoSlotSpecPage(string $folder_path): void
+	{
+		CmsResourceSpecService::upsertFolder(['path' => $folder_path]);
+		CmsResourceSpecService::upsertWebpage([
+			'path' => rtrim($folder_path, '/') . '/index.html',
+			'layout' => 'public_default',
+			'slots' => [
+				'content' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'settings' => [
+							'content' => '<p>Keep this content setting</p>',
+						],
+					],
+				],
+				'side' => [
+					[
+						'widget' => WidgetList::PLAINHTML,
+						'settings' => [
+							'content' => '<p>Keep this side slot</p>',
+						],
+					],
+				],
+			],
+		]);
+	}
+
+	/**
+	 * @param array<string, mixed> $spec
+	 * @return array<string, mixed>
+	 */
+	private function canonicalizeSpec(array $spec): array
+	{
+		$this->sortArrayRecursive($spec);
+
+		return $spec;
+	}
+
+	/**
+	 * @param array<string|int, mixed> $value
+	 */
+	private function sortArrayRecursive(array &$value): void
+	{
+		if (!array_is_list($value)) {
+			ksort($value);
+		}
+
+		foreach ($value as &$child) {
+			if (is_array($child)) {
+				$this->sortArrayRecursive($child);
+			}
+		}
 	}
 }

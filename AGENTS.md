@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is `radaptor-app`, a registry-first consumer application built on the Radaptor framework.
+This is `radaptor-app-skeleton`, a registry-first consumer application built on the Radaptor framework.
 It uses 4 first-party packages (framework, CMS, `portal-admin`, `so-admin`), each with its own
 GitHub repository.
 
@@ -39,7 +39,7 @@ Inside Docker, the same repos are visible under the workspace package-dev compos
 
 1. Keep committed `radaptor.json` registry-first.
 2. Put maintainer-local overrides into gitignored `radaptor.local.json`.
-3. Start the package-dev runtime with `./bin/docker-compose-packages-dev.sh radaptor-app up -d --build`.
+3. Start the package-dev runtime with `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton up -d --build`.
 4. Point first-party package overrides at logical `location` values under `RADAPTOR_DEV_ROOT`.
 5. Let `install` / `update` write only `radaptor.local.lock.json` while local overrides are active.
 
@@ -113,10 +113,10 @@ Example:
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpunit`
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 - `docker compose -f docker-compose-dev.yml exec -T php bash -lc 'cd /app && ./php-cs-fixer.sh --config=.php-cs-fixer.php'`
-- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T php bash -lc 'cd /workspace/packages-dev/core/framework && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
-- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T php bash -lc 'cd /workspace/packages-dev/core/cms && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
-- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/framework/phpstan.neon`
-- `./bin/docker-compose-packages-dev.sh radaptor-app exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`
+- `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc 'cd /workspace/packages-dev/core/framework && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
+- `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc 'cd /workspace/packages-dev/core/cms && /app/php-cs-fixer.sh --config=.php-cs-fixer.php'`
+- `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/framework/phpstan.neon`
+- `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`
 
 ## Admin/Login Browser Checks
 

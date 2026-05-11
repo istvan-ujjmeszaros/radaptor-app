@@ -218,7 +218,29 @@ final class TreeRenderingContractTest extends TestCase
 				'html' => '<div>legacy</div>',
 			],
 			'slots' => [],
-		], 'en_US');
+		], 'en-US');
+	}
+
+	public function testSduiJsonSerializerDoesNotExposeInternalSlotsAlias(): void
+	{
+		$serializer = new SduiJsonSerializer();
+		$json = $serializer->serializeDocument([
+			'type' => 'sub',
+			'component' => 'layout',
+			'props' => [],
+			'slots' => [
+				'content' => [[
+					'type' => 'sub',
+					'component' => 'child',
+					'props' => [],
+					'slots' => [],
+				]],
+			],
+		], 'en-US');
+		$payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+		$this->assertFalse($this->arrayHasRecursiveKey($payload, 'slots'));
+		$this->assertTrue($this->arrayHasRecursiveKey($payload, 'contents'));
 	}
 
 	public function testAbstractFormBuildTreeReturnsStructuredFormNodesWithResolvedStrings(): void
@@ -561,6 +583,21 @@ final class TreeRenderingContractTest extends TestCase
 		}
 
 		return $components;
+	}
+
+	private function arrayHasRecursiveKey(array $data, string $key): bool
+	{
+		if (array_key_exists($key, $data)) {
+			return true;
+		}
+
+		foreach ($data as $value) {
+			if (is_array($value) && $this->arrayHasRecursiveKey($value, $key)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 

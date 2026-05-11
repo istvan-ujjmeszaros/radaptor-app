@@ -22,7 +22,7 @@ services:
     build:
       context: ./docker/h2o
       dockerfile: Dockerfile
-    image: radaptor-app-h2o:local
+    image: radaptor-app-skeleton-h2o:local
     environment:
       - ALLOW_OVERRIDE=true
       - PUBLIC_FOLDER=/app/public/www
@@ -41,11 +41,11 @@ services:
       dockerfile: php8.5/Dockerfile-runtime
       target: dev
       args:
-        RADAPTOR_PHP_PLATFORM_DEV_IMAGE: ${RADAPTOR_PHP_PLATFORM_DEV_IMAGE:-radaptor-app-php-platform:8.5-dev-local}
-    image: radaptor-app-phpfpm:8.5-dev
+        RADAPTOR_PHP_PLATFORM_DEV_IMAGE: ${RADAPTOR_PHP_PLATFORM_DEV_IMAGE:-radaptor-app-skeleton-php-platform:8.5-dev-local}
+    image: radaptor-app-skeleton-phpfpm:8.5-dev
     working_dir: /app
     env_file:
-      - path: .env
+      - path: ${RADAPTOR_DOCKER_ENV_FILE:-.env}
         required: false
     environment:
       - XDEBUG_FILE_LINK_FORMAT=javascript:var r = new XMLHttpRequest; r.open("get","http://localhost:63342/api/file/%f:%l".replace("/app/", "/"));r.send()
@@ -57,14 +57,15 @@ services:
       - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}
       - SESSION_REDIS_TIMEOUT=${SESSION_REDIS_TIMEOUT:-2}
       - SESSION_REDIS_TTL=${SESSION_REDIS_TTL:-3600}
-      - SESSION_REDIS_PREFIX=${SESSION_REDIS_PREFIX:-radaptor-app:session:}
+      - SESSION_REDIS_PREFIX=${SESSION_REDIS_PREFIX:-radaptor-app-skeleton:session:}
       - CACHE_REDIS_HOST=${CACHE_REDIS_HOST:-redis-cache}
       - CACHE_REDIS_PORT=${CACHE_REDIS_PORT:-6379}
       - CACHE_REDIS_TIMEOUT=${CACHE_REDIS_TIMEOUT:-2}
       - APP_PERSISTENT_CACHE_ENABLED=${APP_PERSISTENT_CACHE_ENABLED:-false}
+      - APP_DEFAULT_LOCALE=${APP_DEFAULT_LOCALE:-en-US}
       - APP_BOOTSTRAP_ADMIN_USERNAME=${APP_BOOTSTRAP_ADMIN_USERNAME:-admin}
       - APP_BOOTSTRAP_ADMIN_PASSWORD=${APP_BOOTSTRAP_ADMIN_PASSWORD:-admin123456}
-      - APP_BOOTSTRAP_ADMIN_LOCALE=${APP_BOOTSTRAP_ADMIN_LOCALE:-en_US}
+      - APP_BOOTSTRAP_ADMIN_LOCALE=${APP_BOOTSTRAP_ADMIN_LOCALE:-en-US}
       - APP_BOOTSTRAP_ADMIN_TIMEZONE=${APP_BOOTSTRAP_ADMIN_TIMEZONE:-UTC}
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -78,10 +79,10 @@ services:
       - ./docker/99-radaptor-dev.ini:/usr/local/etc/php/conf.d/99-radaptor-dev.ini:ro
 
   swoole-queue-worker:
-    image: radaptor-app-phpfpm:8.5-dev
+    image: radaptor-app-skeleton-phpfpm:8.5-dev
     working_dir: /app
     env_file:
-      - path: .env
+      - path: ${RADAPTOR_DOCKER_ENV_FILE:-.env}
         required: false
     environment:
       - ENVIRONMENT=development
@@ -92,14 +93,15 @@ services:
       - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}
       - SESSION_REDIS_TIMEOUT=${SESSION_REDIS_TIMEOUT:-2}
       - SESSION_REDIS_TTL=${SESSION_REDIS_TTL:-3600}
-      - SESSION_REDIS_PREFIX=${SESSION_REDIS_PREFIX:-radaptor-app:session:}
+      - SESSION_REDIS_PREFIX=${SESSION_REDIS_PREFIX:-radaptor-app-skeleton:session:}
       - CACHE_REDIS_HOST=${CACHE_REDIS_HOST:-redis-cache}
       - CACHE_REDIS_PORT=${CACHE_REDIS_PORT:-6379}
       - CACHE_REDIS_TIMEOUT=${CACHE_REDIS_TIMEOUT:-2}
       - APP_PERSISTENT_CACHE_ENABLED=${APP_PERSISTENT_CACHE_ENABLED:-false}
+      - APP_DEFAULT_LOCALE=${APP_DEFAULT_LOCALE:-en-US}
       - APP_BOOTSTRAP_ADMIN_USERNAME=${APP_BOOTSTRAP_ADMIN_USERNAME:-admin}
       - APP_BOOTSTRAP_ADMIN_PASSWORD=${APP_BOOTSTRAP_ADMIN_PASSWORD:-admin123456}
-      - APP_BOOTSTRAP_ADMIN_LOCALE=${APP_BOOTSTRAP_ADMIN_LOCALE:-en_US}
+      - APP_BOOTSTRAP_ADMIN_LOCALE=${APP_BOOTSTRAP_ADMIN_LOCALE:-en-US}
       - APP_BOOTSTRAP_ADMIN_TIMEZONE=${APP_BOOTSTRAP_ADMIN_TIMEZONE:-UTC}
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -112,10 +114,10 @@ services:
       - ./docker/99-radaptor-dev.ini:/usr/local/etc/php/conf.d/99-radaptor-dev.ini:ro
 
   mcp:
-    image: radaptor-app-phpfpm:8.5-dev
+    image: radaptor-app-skeleton-phpfpm:8.5-dev
     working_dir: /app
     env_file:
-      - path: .env
+      - path: ${RADAPTOR_DOCKER_ENV_FILE:-.env}
         required: false
     environment:
       - ENVIRONMENT=development
@@ -128,11 +130,12 @@ services:
       - SESSION_REDIS_PORT=${SESSION_REDIS_PORT:-6379}
       - SESSION_REDIS_TIMEOUT=${SESSION_REDIS_TIMEOUT:-2}
       - SESSION_REDIS_TTL=${SESSION_REDIS_TTL:-3600}
-      - SESSION_REDIS_PREFIX=${SESSION_REDIS_PREFIX:-radaptor-app:session:}
+      - SESSION_REDIS_PREFIX=${SESSION_REDIS_PREFIX:-radaptor-app-skeleton:session:}
       - CACHE_REDIS_HOST=${CACHE_REDIS_HOST:-redis-cache}
       - CACHE_REDIS_PORT=${CACHE_REDIS_PORT:-6379}
       - CACHE_REDIS_TIMEOUT=${CACHE_REDIS_TIMEOUT:-2}
       - APP_PERSISTENT_CACHE_ENABLED=${APP_PERSISTENT_CACHE_ENABLED:-false}
+      - APP_DEFAULT_LOCALE=${APP_DEFAULT_LOCALE:-en-US}
       - APP_MCP_CONTAINER_PORT=9512
       - APP_MCP_ALLOWED_ORIGINS=${APP_MCP_ALLOWED_ORIGINS:-}
     extra_hosts:
@@ -173,6 +176,6 @@ services:
 
 volumes:
   mariadb-data:
-    name: ${RADAPTOR_DOCKER_VOLUME_PREFIX:-radaptor-app-dev}_mariadb-data
+    name: ${RADAPTOR_DOCKER_VOLUME_PREFIX:-radaptor-app-skeleton-dev}_mariadb-data
   redis-session-data:
-    name: ${RADAPTOR_DOCKER_VOLUME_PREFIX:-radaptor-app-dev}_redis-session-data
+    name: ${RADAPTOR_DOCKER_VOLUME_PREFIX:-radaptor-app-skeleton-dev}_redis-session-data

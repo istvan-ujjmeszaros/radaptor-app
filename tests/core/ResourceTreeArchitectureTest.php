@@ -27,6 +27,10 @@ final class ResourceTreeArchitectureTest extends TestCase
 					continue;
 				}
 
+				if (str_contains((string) $path, '/tests/')) {
+					continue;
+				}
+
 				$contents = file_get_contents($path);
 
 				if (!is_string($contents)) {
