@@ -45,7 +45,7 @@ services:
     image: radaptor-app-skeleton-phpfpm:8.5-dev
     working_dir: /app
     env_file:
-      - path: .env
+      - path: ${RADAPTOR_DOCKER_ENV_FILE:-.env}
         required: false
     environment:
       - XDEBUG_FILE_LINK_FORMAT=javascript:var r = new XMLHttpRequest; r.open("get","http://localhost:63342/api/file/%f:%l".replace("/app/", "/"));r.send()
@@ -82,7 +82,7 @@ services:
     image: radaptor-app-skeleton-phpfpm:8.5-dev
     working_dir: /app
     env_file:
-      - path: .env
+      - path: ${RADAPTOR_DOCKER_ENV_FILE:-.env}
         required: false
     environment:
       - ENVIRONMENT=development
@@ -117,7 +117,7 @@ services:
     image: radaptor-app-skeleton-phpfpm:8.5-dev
     working_dir: /app
     env_file:
-      - path: .env
+      - path: ${RADAPTOR_DOCKER_ENV_FILE:-.env}
         required: false
     environment:
       - ENVIRONMENT=development
