@@ -15,6 +15,7 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 	protected function setUp(): void
 	{
 		RequestContextHolder::initializeRequest();
+		PageChromeAutoAppendTestTemplate::$consumePageChrome = false;
 	}
 
 	public function testAssetAccumulationCss(): void
@@ -227,6 +228,61 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$this->assertStringContainsString('prism', $css);
 	}
 
+	public function testRendererAutoAppendsUnfetchedPageChromeBeforeBodyClose(): void
+	{
+		$renderer = new HtmlTreeRenderer(template_class: PageChromeAutoAppendTestTemplate::class);
+
+		$html = $renderer->render(SduiNode::create(
+			component: 'testLayout',
+			contents: [
+				'page_chrome' => [
+					SduiNode::create('chromeMarker', ['is_chrome_marker' => true]),
+				],
+			],
+		));
+
+		$this->assertStringContainsString('<main>body</main><div id="chrome">chrome</div></body>', $html);
+		$this->assertSame(1, substr_count($html, '<div id="chrome">chrome</div>'));
+	}
+
+	public function testRendererAppendsUnfetchedPageChromeWhenBodyCloseIsOmitted(): void
+	{
+		$renderer = new HtmlTreeRenderer(template_class: PageChromeAutoAppendTestTemplate::class);
+
+		$html = $renderer->render(SduiNode::create(
+			component: 'testLayout',
+			props: [
+				'omit_body_close' => true,
+			],
+			contents: [
+				'page_chrome' => [
+					SduiNode::create('chromeMarker', ['is_chrome_marker' => true]),
+				],
+			],
+		));
+
+		$this->assertStringEndsWith('<div id="chrome">chrome</div>', $html);
+		$this->assertSame(1, substr_count($html, '<div id="chrome">chrome</div>'));
+	}
+
+	public function testRendererDoesNotDuplicateFetchedPageChrome(): void
+	{
+		PageChromeAutoAppendTestTemplate::$consumePageChrome = true;
+		$renderer = new HtmlTreeRenderer(template_class: PageChromeAutoAppendTestTemplate::class);
+
+		$html = $renderer->render(SduiNode::create(
+			component: 'testLayout',
+			contents: [
+				'page_chrome' => [
+					SduiNode::create('chromeMarker', ['is_chrome_marker' => true]),
+				],
+			],
+		));
+
+		$this->assertStringContainsString('<main>body</main><div id="chrome">chrome</div></body>', $html);
+		$this->assertSame(1, substr_count($html, '<div id="chrome">chrome</div>'));
+	}
+
 	public function testTemplateResolvesThemedPathViaRenderer(): void
 	{
 		$renderer = new HtmlTreeRenderer(theme: ThemeBase::factory('RadaptorPortalAdmin'));
@@ -275,5 +331,32 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$this->assertStringContainsString('tippy-bundle.umd.min.js', $top_js);
 		$this->assertStringNotContainsString('jquery-ui.min.js', $bottom_js);
 		$this->assertStringNotContainsString('tippy-bundle.umd.min.js', $bottom_js);
+	}
+}
+
+final class PageChromeAutoAppendTestTemplate extends Template
+{
+	public static bool $consumePageChrome = false;
+
+	public function __construct(
+		string $template_name,
+		?iHtmlTemplateRuntime $renderer = null,
+		?WidgetConnection $widget_connection = null,
+	) {
+	}
+
+	public function fetch(): string
+	{
+		if (!empty($this->props['is_chrome_marker'])) {
+			return '<div id="chrome">chrome</div>';
+		}
+
+		$page_chrome = self::$consumePageChrome ? $this->fetchContent('page_chrome') : '';
+
+		if (!empty($this->props['omit_body_close'])) {
+			return '<html><body><main>body</main>' . $page_chrome;
+		}
+
+		return '<html><body><main>body</main>' . $page_chrome . '</body></html>';
 	}
 }
