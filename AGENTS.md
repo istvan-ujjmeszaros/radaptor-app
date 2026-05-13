@@ -90,6 +90,15 @@ Example:
 - If a feature branch also needs framework/CMS/theme changes, make separate repo-local commits/PRs in the affected package repo.
 - After opening or updating a GitHub PR, request Codex review with a PR comment containing exactly `@codex review`. Do not use GitHub's normal reviewer API for `codex`; an `eyes` reaction means the bot accepted the request, not that review is complete.
 
+## GitHub PR Review Workflow
+
+- When addressing review feedback, use a thread-aware read of GitHub review threads; flat comment lists are not enough because they lose resolved/outdated state.
+- After implementing, validating, committing, and pushing a fix, always mark every review thread resolved that the pushed commit actually addresses.
+- Never resolve a thread just to clear the list. If a thread remains unresolved intentionally, say why and include the next concrete fix.
+- Before requesting a fresh `@codex review`, merging, or publishing, re-check unresolved review threads and report the count.
+- Merge and publish only after the relevant PR has no unresolved review threads, required checks are green or explicitly accepted, and any dependent lockfile/runtime update plan is clear.
+- After publishing a first-party package, update every dependent consumer lockfile/runtime that should consume the new immutable version, then commit those dependency updates separately.
+
 ## Destructive Operations Safety
 
 - Before any delete/overwrite operation against a first-party repo, run `git fetch && git diff origin/main` in that repo.
