@@ -18,7 +18,7 @@ radaptor_wrapper_read_env_value() {
 
 	[ -f "$env_file" ] || return 1
 
-	while IFS='=' read -r name value; do
+	while IFS='=' read -r name value || [ -n "$name" ]; do
 		[[ "$name" != "$key" ]] && continue
 		value="${value%$'\r'}"
 		value="${value%\"}"
