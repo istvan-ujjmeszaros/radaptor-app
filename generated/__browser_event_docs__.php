@@ -1091,6 +1091,7 @@ return [
 			'notes' => [
 				0 => 'APP_DEFAULT_LOCALE cannot be disabled.',
 				1 => 'Disabling a locale does not delete rows that already use it.',
+				2 => 'POST requests must pass same-origin Origin/Referer validation.',
 			],
 			'side_effects' => [
 				0 => 'Updates locales.is_enabled.',

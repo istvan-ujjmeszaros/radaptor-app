@@ -56,6 +56,11 @@ $purgeIntervalSeconds = max(1, (int) Config::EMAIL_QUEUE_PURGE_INTERVAL_SECONDS-
 \Swoole\Coroutine\run(function () use ($workerSleepSeconds, $purgeIntervalSeconds) {
 	$stopRequested = false;
 	$nextPurgeAt = time() + $purgeIntervalSeconds;
+	$workerInstanceId = RuntimeWorkerRegistry::register(
+		EmailQueueWorker::WORKER_TYPE,
+		EmailQueueWorker::QUEUE_NAME,
+		['command' => 'bin/swoole_queue_worker.php']
+	);
 
 	\Swoole\Process::signal(SIGTERM, static function () use (&$stopRequested) {
 		$stopRequested = true;
@@ -64,16 +69,32 @@ $purgeIntervalSeconds = max(1, (int) Config::EMAIL_QUEUE_PURGE_INTERVAL_SECONDS-
 		$stopRequested = true;
 	});
 
-	while (!$stopRequested) {
-		$processed = EmailQueueWorker::runOnce();
+	try {
+		while (!$stopRequested) {
+			if (RuntimeWorkerPauseControl::pauseIfRequested($workerInstanceId, EmailQueueWorker::WORKER_TYPE, EmailQueueWorker::QUEUE_NAME)) {
+				\Swoole\Coroutine::sleep($workerSleepSeconds);
 
-		if (time() >= $nextPurgeAt) {
-			EmailQueueStorage::purgeArchives();
-			$nextPurgeAt = time() + $purgeIntervalSeconds;
-		}
+				continue;
+			}
 
-		if (!$processed) {
-			\Swoole\Coroutine::sleep($workerSleepSeconds);
+			$processed = EmailQueueWorker::runOnce($workerInstanceId);
+
+			if (RuntimeWorkerPauseControl::getActivePauseRequest(EmailQueueWorker::WORKER_TYPE, EmailQueueWorker::QUEUE_NAME) !== null) {
+				\Swoole\Coroutine::sleep($workerSleepSeconds);
+
+				continue;
+			}
+
+			if (time() >= $nextPurgeAt) {
+				EmailQueueStorage::purgeArchives();
+				$nextPurgeAt = time() + $purgeIntervalSeconds;
+			}
+
+			if (!$processed) {
+				\Swoole\Coroutine::sleep($workerSleepSeconds);
+			}
 		}
+	} finally {
+		RuntimeWorkerRegistry::markStopping($workerInstanceId, EmailQueueWorker::WORKER_TYPE, EmailQueueWorker::QUEUE_NAME);
 	}
 });
