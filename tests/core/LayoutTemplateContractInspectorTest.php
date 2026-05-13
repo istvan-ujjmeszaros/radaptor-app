@@ -53,6 +53,29 @@ final class LayoutTemplateContractInspectorTest extends TestCase
 		$this->assertContains('getJsTop', $result['missing']);
 	}
 
+	public function testPageChromeIsNotRequiredBecauseRendererAutoAppendsIt(): void
+	{
+		$result = LayoutTemplateContractInspector::inspectFile($this->writeLayoutFixture(<<<'PHP'
+			<?php
+			?>
+			<!doctype html>
+			<html>
+			<head>
+				<?= $this->getCss() ?>
+				<?= $this->getJsTop() ?>
+			</head>
+			<body>
+					<?= $this->fetchSlot('content') ?>
+					<?= $this->getJs() ?>
+					<?= $this->fetchClosingHtml() ?>
+				</body>
+			</html>
+			PHP));
+
+		$this->assertSame('ok', $result['status']);
+		$this->assertNotContains('page_chrome', $result['missing']);
+	}
+
 	public function testExplicitHeaderSkipWithReasonPassesContract(): void
 	{
 		$result = LayoutTemplateContractInspector::inspectFile($this->writeLayoutFixture(<<<'PHP'
