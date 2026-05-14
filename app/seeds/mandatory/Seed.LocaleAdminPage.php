@@ -32,6 +32,11 @@ class SeedLocaleAdminPage extends AbstractSeed
 		ResourceTreeHandler::withProtectedResourceMutationBypass(function (): void {
 			$path_data = WidgetLocaleAdmin::getDefaultPathForCreation();
 			$site_context = ResourceTreeHandler::getActiveDomainContext();
+
+			if (!$this->canManageAdminTree($site_context)) {
+				return;
+			}
+
 			$existing_page = ResourceTreeHandler::getResourceTreeEntryData($path_data['path'], $path_data['resource_name'], $site_context);
 
 			if (is_array($existing_page) && !$this->isSkeletonOwnedResource((int) $existing_page['node_id'])) {
@@ -48,6 +53,19 @@ class SeedLocaleAdminPage extends AbstractSeed
 				$this->markSkeletonOwnedResource($page_id);
 			}
 		});
+	}
+
+	private function canManageAdminTree(string $site_context): bool
+	{
+		$admin_folder = ResourceTreeHandler::getResourceTreeEntryData('/', 'admin', $site_context);
+
+		if (!is_array($admin_folder) || !$this->isSkeletonOwnedResource((int) $admin_folder['node_id'])) {
+			return false;
+		}
+
+		$admin_page = ResourceTreeHandler::getResourceTreeEntryData('/admin/', 'index.html', $site_context);
+
+		return is_array($admin_page) && $this->isSkeletonOwnedResource((int) $admin_page['node_id']);
 	}
 
 	private function isSkeletonOwnedResource(int $resource_id): bool
