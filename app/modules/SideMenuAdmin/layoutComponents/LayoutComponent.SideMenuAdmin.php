@@ -27,6 +27,7 @@ class LayoutComponentSideMenuAdmin extends AbstractLayoutComponent
 			'admin.menu.resource_tree' => t('admin.menu.resource_tree'),
 			'admin.menu.translations' => t('admin.menu.translations'),
 			'admin.menu.import_export' => t('admin.menu.import_export'),
+			'admin.menu.locales' => t('admin.menu.locales'),
 			'admin.menu.email_outbox' => t('admin.menu.email_outbox'),
 			'admin.menu.admin_menu' => t('admin.menu.admin_menu'),
 			'admin.menu.theme_selector' => t('admin.menu.theme_selector'),

@@ -1,0 +1,3 @@
+domain,key,context,locale,source_text,expected_text,human_reviewed,text
+seed,locale_admin_page.description,,pt-BR,"Ensure /admin/i18n/locales.html webpage exists with the LocaleAdmin widget.","Ensure /admin/i18n/locales.html webpage exists with the LocaleAdmin widget.",0,"Ensure /admin/i18n/locales.html webpage exists with the LocaleAdmin widget."
+seed,locale_admin_page.error.ensure_failed,,pt-BR,"Unable to ensure default webpage for the LocaleAdmin widget.","Unable to ensure default webpage for the LocaleAdmin widget.",0,"Unable to ensure default webpage for the LocaleAdmin widget."
