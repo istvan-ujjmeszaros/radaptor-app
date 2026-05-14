@@ -87,6 +87,7 @@ return array (
   'admin.menu.email_outbox' => 'Email outbox',
   'admin.menu.home' => 'Admin home',
   'admin.menu.import_export' => 'Import / Export',
+  'admin.menu.locales' => 'Locales',
   'admin.menu.mailpit' => 'Mailpit',
   'admin.menu.mcp_tokens' => 'MCP tokens',
   'admin.menu.phpinfo' => 'PHPinfo',
