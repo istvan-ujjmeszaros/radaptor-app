@@ -108,6 +108,29 @@ templates, entities, roles), run the relevant `./radaptor.sh build:*` command.
 - CMS PHPStan from package-dev runtime:
   - `../bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`
 
+## Layout rename gate (install / update / local-lock:refresh)
+
+`radaptor install`, `radaptor update`, and `radaptor local-lock:refresh` detect
+`deprecated_layouts` declarations in incoming package `.registry-package.json`
+metadata and gate CMS-content mutation on a user decision. The gate runs AFTER
+the registry packages have been installed (so the latest `.registry-package.json`
+files are readable on disk) but BEFORE lockfile-write, asset-build, plugin-bridge,
+migrations, and seeds. An abort therefore leaves the registry refreshed but the
+follow-up steps unexecuted, and the CMS content (`attributes.resource_data.layout`
+and `attributes._theme_settings.<layout>`) is untouched; the next run resumes the
+gate.
+
+- TTY: interactive `[y/N]` prompt listing affected webpages and `_theme_settings` rows.
+- Non-interactive (CI, `--json`): pass one of
+  - `--apply-layout-renames`    apply the listed renames inside an audited transaction;
+  - `--abort-on-layout-renames` exit 1 before any content mutation.
+  Without either flag the command exits 1 and prints the required flag.
+- Applied renames write `cms_mutation_audit` rows with `operation='layout:rename'`
+  and per-resource leaf rows (`layout:rename:webpage`, `layout:rename:theme_settings`,
+  `layout:rename:theme_settings_conflict`). The audit table uses an independent PDO
+  connection, so the rows survive transaction rollback in tests; tests should clean
+  up rows they wrote.
+
 ## Admin/Login Browser Checks
 
 - Open the exact reported URL in a clean logged-out Playwright session first. Do not substitute
