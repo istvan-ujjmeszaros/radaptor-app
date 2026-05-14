@@ -384,6 +384,13 @@ return [
 						'required' => false,
 						'description' => 'Truth-y flag to mark the translation as human reviewed.',
 					],
+					6 => [
+						'name' => 'allow_source_match',
+						'source' => 'body',
+						'type' => 'string',
+						'required' => false,
+						'description' => 'Truth-y flag to allow an intentional source-text match.',
+					],
 				],
 			],
 			'response' => [
