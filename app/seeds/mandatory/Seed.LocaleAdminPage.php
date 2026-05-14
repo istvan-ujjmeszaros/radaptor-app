@@ -59,13 +59,53 @@ class SeedLocaleAdminPage extends AbstractSeed
 	{
 		$admin_folder = ResourceTreeHandler::getResourceTreeEntryData('/', 'admin', $site_context);
 
-		if (!is_array($admin_folder) || !$this->isSkeletonOwnedResource((int) $admin_folder['node_id'])) {
+		if (!is_array($admin_folder)) {
 			return false;
 		}
 
 		$admin_page = ResourceTreeHandler::getResourceTreeEntryData('/admin/', 'index.html', $site_context);
 
-		return is_array($admin_page) && $this->isSkeletonOwnedResource((int) $admin_page['node_id']);
+		if (!is_array($admin_page)) {
+			return false;
+		}
+
+		$admin_folder_id = (int) $admin_folder['node_id'];
+		$admin_page_id = (int) $admin_page['node_id'];
+
+		if ($this->isSkeletonOwnedResource($admin_folder_id) && $this->isSkeletonOwnedResource($admin_page_id)) {
+			return true;
+		}
+
+		if (!$this->isLegacyBootstrapAdminTree($admin_folder, $admin_page)) {
+			return false;
+		}
+
+		$this->markSkeletonOwnedResource($admin_folder_id);
+		$this->markSkeletonOwnedResource($admin_page_id);
+
+		return true;
+	}
+
+	private function isLegacyBootstrapAdminTree(array $admin_folder, array $admin_page): bool
+	{
+		if (($admin_folder['node_type'] ?? null) !== 'folder' || ($admin_page['node_type'] ?? null) !== 'webpage') {
+			return false;
+		}
+
+		if (($admin_page['layout'] ?? null) !== 'admin_default'
+			|| ($admin_page['title'] ?? null) !== 'Radaptor admin'
+			|| ($admin_page['description'] ?? null) !== 'Bootstrap administration dashboard.'
+		) {
+			return false;
+		}
+
+		$connection_id = Widget::getWidgetConnectionId(
+			(int) $admin_page['node_id'],
+			ResourceTypeWebpage::DEFAULT_SLOT_NAME,
+			WidgetList::PLAINHTML
+		);
+
+		return is_int($connection_id) && $connection_id > 0;
 	}
 
 	private function isSkeletonOwnedResource(int $resource_id): bool
