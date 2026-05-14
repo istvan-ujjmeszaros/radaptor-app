@@ -16,7 +16,7 @@ class SeedLocaleAdminPage extends AbstractSeed
 
 	public function getDescription(): string
 	{
-		return 'Ensure /admin/i18n/locales.html webpage exists with the LocaleAdmin widget.';
+		return t('seed.locale_admin_page.description');
 	}
 
 	public function getDependencies(): array
@@ -30,7 +30,7 @@ class SeedLocaleAdminPage extends AbstractSeed
 			$page_id = ResourceTypeWebpage::ensureDefaultWebpageWithWidget(WidgetList::LOCALEADMIN);
 
 			if ($page_id === false) {
-				throw new RuntimeException('Unable to ensure default webpage for widget ' . WidgetList::LOCALEADMIN);
+				throw new RuntimeException(t('seed.locale_admin_page.error.ensure_failed'));
 			}
 		});
 	}

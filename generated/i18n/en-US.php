@@ -837,6 +837,8 @@ return array (
   'runtime_diagnostics.yes' => 'yes',
   'runtime.site_cutover.readonly_message' => 'This site instance is locked read-only after a site migration export. Use the new site instance for further work, or explicitly release the cutover lock if you understand that the previous migration export may become inconsistent.',
   'runtime.site_cutover.readonly_title' => 'Site is read-only',
+  'seed.locale_admin_page.description' => 'Ensure /admin/i18n/locales.html webpage exists with the LocaleAdmin widget.',
+  'seed.locale_admin_page.error.ensure_failed' => 'Unable to ensure default webpage for the LocaleAdmin widget.',
   'selection.delete_invalid_entry_confirm' => 'Are you sure you want to delete this invalid entry?',
   'selection.delete_selected' => 'Delete selected',
   'selection.delete_selected_confirm' => 'Are you sure you want to delete all selected items?',
