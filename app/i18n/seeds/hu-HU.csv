@@ -1,3 +1,3 @@
-domain,key,context,locale,source_text,expected_text,human_reviewed,text
-seed,locale_admin_page.description,,hu-HU,"Ensure /admin/i18n/locales.html webpage exists with the LocaleAdmin widget.","A /admin/i18n/locales.html oldal létrehozása LocaleAdmin widgettel.",0,"A /admin/i18n/locales.html oldal létrehozása LocaleAdmin widgettel."
-seed,locale_admin_page.error.ensure_failed,,hu-HU,"Unable to ensure default webpage for the LocaleAdmin widget.","Nem sikerült létrehozni a LocaleAdmin widget alapértelmezett oldalát.",0,"Nem sikerült létrehozni a LocaleAdmin widget alapértelmezett oldalát."
+domain,key,context,locale,source_text,expected_text,human_reviewed,allow_source_match,text
+seed,locale_admin_page.description,,hu-HU,"Ensure /admin/i18n/locales.html webpage exists with the LocaleAdmin widget.","A /admin/i18n/locales.html oldal létrehozása LocaleAdmin widgettel.",0,0,"A /admin/i18n/locales.html oldal létrehozása LocaleAdmin widgettel."
+seed,locale_admin_page.error.ensure_failed,,hu-HU,"Unable to ensure default webpage for the LocaleAdmin widget.","Nem sikerült létrehozni a LocaleAdmin widget alapértelmezett oldalát.",0,0,"Nem sikerült létrehozni a LocaleAdmin widget alapértelmezett oldalát."
