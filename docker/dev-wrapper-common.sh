@@ -65,8 +65,12 @@ radaptor_wrapper_compose_base_args() {
 	if [ -z "$compose_files" ]; then
 		compose_files="docker-compose-dev.yml"
 
-		if [ "$workspace_dev_mode" = "1" ] && [ -f "../docker-compose.packages-dev.yml" ]; then
-			compose_files="${compose_files}:../docker-compose.packages-dev.yml"
+		if [ "$workspace_dev_mode" = "1" ]; then
+			if [ -f "docker-compose.packages-dev.yml" ]; then
+				compose_files="${compose_files}:docker-compose.packages-dev.yml"
+			elif [ -f "../docker-compose.packages-dev.yml" ]; then
+				compose_files="${compose_files}:../docker-compose.packages-dev.yml"
+			fi
 		fi
 	fi
 

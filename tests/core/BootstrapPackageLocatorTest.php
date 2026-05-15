@@ -228,6 +228,30 @@ final class BootstrapPackageLocatorTest extends TestCase
 		);
 	}
 
+	public function testResolveFrameworkRootRejectsAppRootPackagesDevOverride(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$devRoot = $appRoot . '/packages-dev';
+
+		putenv('RADAPTOR_DEV_ROOT=' . $devRoot);
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE=1');
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'core' => [
+				'framework' => [
+					'source' => [
+						'type' => 'dev',
+						'location' => 'core/framework',
+					],
+				],
+			],
+		]);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('must resolve outside the current app root');
+
+		radaptorAppBootstrapResolveFrameworkRoot($appRoot);
+	}
+
 	public function testResolveFrameworkRootPrefersLocalLockBeforeLocalManifest(): void
 	{
 		$appRoot = $this->_createTempAppRoot();

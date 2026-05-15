@@ -69,6 +69,7 @@ tmp
 !.env.example
 radaptor.local.json
 radaptor.local.lock.json
+packages-dev/
 generated/__autoload__.php
 generated/__package_assets__.json
 generated/__templates__.php

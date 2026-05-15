@@ -8,9 +8,7 @@ It is intentionally small:
 - first-run data: one bootstrap admin user; no public homepage (app-owned content is created
   explicitly through the admin UI or `resource-spec:sync`)
 
-For internal maintainer workspace topics such as `packages-dev/...`, `radaptor.local.json`, and
-the workspace package-dev Docker override, see the workspace-level
-[README.md](../README.md).
+For maintainer-local package work, see the editable first-party package repo workflow below.
 
 ## Create a new app from this skeleton
 
@@ -230,17 +228,17 @@ proof.
 
 ### Editable first-party package repos
 
-Editable first-party repos live at workspace root:
+Editable first-party repos live under the app root in the gitignored `packages-dev/` directory:
 
-- `/apps/_RADAPTOR/packages-dev/core/framework/`
-- `/apps/_RADAPTOR/packages-dev/core/cms/`
-- `/apps/_RADAPTOR/packages-dev/themes/<theme-id>/`
+- `packages-dev/core/framework/`
+- `packages-dev/core/cms/`
+- `packages-dev/themes/<theme-id>/`
 
 Standalone `docker-compose-dev.yml` stays registry-first. For first-party package dev mode,
-start the app through the workspace helper so `/workspace/packages-dev/...` is mounted:
+start the app through the package-dev helper so `/workspace/packages-dev/...` and the
+maintainer registry checkout are mounted:
 
 ```bash
-cd /apps/_RADAPTOR
 ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton up -d --build
 ```
 
@@ -250,16 +248,29 @@ To work on packages locally:
 2. create gitignored `radaptor.local.json`
 3. start the package-dev runtime via `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton ...`
 4. map first-party package `source.location` values under `core/...` or `themes/...`
-5. run `./radaptor install --json` or `./radaptor update --json`
+5. run app CLI commands that depend on local overrides through the same package-dev runtime:
+
+   ```bash
+   ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+     'cd /app && php radaptor.php install --json'
+   ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+     'cd /app && php radaptor.php update --json'
+   ```
 
 While local overrides are active, the app writes `radaptor.local.lock.json` instead of mutating
-the committed lockfile. Use `./radaptor local-lock:refresh --json` after the committed lockfile
-changes upstream and you want to reseed local dev state.
+the committed lockfile. Use the package-dev runtime after the committed lockfile changes upstream
+and you want to reseed local dev state:
 
-The workspace package-dev runtime makes dev mode explicit:
+```bash
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+  'cd /app && php radaptor.php local-lock:refresh --json'
+```
+
+The package-dev runtime makes dev mode explicit:
 - `RADAPTOR_WORKSPACE_DEV_MODE=1`
 - `RADAPTOR_DEV_ROOT=/workspace/packages-dev`
-- only the literal `RADAPTOR_WORKSPACE_DEV_MODE=1` value enables workspace dev mode
+- `RADAPTOR_PACKAGE_REGISTRY_ROOT=/workspace/radaptor_package_registry`
+- only the literal `RADAPTOR_WORKSPACE_DEV_MODE=1` value enables package-dev mode
 
 If `radaptor.local.json` exists without that runtime mode, bootstrap and CLI fail fast instead
 of guessing.
@@ -270,11 +281,12 @@ for first-party package development.
 Useful maintainer package commands:
 
 ```bash
-./radaptor package:status --json
-./radaptor package:release <package-key> --json
-./radaptor package:prerelease <package-key> --channel alpha|beta|rc --json
-cd /apps/_RADAPTOR && ./bin/check-workspace-package-state.sh --strict
-cd /apps/_RADAPTOR && ./bin/refresh-workspace-consumer-locks.sh
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+  'cd /app && php radaptor.php package:status --json'
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+  'cd /app && php radaptor.php package:release <package-key> --json'
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+  'cd /app && php radaptor.php package:prerelease <package-key> --channel alpha|beta|rc --json'
 ```
 
 The first-party package repos under `packages-dev/...` are full nested Git repos. Normal
@@ -295,7 +307,6 @@ For package work that must be published:
 6. Release from the package-dev runtime:
 
    ```bash
-   cd /apps/_RADAPTOR
    ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
      'cd /app && php radaptor.php package:release core:cms --json'
    ```
@@ -311,10 +322,16 @@ For package work that must be published:
 10. If `radaptor.local.json` is active, refresh local dev state afterwards:
 
     ```bash
-    ./radaptor local-lock:refresh --json
+    ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+      'cd /app && php radaptor.php local-lock:refresh --json'
     ```
 
-11. Run `./radaptor build:all` and smoke the affected browser/admin URLs.
+11. Run `build:all` through the package-dev runtime and smoke the affected browser/admin URLs:
+
+    ```bash
+    ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+      'cd /app && php radaptor.php build:all'
+    ```
 
 ## Repo baseline
 
@@ -329,8 +346,8 @@ pre-commit behavior.
 ## Notes
 
 - The committed manifest is registry-first. Maintainer-local first-party package development is
-  enabled through gitignored `radaptor.local.json`, but only when the workspace package-dev
-  compose override is active.
+  enabled through gitignored `radaptor.local.json`, but only when the package-dev compose override
+  is active.
 - Package assets are generated under `public/www/assets/packages/` and are git-ignored.
 - `framework`, `cms`, `portal-admin`, and `so-admin` are expected to come from the registry in
   committed state; local overrides are maintainer-only runtime state.

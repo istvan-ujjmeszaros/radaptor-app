@@ -1,0 +1,32 @@
+services:
+  web:
+    volumes:
+      - ./packages-dev:/workspace/packages-dev:ro
+      - ../radaptor_package_registry:/workspace/radaptor_package_registry:ro
+
+  php:
+    environment:
+      - RADAPTOR_WORKSPACE_DEV_MODE=1
+      - RADAPTOR_DEV_ROOT=/workspace/packages-dev
+      - RADAPTOR_PACKAGE_REGISTRY_ROOT=/workspace/radaptor_package_registry
+    volumes:
+      - ./packages-dev:/workspace/packages-dev
+      - ../radaptor_package_registry:/workspace/radaptor_package_registry
+
+  swoole-queue-worker:
+    environment:
+      - RADAPTOR_WORKSPACE_DEV_MODE=1
+      - RADAPTOR_DEV_ROOT=/workspace/packages-dev
+      - RADAPTOR_PACKAGE_REGISTRY_ROOT=/workspace/radaptor_package_registry
+    volumes:
+      - ./packages-dev:/workspace/packages-dev
+      - ../radaptor_package_registry:/workspace/radaptor_package_registry
+
+  mcp:
+    environment:
+      - RADAPTOR_WORKSPACE_DEV_MODE=1
+      - RADAPTOR_DEV_ROOT=/workspace/packages-dev
+      - RADAPTOR_PACKAGE_REGISTRY_ROOT=/workspace/radaptor_package_registry
+    volumes:
+      - ./packages-dev:/workspace/packages-dev
+      - ../radaptor_package_registry:/workspace/radaptor_package_registry
