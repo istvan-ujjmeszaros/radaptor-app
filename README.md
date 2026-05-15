@@ -235,7 +235,8 @@ Editable first-party repos live under the app root in the gitignored `packages-d
 - `packages-dev/themes/<theme-id>/`
 
 Standalone `docker-compose-dev.yml` stays registry-first. For first-party package dev mode,
-start the app through the package-dev helper so `/workspace/packages-dev/...` is mounted:
+start the app through the package-dev helper so `/workspace/packages-dev/...` and the
+maintainer registry checkout are mounted:
 
 ```bash
 ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton up -d --build
@@ -256,6 +257,7 @@ changes upstream and you want to reseed local dev state.
 The package-dev runtime makes dev mode explicit:
 - `RADAPTOR_WORKSPACE_DEV_MODE=1`
 - `RADAPTOR_DEV_ROOT=/workspace/packages-dev`
+- `RADAPTOR_PACKAGE_REGISTRY_ROOT=/workspace/radaptor_package_registry`
 - only the literal `RADAPTOR_WORKSPACE_DEV_MODE=1` value enables package-dev mode
 
 If `radaptor.local.json` exists without that runtime mode, bootstrap and CLI fail fast instead
