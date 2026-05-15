@@ -11,17 +11,17 @@ Claude-facing version for future sessions. Treat `AGENTS.md` as source of truth.
 - Maintainer-local first-party package development uses gitignored:
   - `radaptor.local.json`
   - `radaptor.local.lock.json`
-  - Runtime: `../bin/docker-compose-packages-dev.sh radaptor-app-skeleton ...`
+  - Runtime: `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton ...`
 
 ## Editable Package Repos
 
-Editable first-party repos are no longer app-local nested checkouts. They live at workspace root
-and are mounted into the package-dev runtime:
+Editable first-party repos live in the app-local, gitignored package-dev root and are mounted into
+the package-dev runtime:
 
-- `/apps/_RADAPTOR/packages-dev/core/framework` → `/workspace/packages-dev/core/framework`
-- `/apps/_RADAPTOR/packages-dev/core/cms` → `/workspace/packages-dev/core/cms`
-- `/apps/_RADAPTOR/packages-dev/themes/portal-admin` → `/workspace/packages-dev/themes/portal-admin`
-- `/apps/_RADAPTOR/packages-dev/themes/so-admin` → `/workspace/packages-dev/themes/so-admin`
+- `packages-dev/core/framework` → `/workspace/packages-dev/core/framework`
+- `packages-dev/core/cms` → `/workspace/packages-dev/core/cms`
+- `packages-dev/themes/portal-admin` → `/workspace/packages-dev/themes/portal-admin`
+- `packages-dev/themes/so-admin` → `/workspace/packages-dev/themes/so-admin`
 
 Do not treat stale app-local `packages/dev/...` content as source of truth.
 
@@ -72,8 +72,8 @@ Do not treat stale app-local `packages/dev/...` content as source of truth.
 ## Worktree & Destructive Operations
 
 - Git worktrees must stay registry-first. Do not commit first-party `dev` sources in `radaptor.json`.
-- First-party package modifications happen in `/apps/_RADAPTOR/packages-dev/...`, not inside a
-  worktree copy of the app. Separate repo-local commits/PRs in the affected package repo.
+- First-party package modifications happen in the app-local `packages-dev/...` nested repos, not in
+  `packages/registry/...`. Separate repo-local commits/PRs in the affected package repo.
 - Before any delete/overwrite against a first-party repo: `git fetch && git diff origin/main` first.
 - NEVER treat stale files under an app-local `packages/dev/...` as canonical.
 - If a registry package path resolves to an editable checkout, or anything under
@@ -104,9 +104,9 @@ templates, entities, roles), run the relevant `./radaptor.sh build:*` command.
 - `docker compose -f docker-compose-dev.yml exec -T -e XDEBUG_MODE=off php phpstan analyze`
 - `docker compose -f docker-compose-dev.yml exec -T php bash -lc 'cd /app && ./php-cs-fixer.sh --config=.php-cs-fixer.php'`
 - Framework PHPStan from package-dev runtime:
-  - `../bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/framework/phpstan.neon`
+  - `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/framework/phpstan.neon`
 - CMS PHPStan from package-dev runtime:
-  - `../bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`
+  - `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T -e XDEBUG_MODE=off php vendor/bin/phpstan analyse -a /workspace/packages-dev/core/framework/classes/phpstan/class.NonHtmlResponseHeaderDetectionRule.php -c /workspace/packages-dev/core/cms/phpstan.neon`
 
 ## Layout rename gate (install / update / local-lock:refresh)
 

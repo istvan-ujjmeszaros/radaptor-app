@@ -228,6 +228,64 @@ final class BootstrapPackageLocatorTest extends TestCase
 		);
 	}
 
+	public function testResolveFrameworkRootAllowsAppLocalPackagesDevOverride(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$devRoot = $appRoot . '/packages-dev';
+		$frameworkRoot = $devRoot . '/core/framework';
+		mkdir($frameworkRoot, 0o777, true);
+		file_put_contents($frameworkRoot . '/bootstrap.php', '<?php');
+
+		putenv('RADAPTOR_DEV_ROOT=' . $devRoot);
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE=1');
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'core' => [
+				'framework' => [
+					'source' => [
+						'type' => 'dev',
+						'location' => 'core/framework',
+					],
+				],
+			],
+		]);
+		$this->_writeJson($appRoot . '/radaptor.json', [
+			'registries' => [
+				'default' => [
+					'url' => radaptorAppBootstrapGetPlaceholderRegistryUrl(),
+				],
+			],
+		]);
+
+		$this->assertSame(
+			radaptorAppBootstrapNormalizePath($frameworkRoot),
+			radaptorAppBootstrapResolveFrameworkRoot($appRoot)
+		);
+	}
+
+	public function testResolveFrameworkRootRejectsAppLocalDevRootOutsidePackagesDev(): void
+	{
+		$appRoot = $this->_createTempAppRoot();
+		$devRoot = $appRoot . '/tmp/package-dev';
+
+		putenv('RADAPTOR_DEV_ROOT=' . $devRoot);
+		putenv('RADAPTOR_WORKSPACE_DEV_MODE=1');
+		$this->_writeJson($appRoot . '/radaptor.local.json', [
+			'core' => [
+				'framework' => [
+					'source' => [
+						'type' => 'dev',
+						'location' => 'core/framework',
+					],
+				],
+			],
+		]);
+
+		$this->expectException(RuntimeException::class);
+		$this->expectExceptionMessage('app-local overrides may only use packages-dev');
+
+		radaptorAppBootstrapResolveFrameworkRoot($appRoot);
+	}
+
 	public function testResolveFrameworkRootPrefersLocalLockBeforeLocalManifest(): void
 	{
 		$appRoot = $this->_createTempAppRoot();

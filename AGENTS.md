@@ -18,13 +18,19 @@ Maintainer-local dev state is opt-in and gitignored:
 
 ### Canonical editable repos
 
-First-party editable repos live outside the app tree:
-- host path: `/apps/_RADAPTOR/packages-dev/core/framework`
-- host path: `/apps/_RADAPTOR/packages-dev/core/cms`
-- host path: `/apps/_RADAPTOR/packages-dev/themes/portal-admin`
-- host path: `/apps/_RADAPTOR/packages-dev/themes/so-admin`
+First-party editable repos live in the app-local, gitignored `packages-dev/` directory:
+- host path: `packages-dev/core/framework`
+- host path: `packages-dev/core/cms`
+- host path: `packages-dev/themes/portal-admin`
+- host path: `packages-dev/themes/so-admin`
 
-Inside Docker, the same repos are visible under the workspace package-dev compose override:
+Clone them from these GitHub SSH origins:
+- `packages-dev/core/framework`: `git@github.com:istvan-ujjmeszaros/radaptor-framework.git`
+- `packages-dev/core/cms`: `git@github.com:istvan-ujjmeszaros/radaptor-cms.git`
+- `packages-dev/themes/portal-admin`: `git@github.com:istvan-ujjmeszaros/radaptor-portal-admin.git`
+- `packages-dev/themes/so-admin`: `git@github.com:istvan-ujjmeszaros/radaptor-so-admin.git`
+
+Inside Docker, the same repos are visible under the package-dev compose override:
 - `/workspace/packages-dev/core/framework`
 - `/workspace/packages-dev/core/cms`
 - `/workspace/packages-dev/themes/portal-admin`
@@ -86,7 +92,7 @@ Example:
 ## Worktree Isolation Rule
 
 - Git worktrees must stay registry-first. Do not commit first-party `dev` sources in `radaptor.json`.
-- First-party package modifications happen in `/apps/_RADAPTOR/packages-dev/...`, not inside a worktree copy of the app.
+- First-party package modifications happen in the app-local `packages-dev/...` nested repos, not in `packages/registry/...`.
 - If a feature branch also needs framework/CMS/theme changes, make separate repo-local commits/PRs in the affected package repo.
 - After opening or updating a GitHub PR, request Codex review with a PR comment containing exactly `@codex review`. Do not use GitHub's normal reviewer API for `codex`; an `eyes` reaction means the bot accepted the request, not that review is complete.
 

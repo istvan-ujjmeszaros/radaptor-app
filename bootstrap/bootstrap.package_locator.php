@@ -140,14 +140,22 @@ if (!function_exists('radaptorAppBootstrapResolveLocalOverrideLocation')) {
 
 		$dev_root = radaptorAppBootstrapGetDevRoot($app_root);
 		$resolved = radaptorAppBootstrapNormalizePath(rtrim($dev_root, '/') . '/' . implode('/', $segments));
-		$normalized_app_root = rtrim(radaptorAppBootstrapNormalizePath($app_root), '/');
 
 		if (!str_starts_with($resolved . '/', rtrim($dev_root, '/') . '/')) {
 			throw new RuntimeException("Local package override location '{$location}' resolves outside RADAPTOR_DEV_ROOT.");
 		}
 
-		if ($resolved === $normalized_app_root || str_starts_with($resolved, $normalized_app_root . '/')) {
-			throw new RuntimeException("Local package override location '{$location}' must resolve outside the current app root.");
+		$normalized_app_root = rtrim(radaptorAppBootstrapNormalizePath($app_root), '/');
+		$app_local_dev_root = $normalized_app_root . '/packages-dev';
+
+		if (
+			($resolved === $normalized_app_root || str_starts_with($resolved, $normalized_app_root . '/'))
+			&& !str_starts_with($resolved . '/', $app_local_dev_root . '/')
+		) {
+			throw new RuntimeException(
+				"Local package override location '{$location}' must resolve under RADAPTOR_DEV_ROOT, "
+				. "and app-local overrides may only use packages-dev."
+			);
 		}
 
 		return $resolved;
