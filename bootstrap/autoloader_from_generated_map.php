@@ -158,10 +158,6 @@ class AutoloaderFromGeneratedMap
 				$type = $segments[2] === 'core' ? 'core' : ($segments[2] === 'themes' ? 'theme' : null);
 				$id = $segments[3] ?? null;
 				$relative_inside_package = implode('/', array_slice($segments, 4));
-			} elseif ($segments[0] === 'plugins' && count($segments) >= 4) {
-				$type = 'plugin';
-				$id = $segments[2] ?? null;
-				$relative_inside_package = implode('/', array_slice($segments, 3));
 			} else {
 				return null;
 			}

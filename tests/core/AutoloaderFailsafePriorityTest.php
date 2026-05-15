@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
-final class AutoloaderFailsafePluginPriorityTest extends TestCase
+final class AutoloaderFailsafePriorityTest extends TestCase
 {
 	/** @var string[] */
 	private array $cleanupDirectories = [];
@@ -36,7 +36,7 @@ final class AutoloaderFailsafePluginPriorityTest extends TestCase
 	public function testFailsafeAutoloadMapIncludesNewAppClass(): void
 	{
 		$module_id = 'AutoloaderShadow' . bin2hex(random_bytes(4));
-		$class_name = 'PluginPriorityShadow' . bin2hex(random_bytes(4));
+		$class_name = 'AutoloaderPriorityShadow' . bin2hex(random_bytes(4));
 		$module_dir = DEPLOY_ROOT . 'app/modules/' . $module_id;
 		$class_file = $module_dir . '/classes/class.' . $class_name . '.php';
 
