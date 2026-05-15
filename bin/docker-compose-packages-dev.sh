@@ -14,6 +14,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mkdir -p "$PROJECT_ROOT/packages-dev"
 
 export COMPOSE_PROJECT_NAME="$PROJECT_NAME"
+export RADAPTOR_DOCKER_VOLUME_PREFIX="${RADAPTOR_DOCKER_VOLUME_PREFIX:-$PROJECT_NAME}"
 
 cd "$PROJECT_ROOT"
 exec docker compose \
