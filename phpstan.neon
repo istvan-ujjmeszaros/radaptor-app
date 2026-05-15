@@ -9,7 +9,7 @@ parameters:
 		- tests/core/ConfigTest.php
 		- tests/core/PackageConfigTest.php
 		- tests/core/PackageLockfileTest.php
-		- tests/core/PackageVersionHelperTest.php
+		- tests/core/PluginVersionHelperTest.php
 		- tests/core/SkeletonBootstrapSeedTest.php
 	tmpDir: tmp
 	dynamicConstantNames:

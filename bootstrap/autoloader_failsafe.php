@@ -9,7 +9,7 @@ if (!is_string($framework_root) || !is_dir($framework_root)) {
 }
 
 foreach ([
-	rtrim($framework_root, '/') . '/classes/class.PackageVersionHelper.php' => 'PackageVersionHelper',
+	rtrim($framework_root, '/') . '/classes/class.PluginVersionHelper.php' => 'PluginVersionHelper',
 	rtrim($framework_root, '/') . '/classes/class.PackageDependencyHelper.php' => 'PackageDependencyHelper',
 	rtrim($framework_root, '/') . '/classes/class.PackageTypeHelper.php' => 'PackageTypeHelper',
 	rtrim($framework_root, '/') . '/classes/class.PackageLockfile.php' => 'PackageLockfile',

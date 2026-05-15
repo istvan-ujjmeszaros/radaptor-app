@@ -91,6 +91,10 @@ packages/registry/core/*
 !packages/registry/core/.gitkeep
 packages/registry/themes/*
 !packages/registry/themes/.gitkeep
+plugins/dev/*
+!plugins/dev/.gitkeep
+plugins/registry/*
+!plugins/registry/.gitkeep
 
 # Database data (production)
 .data/

@@ -30,17 +30,17 @@ final class PackageLockfileTest extends TestCase
 		PackageLockfile::write([
 			'lockfile_version' => 1,
 			'packages' => [
-				'core:cms' => [
-					'type' => 'core',
-					'id' => 'cms',
-					'package' => 'radaptor/core/cms',
+				'plugin:audit' => [
+					'type' => 'plugin',
+					'id' => 'audit',
+					'package' => 'radaptor/plugins/audit',
 					'source' => [
 						'type' => 'dev',
-						'path' => 'packages/dev/core/cms',
+						'path' => 'plugins/dev/audit',
 					],
 					'resolved' => [
 						'type' => 'dev',
-						'path' => 'packages/dev/core/cms',
+						'path' => 'plugins/dev/audit',
 						'version' => '0.1.0',
 					],
 				],
@@ -49,23 +49,23 @@ final class PackageLockfileTest extends TestCase
 
 		$first = PackageLockfile::loadFromPath($this->lock_path);
 
-		$this->assertArrayHasKey('core:cms', $first['packages']);
-		$this->assertArrayNotHasKey('theme:portal-admin', $first['packages']);
+		$this->assertArrayHasKey('plugin:audit', $first['packages']);
+		$this->assertArrayNotHasKey('plugin:tracker', $first['packages']);
 
 		PackageLockfile::write([
 			'lockfile_version' => 1,
 			'packages' => [
-				'theme:portal-admin' => [
-					'type' => 'theme',
-					'id' => 'portal-admin',
-					'package' => 'radaptor/themes/portal-admin',
+				'plugin:tracker' => [
+					'type' => 'plugin',
+					'id' => 'tracker',
+					'package' => 'radaptor/plugins/tracker',
 					'source' => [
 						'type' => 'dev',
-						'path' => 'packages/dev/themes/portal-admin',
+						'path' => 'plugins/dev/tracker',
 					],
 					'resolved' => [
 						'type' => 'dev',
-						'path' => 'packages/dev/themes/portal-admin',
+						'path' => 'plugins/dev/tracker',
 						'version' => '0.1.0',
 					],
 				],
@@ -74,7 +74,7 @@ final class PackageLockfileTest extends TestCase
 
 		$second = PackageLockfile::loadFromPath($this->lock_path);
 
-		$this->assertArrayHasKey('theme:portal-admin', $second['packages']);
-		$this->assertArrayNotHasKey('core:cms', $second['packages']);
+		$this->assertArrayHasKey('plugin:tracker', $second['packages']);
+		$this->assertArrayNotHasKey('plugin:audit', $second['packages']);
 	}
 }

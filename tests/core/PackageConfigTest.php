@@ -54,8 +54,8 @@ final class PackageConfigTest extends TestCase
 		$package_id = 'testpkgcfg';
 		$package_root = $this->makePackageRoot();
 		$default_path = $package_root . '/config/default.php';
-		$override_path = PackageConfig::getAppOverridePath('core', $package_id);
-		$local_override_path = PackageConfig::getAppOverridePath('core', $package_id, true);
+		$override_path = PackageConfig::getAppOverridePath('plugin', $package_id);
+		$local_override_path = PackageConfig::getAppOverridePath('plugin', $package_id, true);
 		$this->cleanup_files[] = $override_path;
 		$this->cleanup_files[] = $local_override_path;
 
@@ -90,7 +90,7 @@ final class PackageConfigTest extends TestCase
 			];
 			PHP);
 
-		$config = PackageConfig::load('core', $package_id, $package_root);
+		$config = PackageConfig::load('plugin', $package_id, $package_root);
 
 		$this->assertSame(null, $config['dsn']);
 		$this->assertSame('override', $config['flag']);
@@ -102,8 +102,8 @@ final class PackageConfigTest extends TestCase
 			],
 			$config['nested']
 		);
-		$this->assertTrue((bool) PackageConfig::get('core', $package_id, 'local_only', false, $package_root));
-		$this->assertSame('fallback', PackageConfig::get('core', $package_id, 'missing', 'fallback', $package_root));
+		$this->assertTrue((bool) PackageConfig::get('plugin', $package_id, 'local_only', false, $package_root));
+		$this->assertSame('fallback', PackageConfig::get('plugin', $package_id, 'missing', 'fallback', $package_root));
 	}
 
 	public function testPackageConfigSupportsCoreAndThemeDefaults(): void
@@ -129,6 +129,28 @@ final class PackageConfigTest extends TestCase
 		);
 	}
 
+	public function testPluginConfigHelperDelegatesToPackageConfig(): void
+	{
+		$plugin_id = 'testplugincfg';
+		$plugin_root = $this->makePackageRoot();
+		$override_path = PackageConfig::getAppOverridePath('plugin', $plugin_id);
+		$this->cleanup_files[] = $override_path;
+		file_put_contents($plugin_root . '/config/default.php', <<<'PHP'
+			<?php
+			return ['value' => 'default'];
+			PHP);
+		$this->ensureDirectory(dirname($override_path));
+		file_put_contents($override_path, <<<'PHP'
+			<?php
+			return ['value' => 'override'];
+			PHP);
+
+		$this->assertSame(
+			PackageConfig::load('plugin', $plugin_id, $plugin_root),
+			PluginConfigHelper::load($plugin_id, $plugin_root)
+		);
+	}
+
 	public function testPackageConfigRejectsNonArrayFiles(): void
 	{
 		$this->expectException(RuntimeException::class);
@@ -140,19 +162,19 @@ final class PackageConfigTest extends TestCase
 			return 'invalid';
 			PHP);
 
-		PackageConfig::load('core', 'badconfig', $package_root);
+		PackageConfig::load('plugin', 'badconfig', $package_root);
 	}
 
 	public function testPackageConfigDoesNotSilentlyIgnoreCorruptLockfile(): void
 	{
-		file_put_contents(self::$packageLockPath, "{\n\t\"lockfile_version\": 1,\n\t\"packages\": {\n");
+		file_put_contents(self::$packageLockPath, "{\n\t\"lockfile_version\": 1,\n\t\"plugins\": {\n");
 		PackageLockfile::reset(self::$packageLockPath);
 		PackageConfig::reset();
 
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage('Unable to load package lockfile while resolving config base path');
 
-		PackageConfig::load('core', 'cms');
+		PackageConfig::load('plugin', 'audit');
 	}
 
 	private function makePackageRoot(): string

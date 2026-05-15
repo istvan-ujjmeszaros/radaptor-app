@@ -13,7 +13,7 @@
             },
             "resolved": {
                 "dist_sha256": "63f6d011300a637c5220ebe716d18969b61d59a8777a48d39763b9f463d48feb",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.29/package.zip",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.29/plugin.zip",
                 "path": "packages/registry/core/cms",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
@@ -42,7 +42,7 @@
             },
             "resolved": {
                 "dist_sha256": "2306dba8c91c9f00536e582642565ca6d69870782f7b027e59b713d4bc05f312",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-framework/0.1.34/package.zip",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-framework/0.1.34/plugin.zip",
                 "path": "packages/registry/core/framework",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
@@ -70,7 +70,7 @@
             },
             "resolved": {
                 "dist_sha256": "042e6b40f356b8e842691dfe062dfd3ada3de3ae0d2809781183c6fdc5873ed3",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-portal-admin/0.1.15/package.zip",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-portal-admin/0.1.15/plugin.zip",
                 "path": "packages/registry/themes/portal-admin",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
@@ -110,7 +110,7 @@
             },
             "resolved": {
                 "dist_sha256": "aef456bfe7a3aa91cafa8bfa74020e9efab4835f3f55c8641246cd04f774fdd0",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-so-admin/0.1.14/package.zip",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-so-admin/0.1.14/plugin.zip",
                 "path": "packages/registry/themes/so-admin",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",

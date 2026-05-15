@@ -114,8 +114,8 @@ templates, entities, roles), run the relevant `./radaptor.sh build:*` command.
 `deprecated_layouts` declarations in incoming package `.registry-package.json`
 metadata and gate CMS-content mutation on a user decision. The gate runs AFTER
 the registry packages have been installed (so the latest `.registry-package.json`
-files are readable on disk) but BEFORE lockfile-write, asset-build, migrations,
-and seeds. An abort therefore leaves the registry refreshed but the
+files are readable on disk) but BEFORE lockfile-write, asset-build, plugin-bridge,
+migrations, and seeds. An abort therefore leaves the registry refreshed but the
 follow-up steps unexecuted, and the CMS content (`attributes.resource_data.layout`
 and `attributes._theme_settings.<layout>`) is untouched; the next run resumes the
 gate.

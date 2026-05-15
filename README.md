@@ -5,6 +5,7 @@ as the starting point for new consumer apps.
 
 It is intentionally small:
 - default packages: `framework`, `cms`, `portal-admin`
+- default plugins: none
 - first-run data: one bootstrap admin user; no public homepage (app-owned content is created
   explicitly through the admin UI or `resource-spec:sync`)
 
@@ -217,7 +218,7 @@ Supported maintainer release commands:
 After releasing:
 
 1. commit the bumped `.registry-package.json` in the package repo
-2. commit + push the `radaptor_package_registry` repo (auto-deploys to packages.radaptor.com)
+2. commit + push the `radaptor_plugin_registry` repo (auto-deploys to packages.radaptor.com)
 3. run `./radaptor update --ignore-local-overrides --json` so the consumer picks up the new
    version
 
@@ -301,7 +302,7 @@ For package work that must be published:
    ```
 
 7. Commit/push the package repo `.registry-package.json` bump.
-8. Commit/push `radaptor_package_registry`, then wait for the deploy workflow.
+8. Commit/push `radaptor_plugin_registry`, then wait for the deploy workflow.
 9. Refresh this app in registry-first mode:
 
    ```bash
