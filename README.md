@@ -248,11 +248,23 @@ To work on packages locally:
 2. create gitignored `radaptor.local.json`
 3. start the package-dev runtime via `./bin/docker-compose-packages-dev.sh radaptor-app-skeleton ...`
 4. map first-party package `source.location` values under `core/...` or `themes/...`
-5. run `./radaptor install --json` or `./radaptor update --json`
+5. run app CLI commands that depend on local overrides through the same package-dev runtime:
+
+   ```bash
+   ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+     'cd /app && php radaptor.php install --json'
+   ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+     'cd /app && php radaptor.php update --json'
+   ```
 
 While local overrides are active, the app writes `radaptor.local.lock.json` instead of mutating
-the committed lockfile. Use `./radaptor local-lock:refresh --json` after the committed lockfile
-changes upstream and you want to reseed local dev state.
+the committed lockfile. Use the package-dev runtime after the committed lockfile changes upstream
+and you want to reseed local dev state:
+
+```bash
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+  'cd /app && php radaptor.php local-lock:refresh --json'
+```
 
 The package-dev runtime makes dev mode explicit:
 - `RADAPTOR_WORKSPACE_DEV_MODE=1`
@@ -269,9 +281,12 @@ for first-party package development.
 Useful maintainer package commands:
 
 ```bash
-./radaptor package:status --json
-./radaptor package:release <package-key> --json
-./radaptor package:prerelease <package-key> --channel alpha|beta|rc --json
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+  'cd /app && php radaptor.php package:status --json'
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+  'cd /app && php radaptor.php package:release <package-key> --json'
+./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+  'cd /app && php radaptor.php package:prerelease <package-key> --channel alpha|beta|rc --json'
 ```
 
 The first-party package repos under `packages-dev/...` are full nested Git repos. Normal
@@ -307,10 +322,16 @@ For package work that must be published:
 10. If `radaptor.local.json` is active, refresh local dev state afterwards:
 
     ```bash
-    ./radaptor local-lock:refresh --json
+    ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+      'cd /app && php radaptor.php local-lock:refresh --json'
     ```
 
-11. Run `./radaptor build:all` and smoke the affected browser/admin URLs.
+11. Run `build:all` through the package-dev runtime and smoke the affected browser/admin URLs:
+
+    ```bash
+    ./bin/docker-compose-packages-dev.sh radaptor-app-skeleton exec -T php bash -lc \
+      'cd /app && php radaptor.php build:all'
+    ```
 
 ## Repo baseline
 
