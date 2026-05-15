@@ -256,6 +256,42 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$this->assertSame('req_test', $bootstrap['requestId']);
 	}
 
+	public function testRadaptorDebugBootstrapStampsRootElementsWhenStableContainerIsMissing(): void
+	{
+		RequestContextHolder::current()->debug = DebugSessionState::enabled(
+			sessionId: 'dbg_test',
+			requestId: 'req_test',
+			features: ['tree', 'dommap', 'messages', 'timings']
+		);
+
+		$renderer = new HtmlTreeRenderer();
+		$node = SduiNode::create(
+			component: 'statusMessage',
+			props: [
+				'severity' => 'info',
+				'message' => 'Stamped message',
+			],
+			meta: [
+				'widget_connection' => [
+					'connection_id' => 22,
+					'widget_name' => 'StatusMessage',
+					'slot_name' => 'content',
+					'seq' => 1,
+				],
+			],
+		);
+
+		$html = $renderer->render($node);
+		$bootstrap = $renderer->getBootstrap();
+
+		$this->assertStringContainsString('data-radaptor-node="n0"', $html);
+		$this->assertStringContainsString('data-radaptor-owner="wc:22"', $html);
+		$this->assertStringContainsString('data-radaptor-widget="StatusMessage"', $html);
+		$this->assertSame('root-elements', $bootstrap['nodes']['n0']['domMode']);
+		$this->assertGreaterThan(0, $bootstrap['nodes']['n0']['domAnchorCount']);
+		$this->assertNotEmpty($bootstrap['nodes']['n0']['renderTemplates']);
+	}
+
 	public function testRendererAccumulatesAssetsDuringRender(): void
 	{
 		$theme = ThemeBase::factory('RadaptorPortalAdmin');
