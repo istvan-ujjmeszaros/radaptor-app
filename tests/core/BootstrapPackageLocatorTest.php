@@ -70,10 +70,10 @@ final class BootstrapPackageLocatorTest extends TestCase
 	public function testResolveUrlPreservesCredentialsForRelativeRegistryPaths(): void
 	{
 		$this->assertSame(
-			'https://user:token@example.test/packages/radaptor-core-framework/0.1.0/plugin.zip',
+			'https://user:token@example.test/packages/radaptor-core-framework/0.1.0/package.zip',
 			radaptorAppBootstrapResolveUrl(
 				'https://user:token@example.test/registry.json',
-				'packages/radaptor-core-framework/0.1.0/plugin.zip'
+				'packages/radaptor-core-framework/0.1.0/package.zip'
 			)
 		);
 	}
@@ -81,10 +81,10 @@ final class BootstrapPackageLocatorTest extends TestCase
 	public function testResolveUrlRebasesTemplatePlaceholderDistUrlToConfiguredRegistryAuthority(): void
 	{
 		$this->assertSame(
-			'https://user:token@example.test/packages/radaptor-core-framework/0.1.0/plugin.zip',
+			'https://user:token@example.test/packages/radaptor-core-framework/0.1.0/package.zip',
 			radaptorAppBootstrapResolveUrl(
 				'https://user:token@example.test/registry.json',
-				'https://packages.example.invalid/packages/radaptor-core-framework/0.1.0/plugin.zip'
+				'https://packages.example.invalid/packages/radaptor-core-framework/0.1.0/package.zip'
 			)
 		);
 	}
@@ -92,10 +92,10 @@ final class BootstrapPackageLocatorTest extends TestCase
 	public function testResolveUrlPreservesFileAuthorityForUncStyleRegistryPaths(): void
 	{
 		$this->assertSame(
-			'file://server/share/packages/radaptor-core-framework/0.1.0/plugin.zip',
+			'file://server/share/packages/radaptor-core-framework/0.1.0/package.zip',
 			radaptorAppBootstrapResolveUrl(
 				'file://server/share/registry.json',
-				'packages/radaptor-core-framework/0.1.0/plugin.zip'
+				'packages/radaptor-core-framework/0.1.0/package.zip'
 			)
 		);
 	}
@@ -125,7 +125,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 		$archiveDirectory = $registryRoot . '/packages/radaptor-core-framework/0.1.0';
 		mkdir($archiveDirectory, 0o777, true);
 
-		$archivePath = $archiveDirectory . '/plugin.zip';
+		$archivePath = $archiveDirectory . '/package.zip';
 		$this->_createFrameworkArchive($archivePath, [
 			'bootstrap.php' => '<?php echo "framework bootstrap";',
 			'bootstrap.autoloader.php' => '<?php echo "autoload";',
@@ -144,7 +144,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 			$appRoot,
 			'radaptor/core/framework',
 			'0.1.0',
-			'packages/radaptor-core-framework/0.1.0/plugin.zip',
+			'packages/radaptor-core-framework/0.1.0/package.zip',
 			$archiveSha
 		);
 
@@ -280,7 +280,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 	{
 		$appRoot = $this->_createTempAppRoot();
 		$this->_writeJson($appRoot . '/radaptor.local.json', [
-			'plugins' => [],
+			'invalid' => [],
 		]);
 
 		$this->expectException(RuntimeException::class);
@@ -362,7 +362,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 		mkdir($customFrameworkRoot, 0o777, true);
 		file_put_contents($customFrameworkRoot . '/bootstrap.php', '<?php');
 		$this->_writeJson($appRoot . '/radaptor.local.json', [
-			'plugins' => [],
+			'invalid' => [],
 		]);
 		$this->_writeJson($appRoot . '/radaptor.json', [
 			'registries' => [
@@ -405,7 +405,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 		$archiveDirectory = $registryRoot . '/packages/radaptor-core-framework/0.1.0';
 		mkdir($archiveDirectory, 0o777, true);
 
-		$archivePath = $archiveDirectory . '/plugin.zip';
+		$archivePath = $archiveDirectory . '/package.zip';
 		$this->_createFrameworkArchive($archivePath, [
 			'bootstrap.php' => '<?php echo "framework bootstrap";',
 			'.registry-package.json' => json_encode(['name' => 'radaptor/core/framework'], JSON_PRETTY_PRINT),
@@ -429,7 +429,7 @@ final class BootstrapPackageLocatorTest extends TestCase
 						'registry' => 'default',
 						'version' => '0.1.0',
 						'path' => 'packages/dev/core/framework',
-						'dist_url' => 'packages/radaptor-core-framework/0.1.0/plugin.zip',
+						'dist_url' => 'packages/radaptor-core-framework/0.1.0/package.zip',
 						'dist_sha256' => $archiveSha,
 					],
 				],

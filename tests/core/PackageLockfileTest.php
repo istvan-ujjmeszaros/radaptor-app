@@ -30,17 +30,17 @@ final class PackageLockfileTest extends TestCase
 		PackageLockfile::write([
 			'lockfile_version' => 1,
 			'packages' => [
-				'plugin:audit' => [
-					'type' => 'plugin',
-					'id' => 'audit',
-					'package' => 'radaptor/plugins/audit',
+				'core:cms' => [
+					'type' => 'core',
+					'id' => 'cms',
+					'package' => 'radaptor/core/cms',
 					'source' => [
 						'type' => 'dev',
-						'path' => 'plugins/dev/audit',
+						'path' => 'packages/dev/core/cms',
 					],
 					'resolved' => [
 						'type' => 'dev',
-						'path' => 'plugins/dev/audit',
+						'path' => 'packages/dev/core/cms',
 						'version' => '0.1.0',
 					],
 				],
@@ -49,23 +49,23 @@ final class PackageLockfileTest extends TestCase
 
 		$first = PackageLockfile::loadFromPath($this->lock_path);
 
-		$this->assertArrayHasKey('plugin:audit', $first['packages']);
-		$this->assertArrayNotHasKey('plugin:tracker', $first['packages']);
+		$this->assertArrayHasKey('core:cms', $first['packages']);
+		$this->assertArrayNotHasKey('theme:portal-admin', $first['packages']);
 
 		PackageLockfile::write([
 			'lockfile_version' => 1,
 			'packages' => [
-				'plugin:tracker' => [
-					'type' => 'plugin',
-					'id' => 'tracker',
-					'package' => 'radaptor/plugins/tracker',
+				'theme:portal-admin' => [
+					'type' => 'theme',
+					'id' => 'portal-admin',
+					'package' => 'radaptor/themes/portal-admin',
 					'source' => [
 						'type' => 'dev',
-						'path' => 'plugins/dev/tracker',
+						'path' => 'packages/dev/themes/portal-admin',
 					],
 					'resolved' => [
 						'type' => 'dev',
-						'path' => 'plugins/dev/tracker',
+						'path' => 'packages/dev/themes/portal-admin',
 						'version' => '0.1.0',
 					],
 				],
@@ -74,7 +74,7 @@ final class PackageLockfileTest extends TestCase
 
 		$second = PackageLockfile::loadFromPath($this->lock_path);
 
-		$this->assertArrayHasKey('plugin:tracker', $second['packages']);
-		$this->assertArrayNotHasKey('plugin:audit', $second['packages']);
+		$this->assertArrayHasKey('theme:portal-admin', $second['packages']);
+		$this->assertArrayNotHasKey('core:cms', $second['packages']);
 	}
 }

@@ -123,7 +123,7 @@ final class PackageReleaseServiceTest extends TestCase
 	public function testReleaseWarnsWhenWorkspaceConsumerLockFallsBehind(): void
 	{
 		$workspaceRoot = $this->makeTempDirectory('workspace');
-		$registryRoot = $workspaceRoot . '/radaptor_plugin_registry';
+		$registryRoot = $workspaceRoot . '/radaptor_package_registry';
 		$consumerRoot = $workspaceRoot . '/consumer-app';
 		$packageRoot = $this->makeTempDirectory('package');
 
@@ -178,7 +178,7 @@ final class PackageReleaseServiceTest extends TestCase
 						'registry_url' => 'https://packages.radaptor.com/registry.json',
 						'version' => '0.1.0',
 						'path' => 'packages/registry/core/tooling',
-						'dist_url' => 'https://packages.radaptor.com/packages/radaptor-core-tooling/0.1.0/plugin.zip',
+						'dist_url' => 'https://packages.radaptor.com/packages/radaptor-core-tooling/0.1.0/package.zip',
 						'dist_sha256' => 'abc123',
 					],
 				],
