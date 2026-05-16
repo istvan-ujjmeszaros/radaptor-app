@@ -209,7 +209,7 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		RequestContextHolder::current()->debug = DebugSessionState::enabled(
 			sessionId: 'dbg_test',
 			requestId: 'req_test',
-			features: ['tree', 'dommap', 'messages', 'timings']
+			features: ['tree', 'dommap', 'timings']
 		);
 
 		$renderer = new HtmlTreeRenderer();
@@ -261,7 +261,7 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		RequestContextHolder::current()->debug = DebugSessionState::enabled(
 			sessionId: 'dbg_test',
 			requestId: 'req_test',
-			features: ['tree', 'dommap', 'messages', 'timings']
+			features: ['tree', 'dommap', 'timings']
 		);
 
 		$renderer = new HtmlTreeRenderer();

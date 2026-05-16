@@ -35,7 +35,7 @@ final class DebugSessionTest extends TestCase
 		$this->assertTrue(DebugSession::isEnabled());
 		$this->assertStringStartsWith('dbg_', DebugSession::sessionId());
 		$this->assertStringStartsWith('req_', DebugSession::requestId());
-		$this->assertSame(['tree', 'dommap', 'messages', 'timings'], DebugSession::features());
+		$this->assertSame(['tree', 'dommap', 'timings'], DebugSession::features());
 	}
 
 	public function testBeginIfRequestedStaysDisabledWithoutHeader(): void
