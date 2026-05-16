@@ -204,6 +204,94 @@ final class HtmlTreeRendererRuntimeTest extends TestCase
 		$this->assertSame('hu-HU', $decoded['locale'] ?? null);
 	}
 
+	public function testRadaptorDebugBootstrapTracksStableContainersAndMasksSensitiveProps(): void
+	{
+		RequestContextHolder::current()->debug = DebugSessionState::enabled(
+			sessionId: 'dbg_test',
+			requestId: 'req_test',
+			features: ['tree', 'dommap', 'timings']
+		);
+
+		$renderer = new HtmlTreeRenderer();
+		$node = SduiNode::create(
+			component: '_contentContainer',
+			props: [
+				'label' => 'Visible label',
+				'api_key' => 'secret-value',
+			],
+			contents: [
+				'content' => [
+					SduiNode::create(
+						component: '_contentContainer',
+						contents: ['content' => []],
+						meta: ['stable_container_id' => 'fragment-child-12']
+					),
+				],
+			],
+			meta: [
+				'stable_container_id' => 'fragment-widget-12',
+				'widget_connection' => [
+					'connection_id' => 12,
+					'widget_name' => 'PlainHtml',
+					'slot_name' => 'content',
+					'seq' => 3,
+				],
+			],
+		);
+
+		$html = $renderer->render($node);
+		$bootstrap = $renderer->getBootstrap();
+
+		$this->assertStringContainsString('data-radaptor-node="n0"', $html);
+		$this->assertStringContainsString('data-radaptor-owner="wc:12"', $html);
+		$this->assertStringContainsString('data-radaptor-widget="PlainHtml"', $html);
+		$this->assertStringContainsString('data-radaptor-node="n1"', $html);
+
+		$this->assertSame(['n0'], $bootstrap['roots']);
+		$this->assertSame(['n1'], $bootstrap['nodes']['n0']['children']);
+		$this->assertSame('wc:12', $bootstrap['nodes']['n1']['ownerWidgetConnectionId']);
+		$this->assertSame('stable-container', $bootstrap['nodes']['n0']['domMode']);
+		$this->assertSame('Visible label', $bootstrap['nodes']['n0']['propsPreview']['label']);
+		$this->assertSame('***', $bootstrap['nodes']['n0']['propsPreview']['api_key']);
+		$this->assertSame('req_test', $bootstrap['requestId']);
+	}
+
+	public function testRadaptorDebugBootstrapStampsRootElementsWhenStableContainerIsMissing(): void
+	{
+		RequestContextHolder::current()->debug = DebugSessionState::enabled(
+			sessionId: 'dbg_test',
+			requestId: 'req_test',
+			features: ['tree', 'dommap', 'timings']
+		);
+
+		$renderer = new HtmlTreeRenderer();
+		$node = SduiNode::create(
+			component: 'statusMessage',
+			props: [
+				'severity' => 'info',
+				'message' => 'Stamped message',
+			],
+			meta: [
+				'widget_connection' => [
+					'connection_id' => 22,
+					'widget_name' => 'StatusMessage',
+					'slot_name' => 'content',
+					'seq' => 1,
+				],
+			],
+		);
+
+		$html = $renderer->render($node);
+		$bootstrap = $renderer->getBootstrap();
+
+		$this->assertStringContainsString('data-radaptor-node="n0"', $html);
+		$this->assertStringContainsString('data-radaptor-owner="wc:22"', $html);
+		$this->assertStringContainsString('data-radaptor-widget="StatusMessage"', $html);
+		$this->assertSame('root-elements', $bootstrap['nodes']['n0']['domMode']);
+		$this->assertGreaterThan(0, $bootstrap['nodes']['n0']['domAnchorCount']);
+		$this->assertNotEmpty($bootstrap['nodes']['n0']['renderTemplates']);
+	}
+
 	public function testRendererAccumulatesAssetsDuringRender(): void
 	{
 		$theme = ThemeBase::factory('RadaptorPortalAdmin');

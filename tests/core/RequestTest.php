@@ -54,6 +54,30 @@ class RequestTest extends TestCase
 		}
 	}
 
+	public function testHeaderReadsRequestContextServer(): void
+	{
+		RequestContextHolder::initializeRequest(server: ['HTTP_RADAPTOR_DEBUG' => ' 1 ']);
+
+		$this->assertSame('1', Request::header('Radaptor-Debug'));
+	}
+
+	public function testHeaderFallsBackToServerSuperglobalBeforeKernelInitialization(): void
+	{
+		$previous = $_SERVER['HTTP_RADAPTOR_DEBUG'] ?? null;
+		$_SERVER['HTTP_RADAPTOR_DEBUG'] = '1';
+		RequestContextHolder::initializeRequest();
+
+		try {
+			$this->assertSame('1', Request::header('Radaptor-Debug'));
+		} finally {
+			if ($previous === null) {
+				unset($_SERVER['HTTP_RADAPTOR_DEBUG']);
+			} else {
+				$_SERVER['HTTP_RADAPTOR_DEBUG'] = $previous;
+			}
+		}
+	}
+
 	public function testWantsNonHtmlResponseDetectsJsonAcceptHeader(): void
 	{
 		RequestContextHolder::initializeRequest(server: ['HTTP_ACCEPT' => 'application/json']);
