@@ -12,16 +12,16 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "13d507504a9e7fd103e4b4d96bae8f7507ececf3a9f7d39cac79b7ae7d8a3891",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.30/package.zip",
+                "dist_sha256": "e90b62d194bebc5e0f6a71429f2378eda83142237a4a1c9af6561980f7624365",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-cms/0.1.31/package.zip",
                 "path": "packages/registry/core/cms",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.30"
+                "version": "0.1.31"
             },
             "dependencies": {
-                "radaptor/core/framework": "^0.1.35"
+                "radaptor/core/framework": "^0.1.36"
             },
             "composer": {
                 "require": {
@@ -41,13 +41,13 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "854b29b33cdf3f7fe6bc2350ce1054c266b9ff9d1e63e383ea78114dfaaa92d2",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-framework/0.1.35/package.zip",
+                "dist_sha256": "70ed945c1a43fed2ef9002231f9a9ff2d1f226451b9ad27d1635be2002501c7c",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-core-framework/0.1.36/package.zip",
                 "path": "packages/registry/core/framework",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.35"
+                "version": "0.1.36"
             },
             "dependencies": [],
             "composer": {
@@ -69,16 +69,16 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "042e6b40f356b8e842691dfe062dfd3ada3de3ae0d2809781183c6fdc5873ed3",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-portal-admin/0.1.15/package.zip",
+                "dist_sha256": "b838057dbee9b0a7be05fd8368f8029ac2730edf1746c024199603ebfc9cb4f5",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-portal-admin/0.1.16/package.zip",
                 "path": "packages/registry/themes/portal-admin",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.15"
+                "version": "0.1.16"
             },
             "dependencies": {
-                "radaptor/core/cms": "^0.1.29"
+                "radaptor/core/cms": "^0.1.31"
             },
             "composer": {
                 "require": {
@@ -109,16 +109,16 @@
                 "version": "^0.1.0"
             },
             "resolved": {
-                "dist_sha256": "aef456bfe7a3aa91cafa8bfa74020e9efab4835f3f55c8641246cd04f774fdd0",
-                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-so-admin/0.1.14/package.zip",
+                "dist_sha256": "529b7ba93d012731c82a29cf876cc7618b7da58044bc1f4566d1237a2b164725",
+                "dist_url": "https://packages.radaptor.com/packages/radaptor-themes-so-admin/0.1.15/package.zip",
                 "path": "packages/registry/themes/so-admin",
                 "registry": "default",
                 "registry_url": "https://packages.radaptor.com/registry.json",
                 "type": "registry",
-                "version": "0.1.14"
+                "version": "0.1.15"
             },
             "dependencies": {
-                "radaptor/core/cms": "^0.1.29"
+                "radaptor/core/cms": "^0.1.31"
             },
             "composer": {
                 "require": {
